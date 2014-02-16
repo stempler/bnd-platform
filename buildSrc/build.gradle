@@ -22,5 +22,5 @@ dependencies {
 //	compile 'biz.aQute:bndlib:1.50.0'
 	compile 'org.osgi:org.osgi.core:4.3.0'
 	compile 'de.undercouch:gradle-download-task:0.5'
-	groovy localGroovy()
+	compile localGroovy()
 }
