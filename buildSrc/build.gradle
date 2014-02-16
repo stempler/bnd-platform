@@ -17,9 +17,10 @@ repositories {
 }
 
 dependencies {
-	compile gradleApi(), 
-	'biz.aQute:bnd:1.50.0', 
-	//'biz.aQute:bndlib:1.50.0',
-	'org.osgi:org.osgi.core:4.3.0'
+	compile gradleApi()
+	compile 'biz.aQute:bnd:1.50.0'
+//	compile 'biz.aQute:bndlib:1.50.0'
+	compile 'org.osgi:org.osgi.core:4.3.0'
+	compile 'de.undercouch:gradle-download-task:0.5'
 	groovy localGroovy()
 }

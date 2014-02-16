@@ -25,6 +25,13 @@ public class PlatformPlugin implements Plugin<Project> {
 	//public static final String TASK_CLEAN_BUNDLES = "cleanBundles"
 	
 	private Project project
+	
+	private File bundlesDir
+	private File featureFile
+	private File categoryFile
+	private File featuresDir
+	
+	private def artifacts
 
 	@Override
 	public void apply(Project project) {
@@ -32,6 +39,13 @@ public class PlatformPlugin implements Plugin<Project> {
 
 		// register extension
 		project.extensions.create('platform', PlatformPluginExtension)
+		
+		// initialize file/directory members
+		// names are fixed because of update site conventions
+		bundlesDir = new File(project.buildDir, 'plugins')
+		featureFile = new File(project.buildDir, 'feature.xml')
+		categoryFile = new File(project.buildDir, 'category.xml')
+		featuresDir = new File(project.buildDir, 'features')
 		
 		// create configuration
 		project.configurations.create CONF_PLATFORM
@@ -46,9 +60,9 @@ public class PlatformPlugin implements Plugin<Project> {
 				}
 			}
 			
-			// bundles directory default
-			if (project.platform.bundlesDir == null) {
-				project.platform.bundlesDir = new File(project.buildDir, 'bundles')
+			// update site directory default
+			if (project.platform.updateSiteDir == null) {
+				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
 			}
 		}
 
@@ -76,13 +90,13 @@ public class PlatformPlugin implements Plugin<Project> {
 
 				// create artifact info representations
 				// qualified name is mapped to artifact infos
-				def artifacts = [:]
+				artifacts = [:]
 				resolved.resolvedArtifacts.each {
 					def info = collectArtifactInfo(it)
 					artifacts[info.qname] = info
 				}
 				
-				File targetDir = project.platform.bundlesDir
+				File targetDir = bundlesDir
 				targetDir.mkdirs()
 
 				if(!artifacts) {
@@ -103,17 +117,18 @@ public class PlatformPlugin implements Plugin<Project> {
 				def bnd = new bnd()
 
 				artifacts.values().each {
-					def outputFileName = new File(targetDir, it.targetname)
+					def outputFile = new File(targetDir, it.targetname)
+					it.outfile = outputFile
 						
 					if(it.source) {
 						// source jar
 						project.logger.info "-> Copying source jar ${it.qname}..."
-						project.ant.copy ( file : it.file , tofile : outputFileName )
+						project.ant.copy ( file : it.file , tofile : outputFile )
 						//TODO update to include Eclipse source information
 					} else if (it.wrap) {
 						// normal jar
 						project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
-						bnd.doWrap(null, it.file, outputFileName as File, jarFiles as File[], 0, [
+						bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
 							(Analyzer.BUNDLE_VERSION): it.modversion,
 							(Analyzer.BUNDLE_NAME): it.bundlename,
 							(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname
@@ -121,13 +136,143 @@ public class PlatformPlugin implements Plugin<Project> {
 					}
 					else {
 						project.logger.info "-> Copying artifact $it.qname; ${it.reason}..."
-						project.ant.copy ( file : it.file , tofile : outputFileName )
+						project.ant.copy ( file : it.file , tofile : outputFile )
 					}
 				}
 			}
 		})
+		
+		/*
+		 * Generate a feature.xml from the target file.
+		 */
+		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
+			featureFile.parentFile.mkdirs()
+			
+			featureFile.withWriter('UTF-8'){
+				w ->
+				def xml = new groovy.xml.MarkupBuilder(w)
+				xml.setDoubleQuotes(true)
+				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
+				
+				xml.feature(
+					id: project.platform.featureId, 
+					label: project.platform.featureName,
+					version: project.platform.featureVersion
+				) {
+					for (def artifact : artifacts.values()) {
+						// define each plug-in
+						plugin(
+							id: artifact.symbolicname,
+							'download-size': 0,
+							'install-size': 0,
+							version: artifact.modversion,
+							unpack: false)
+					}
+				}
+			}
+			
+			project.logger.info 'Generated feature.xml.'
+		}
+		
+		/*
+		 * Create Feature JAR.
+		 */
+		Task bundleFeatureTask = project.task('bundleFeature', dependsOn: generateFeatureTask).doFirst {
+			featuresDir.mkdirs()
+			// create feature jar
+			def target = new File(featuresDir,
+				"${project.platform.featureId}_${project.platform.featureVersion}.jar")
+			project.ant.zip(destfile: target) {
+				fileset(dir: project.buildDir) {
+					include(name: 'feature.xml')
+				}
+			}
+			
+			project.logger.info 'Packaged feature.'
+		}
+		
+		/*
+		 * Generate category.xml.
+		 */
+		Task generateCategoryTask = project.task('generateCategory').doFirst {
+			categoryFile.parentFile.mkdirs()
+			
+			categoryFile.withWriter('UTF-8'){
+				w ->
+				def xml = new groovy.xml.MarkupBuilder(w)
+				xml.setDoubleQuotes(true)
+				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
+				
+				xml.site{
+					// the feature
+					feature(url: "features/${project.platform.featureId}_${project.platform.featureVersion}.jar",
+							id: project.platform.featureId,
+							version: project.platform.featureVersion) {
+						// associate the feature to the category
+						category(name: project.platform.categoryId)
+					}
+					// define the category
+					'category-def'(name: project.platform.categoryId, label: project.platform.categoryName)
+				}
+			}
+			
+			project.logger.info 'Generated category.xml.'
+		}
+		
+		/*
+		 * Build a p2 repository with all the bundles
+		 */
+		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeatureTask, generateCategoryTask]).doFirst {
+			project.platform.updateSiteDir.mkdirs()
+			
+			def eclipseHome = System.properties['ECLIPSE_HOME']
+			assert eclipseHome
+			
+			// find launcher jar
+			def launcherFiles = project.ant.fileScanner {
+				fileset(dir: eclipseHome) {
+					include(name: 'plugins/org.eclipse.equinox.launcher_*.jar')
+				}
+			}
+			def launcherJar = launcherFiles.iterator().next()
+			assert launcherJar
+			
+			project.logger.info "Using Eclipse at $eclipseHome for p2 repository generation."
+			
+			/*
+			 * Documentation on Publisher:
+			 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
+			 * http://wiki.eclipse.org/Equinox/p2/Publisher
+			 */
+			
+			// launch Publisher for Features and Bundles
+			def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
+			def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
+			project.exec {
+				commandLine 'java', '-jar', launcherJar,
+					'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
+					'-metadataRepository', repoDirUri,
+					'-artifactRepository', repoDirUri,
+					'-source', project.buildDir,
+					'-configs', 'ANY', '-publishArtifacts', '-compress'
+			}
+			
+			// launch Publisher for category / site.xml
+			project.exec {
+				commandLine 'java', '-jar', launcherJar,
+					'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
+					'-metadataRepository', repoDirUri,
+					'-categoryDefinition', categoryFileUri,
+					'-compress'
+			}
+			
+			project.logger.info 'Built p2 repository.'
+		}
 	}
 	
+	/**
+	 * Collect artifact/bundle information based on a given resolved artifact.
+	 */
 	protected def collectArtifactInfo(ResolvedArtifact artifact) {
 		// extract information from artifact
 		def file = artifact.file
@@ -154,6 +299,10 @@ public class PlatformPlugin implements Plugin<Project> {
 			// never wrap
 			wrap = false
 			reason = 'artifact type not supported'
+			if (source) {
+				symbolicname += '.source'
+				bundlename += ' Sources'
+			}
 		}
 		else {
 			JarFile jar = new JarFile(file)
