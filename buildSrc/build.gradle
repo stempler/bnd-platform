@@ -14,7 +14,6 @@ repositories {
 	mavenLocal()
 	mavenCentral()
 	maven {url "http://repo.aduna-software.org/maven2/releases/"}
-	
 }
 
 dependencies {

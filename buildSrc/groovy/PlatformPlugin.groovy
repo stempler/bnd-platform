@@ -1,6 +1,7 @@
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.jar.*
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -11,36 +12,60 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedArtifact
 
 import org.osgi.framework.Version
+import org.osgi.framework.Constants
 
 import aQute.bnd.main.bnd
 import aQute.lib.osgi.Analyzer
 
 
-public class BundleDepsPlugin implements Plugin<Project> {
+public class PlatformPlugin implements Plugin<Project> {
 
-	public static final String TASK_BUNDLE_DEPS = 'bundles'
+	public static final String TASK_BUNDLES = 'bundles'
+	public static final String CONF_PLATFORM = 'platform'
 	//public static final String TASK_CLEAN_BUNDLES = "cleanBundles"
 	
 	private Project project
 
-	public BundleDepsPlugin() {
-	}
-
 	@Override
 	public void apply(Project project) {
 		this.project = project
-		if(!project.getPlugins().findPlugin('java'))
-		project.apply(plugin:'java')
 
-		// create bundleDeps task
-		Task tbd = project.task(TASK_BUNDLE_DEPS)
-		tbd.dependsOn('buildNeeded')
-		tbd.doFirst(new Action(){
+		// register extension
+		project.extensions.create('platform', PlatformPluginExtension)
+		
+		// create configuration
+		project.configurations.create CONF_PLATFORM
+		
+		project.afterEvaluate {
+			if (project.platform.fetchSources) {
+				// add source as additional dependency for each registered dependency
+				project.dependencies {
+					project.configurations.getByName(CONF_PLATFORM).allDependencies.each {
+						platform group: it.group, name: it.name, version: it.version, classifier: 'sources'
+					}
+				}
+			}
+			
+			// bundles directory default
+			if (project.platform.bundlesDir == null) {
+				project.platform.bundlesDir = new File(project.buildDir, 'bundles')
+			}
+		}
+
+		// create bundles task
+		Task bundlesTask = project.task(TASK_BUNDLES)
+		
+		// depend on the artifacts (rather than a task)
+		//XXX not sure if this really has any effect
+		bundlesTask.dependsOn(project.configurations.getByName(CONF_PLATFORM).allArtifacts.buildDependencies)
+		
+		// define bundles task
+		bundlesTask.doFirst(new Action(){
 			@Override
 			public void execute(Object target) {
 				assert project
 
-				Configuration config = project.getConfigurations().getByName('compile')
+				Configuration config = project.getConfigurations().getByName(CONF_PLATFORM)
 				ResolvedConfiguration resolved = config.resolvedConfiguration
 				
 				if (project.logger.infoEnabled) {
@@ -57,7 +82,8 @@ public class BundleDepsPlugin implements Plugin<Project> {
 					artifacts[info.qname] = info
 				}
 				
-				String targetDir = "wrapped-jars"
+				File targetDir = project.platform.bundlesDir
+				targetDir.mkdirs()
 
 				if(!artifacts) {
 					project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
@@ -77,20 +103,16 @@ public class BundleDepsPlugin implements Plugin<Project> {
 				def bnd = new bnd()
 
 				artifacts.values().each {
-					def outputFileName = project.file(targetDir + File.separator + it.targetname)
+					def outputFileName = new File(targetDir, it.targetname)
 						
 					if(it.source) {
 						// source jar
-						project.logger.info "Copying source jar ${it.qname}..."
+						project.logger.info "-> Copying source jar ${it.qname}..."
 						project.ant.copy ( file : it.file , tofile : outputFileName )
 						//TODO update to include Eclipse source information
 					} else if (it.wrap) {
 						// normal jar
-					
-						// test if jar already is a bundle
-					
-						//assert it instanceof File && it.name.endsWith(".jar")
-						project.logger.info "Wrapping jar ${it.qname} as OSGi bundle using bnd..."
+						project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
 						bnd.doWrap(null, it.file, outputFileName as File, jarFiles as File[], 0, [
 							(Analyzer.BUNDLE_VERSION): it.modversion,
 							(Analyzer.BUNDLE_NAME): it.bundlename,
@@ -98,7 +120,7 @@ public class BundleDepsPlugin implements Plugin<Project> {
 						])
 					}
 					else {
-						project.logger.info "Copying artifact $it.qname; ${it.reason}..."
+						project.logger.info "-> Copying artifact $it.qname; ${it.reason}..."
 						project.ant.copy ( file : it.file , tofile : outputFileName )
 					}
 				}
@@ -119,7 +141,11 @@ public class BundleDepsPlugin implements Plugin<Project> {
 		
 		// is this a source bundle
 		def source = artifact.classifier == 'sources'
-		
+
+		// bundle and symbolic name
+		def bundlename = group + '.' + name
+		def symbolicname = bundlename
+				
 		// should the bundle be wrapped?
 		def wrap
 		// reason why a bundle is not wrapped
@@ -130,8 +156,22 @@ public class BundleDepsPlugin implements Plugin<Project> {
 			reason = 'artifact type not supported'
 		}
 		else {
-			//TODO check if already a bundle
-			wrap = true
+			JarFile jar = new JarFile(file)
+			String symName = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_SYMBOLICNAME)
+			
+			if (symName) {
+				// assume it's already a bundle
+				wrap = false
+				reason = 'jar already constains OSGi manifest entries'
+
+				// determine bundle names
+				symbolicname = symName
+				bundlename = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_NAME)
+			}
+			else {
+				// not a bundle yet
+				wrap = true
+			}
 		}
 		
 		// the unified name (that is equal for corresponding source and normal jars)
@@ -144,10 +184,6 @@ public class BundleDepsPlugin implements Plugin<Project> {
 		else {
 			qname = uname
 		}
-		
-		// bundle and symbolic name
-		def bundlename = group + '.' + name
-		def symbolicname = bundlename
 		
 		// an eventually modified version
 		def modversion = version

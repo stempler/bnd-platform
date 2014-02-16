@@ -1,6 +1,5 @@
-apply plugin: 'java'
-//apply plugin: 'eclipse'
-apply plugin: BundleDepsPlugin
+
+apply plugin: PlatformPlugin
 
 repositories {
 	// First check local cache before accessing central repository
@@ -18,28 +17,28 @@ repositories {
 }
 
 
-//configurations {
-//	compile { transitive = true }
-//}
+platform {
+	fetchSources = true
+}
 
 project.ext {
 	
 	//tinkerpopVersion='2.1.0'
 	//sesameVersion='2.6.9'
-	//groovyVersion='2.0.0'
+	groovyVersion='2.1.5'
 }
 
 dependencies {
-	//compile ("org.codehaus.groovy:groovy-all:${groovyVersion}"){force=true}
+	platform "org.codehaus.groovy:groovy:${groovyVersion}"
 	// "org.openrdf.sesame:sesame-sail-api:${sesameVersion}",
-	compile 'org.slf4j:slf4j-api:1.7.5'
-	compile 'org.slf4j:slf4j-api:1.7.5:sources'
+	platform 'org.slf4j:slf4j-api:1.7.5'
+//	platform 'org.slf4j:slf4j-api:1.7.5:sources'
 //	compile "org.neo4j:neo4j:1.8" 
 	//"com.tinkerpop.blueprints:blueprints-core:${tinkerpopVersion}",
 	//"com.tinkerpop:frames:${tinkerpopVersion}",
 	//"com.tinkerpop.gremlin:gremlin-groovy:${tinkerpopVersion}",
 	//"com.tinkerpop.blueprints:blueprints-neo4j-graph:${tinkerpopVersion}",
-//	"net.sf.opencsv:opencsv:2.3"
+	platform "net.sf.opencsv:opencsv:2.3"
 //"org.openrdf.sesame:sesame-runtime-osgi:${sesameVersion}"
 //	"org.openrdf.sesame:sesame-repository-sail:${sesameVersion}",
 //	"org.openrdf.sesame:sesame-sail-memory:${sesameVersion}"
