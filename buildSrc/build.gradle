@@ -1,0 +1,26 @@
+apply plugin: 'groovy'
+
+
+//override default src/main/groovy directory
+sourceSets {
+	main {
+		groovy {
+			srcDir 'groovy'
+		}
+	}
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	maven {url "http://repo.aduna-software.org/maven2/releases/"}
+	
+}
+
+dependencies {
+	compile gradleApi(), 
+	'biz.aQute:bnd:1.50.0', 
+	//'biz.aQute:bndlib:1.50.0',
+	'org.osgi:org.osgi.core:4.3.0'
+	groovy localGroovy()
+}
