@@ -143,6 +143,17 @@ public class PlatformPlugin implements Plugin<Project> {
 		})
 		
 		/*
+		 * Clean task.
+		 */
+		project.task('clean').doLast {
+			featureFile.delete()
+			categoryFile.delete()
+			featuresDir.deleteDir()
+			bundlesDir.deleteDir()
+			project.platform.updateSiteDir.deleteDir()
+		}
+		
+		/*
 		 * Generate a feature.xml from the target file.
 		 */
 		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
