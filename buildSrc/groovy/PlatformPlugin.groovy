@@ -22,7 +22,6 @@ public class PlatformPlugin implements Plugin<Project> {
 
 	public static final String TASK_BUNDLES = 'bundles'
 	public static final String CONF_PLATFORM = 'platform'
-	//public static final String TASK_CLEAN_BUNDLES = "cleanBundles"
 	
 	private Project project
 	
@@ -51,15 +50,6 @@ public class PlatformPlugin implements Plugin<Project> {
 		project.configurations.create CONF_PLATFORM
 		
 		project.afterEvaluate {
-			if (project.platform.fetchSources) {
-				// add source as additional dependency for each registered dependency
-				project.dependencies {
-					project.configurations.getByName(CONF_PLATFORM).allDependencies.each {
-						platform group: it.group, name: it.name, version: it.version, classifier: 'sources'
-					}
-				}
-			}
-			
 			// update site directory default
 			if (project.platform.updateSiteDir == null) {
 				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
@@ -74,73 +64,82 @@ public class PlatformPlugin implements Plugin<Project> {
 		bundlesTask.dependsOn(project.configurations.getByName(CONF_PLATFORM).allArtifacts.buildDependencies)
 		
 		// define bundles task
-		bundlesTask.doFirst(new Action(){
-			@Override
-			public void execute(Object target) {
-				assert project
+		bundlesTask.doFirst {
+			assert project
 
-				Configuration config = project.getConfigurations().getByName(CONF_PLATFORM)
-				ResolvedConfiguration resolved = config.resolvedConfiguration
-				
-				if (project.logger.infoEnabled) {
-					// output some debug information on the configuration
-					configInfo(config, project.logger.&info)
-					resolvedConfigInfo(resolved, project.logger.&info)
-				}
+			Configuration config = project.getConfigurations().getByName(CONF_PLATFORM)
+			ResolvedConfiguration resolved = config.resolvedConfiguration
+			
+			if (project.logger.infoEnabled) {
+				// output some debug information on the configuration
+				configInfo(config, project.logger.&info)
+				resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&info)
+			}
 
-				// create artifact info representations
-				// qualified name is mapped to artifact infos
-				artifacts = [:]
-				resolved.resolvedArtifacts.each {
+			// create artifact info representations
+			// qualified name is mapped to artifact infos
+			artifacts = [:]
+			resolved.resolvedArtifacts.each {
+				def info = collectArtifactInfo(it)
+				artifacts[info.qname] = info
+			}
+			
+			// source artifacts
+			if (project.platform.fetchSources) {
+				def sourceArtifacts = DependencyHelper.resolveSourceArtifacts(config, project.configurations)
+				sourceArtifacts.each {
 					def info = collectArtifactInfo(it)
 					artifacts[info.qname] = info
 				}
 				
-				File targetDir = bundlesDir
-				targetDir.mkdirs()
+				// output info
+				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
+			}
+			
+			File targetDir = bundlesDir
+			targetDir.mkdirs()
 
-				if(!artifacts) {
-					project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
-					return
-				} else {
-					project.logger.info "Processing ${artifacts.size()} dependency artifacts:"
+			if(!artifacts) {
+				project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
+				return
+			} else {
+				project.logger.info "Processing ${artifacts.size()} dependency artifacts:"
+			}
+			
+			def jarFiles = artifacts.values().collect {
+				it.file
+			}
+
+			/*
+			 * Currently referring to bnd version 1.50.0
+			 * https://github.com/bndtools/bnd/blob/74cb2aabc743e5d3c22cc40905fe4cd6867176da/biz.aQute.bnd/src/aQute/bnd/main/bnd.java 
+			 */
+			def bnd = new bnd()
+
+			artifacts.values().each {
+				def outputFile = new File(targetDir, it.targetname)
+				it.outfile = outputFile
+					
+				if(it.source) {
+					// source jar
+					project.logger.info "-> Copying source jar ${it.qname}..."
+					project.ant.copy ( file : it.file , tofile : outputFile )
+					//TODO update to include Eclipse source information
+				} else if (it.wrap) {
+					// normal jar
+					project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
+					bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
+						(Analyzer.BUNDLE_VERSION): it.modversion,
+						(Analyzer.BUNDLE_NAME): it.bundlename,
+						(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname
+					])
 				}
-				
-				def jarFiles = artifacts.values().collect {
-					it.file
-				}
-
-				/*
-				 * Currently referring to bnd version 1.50.0
-				 * https://github.com/bndtools/bnd/blob/74cb2aabc743e5d3c22cc40905fe4cd6867176da/biz.aQute.bnd/src/aQute/bnd/main/bnd.java 
-				 */
-				def bnd = new bnd()
-
-				artifacts.values().each {
-					def outputFile = new File(targetDir, it.targetname)
-					it.outfile = outputFile
-						
-					if(it.source) {
-						// source jar
-						project.logger.info "-> Copying source jar ${it.qname}..."
-						project.ant.copy ( file : it.file , tofile : outputFile )
-						//TODO update to include Eclipse source information
-					} else if (it.wrap) {
-						// normal jar
-						project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
-						bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
-							(Analyzer.BUNDLE_VERSION): it.modversion,
-							(Analyzer.BUNDLE_NAME): it.bundlename,
-							(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname
-						])
-					}
-					else {
-						project.logger.info "-> Copying artifact $it.qname; ${it.reason}..."
-						project.ant.copy ( file : it.file , tofile : outputFile )
-					}
+				else {
+					project.logger.info "-> Copying artifact $it.qname; ${it.reason}..."
+					project.ant.copy ( file : it.file , tofile : outputFile )
 				}
 			}
-		})
+		}
 		
 		/*
 		 * Clean task.
@@ -407,11 +406,11 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 	}
 	
-	protected void resolvedConfigInfo(ResolvedConfiguration config, def log) {
-		log('Resolved configuration')
+	protected void resolvedConfigInfo(String title = 'Resolved configuration', Iterable<ResolvedArtifact> resolvedArtifacts, def log) {
+		log(title)
 		
 		log('  Artifacts:')
-		config.resolvedArtifacts.each {
+		resolvedArtifacts.each {
 			log("    ${it.name}:")
 			log("      File: $it.file")
 			log("      Classifier: $it.classifier")
