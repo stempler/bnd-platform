@@ -2,18 +2,17 @@ apply plugin: 'java'
 //apply plugin: 'eclipse'
 apply plugin: BundleDepsPlugin
 
-
 repositories {
 	// First check local cache before accessing central repository
 	// mavenRepo name:'Local', urls: "file://" + System.properties['user.home'] + "/.m2/repository"
 	mavenLocal()
+	mavenCentral()
 	maven {
 		url "http://repo.aduna-software.org/maven2/releases"
 	}
 	maven {
 		url "http://fortytwo.net/maven2"
 	}
-	mavenCentral()
 	
 	// ivy {   url "http://repo.mycompany.com/repo"}
 }
@@ -33,7 +32,9 @@ project.ext {
 dependencies {
 	//compile ("org.codehaus.groovy:groovy-all:${groovyVersion}"){force=true}
 	// "org.openrdf.sesame:sesame-sail-api:${sesameVersion}",
-	compile "org.neo4j:neo4j:1.8" 
+	compile 'org.slf4j:slf4j-api:1.7.5'
+	compile 'org.slf4j:slf4j-api:1.7.5:sources'
+//	compile "org.neo4j:neo4j:1.8" 
 	//"com.tinkerpop.blueprints:blueprints-core:${tinkerpopVersion}",
 	//"com.tinkerpop:frames:${tinkerpopVersion}",
 	//"com.tinkerpop.gremlin:gremlin-groovy:${tinkerpopVersion}",
@@ -44,7 +45,7 @@ dependencies {
 //	"org.openrdf.sesame:sesame-sail-memory:${sesameVersion}"
 	//"com.tinkerpop.blueprints:blueprints-sail-graph:${tinkerpopVersion}"
 	
-//	//add sources for each dependency
+	//add sources for each dependency
 //	configurations.compile.dependencies.each { dep ->
 //		dep.artifact {
 //		  group = dep.group

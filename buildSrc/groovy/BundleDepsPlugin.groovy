@@ -7,6 +7,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedArtifact
+
+import org.osgi.framework.Version
 
 import aQute.bnd.main.bnd
 import aQute.lib.osgi.Analyzer
@@ -14,15 +18,12 @@ import aQute.lib.osgi.Analyzer
 
 public class BundleDepsPlugin implements Plugin<Project> {
 
-	public static final String TASK_BUNDLE_DEPS = 'bundleDeps'
+	public static final String TASK_BUNDLE_DEPS = 'bundles'
 	//public static final String TASK_CLEAN_BUNDLES = "cleanBundles"
-	public static final Pattern versionPattern = Pattern.compile('(^[\\w]+(?:-[\\w]*)*)(?:-)(\\d+([\\.-][\\w|?:(\\w+\\.)]+)*)(?:\\.jar$)')
-	public static final String sourcesSuffix = '-sources.jar'
 	
 	private Project project
 
 	public BundleDepsPlugin() {
-		def bnd = new bnd()
 	}
 
 	@Override
@@ -31,6 +32,7 @@ public class BundleDepsPlugin implements Plugin<Project> {
 		if(!project.getPlugins().findPlugin('java'))
 		project.apply(plugin:'java')
 
+		// create bundleDeps task
 		Task tbd = project.task(TASK_BUNDLE_DEPS)
 		tbd.dependsOn('buildNeeded')
 		tbd.doFirst(new Action(){
@@ -38,77 +40,193 @@ public class BundleDepsPlugin implements Plugin<Project> {
 			public void execute(Object target) {
 				assert project
 
-				Configuration config = project.getConfigurations().getByName('runtime')
+				Configuration config = project.getConfigurations().getByName('compile')
+				ResolvedConfiguration resolved = config.resolvedConfiguration
+				
+				if (project.logger.infoEnabled) {
+					// output some debug information on the configuration
+					configInfo(config, project.logger.&info)
+					resolvedConfigInfo(resolved, project.logger.&info)
+				}
 
-				List jarFiles = config.collect()
+				// create artifact info representations
+				// qualified name is mapped to artifact infos
+				def artifacts = [:]
+				resolved.resolvedArtifacts.each {
+					def info = collectArtifactInfo(it)
+					artifacts[info.qname] = info
+				}
+				
 				String targetDir = "wrapped-jars"
 
-				if(jarFiles.isEmpty()) {
-					project.logger.warn "${getClass().getSimpleName()}: NO DEPENDENCIES COULD BE FOUND!"
+				if(!artifacts) {
+					project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
 					return
-				} else project.logger.info("wrapping ${jarFiles.size()} plain jars:")
+				} else {
+					project.logger.info "Processing ${artifacts.size()} dependency artifacts:"
+				}
+				
+				def jarFiles = artifacts.values().collect {
+					it.file
+				}
 
+				/*
+				 * Currently referring to bnd version 1.50.0
+				 * https://github.com/bndtools/bnd/blob/74cb2aabc743e5d3c22cc40905fe4cd6867176da/biz.aQute.bnd/src/aQute/bnd/main/bnd.java 
+				 */
 				def bnd = new bnd()
-				jarFiles.findAll{it.getName().endsWith('.pom')}.each{
-						jarFiles.remove(it);
-				}
 
-				jarFiles.each {
-					assert it instanceof File
-						def outputFileName = project.file(targetDir + File.separator + it.getName())
-
+				artifacts.values().each {
+					def outputFileName = project.file(targetDir + File.separator + it.targetname)
 						
-						if(it.getName().endsWith(sourcesSuffix)) {
-							project.logger.info "...dependency ${it} seems to be a source file, just copying to ${outputFileName}"
-							//if source.jar just copy it to target folder
-							( new AntBuilder ( ) ).copy ( file : it , tofile : outputFileName )
-						
-						} else {
-							//assert it instanceof File && it.name.endsWith(".jar")
-							project.logger.info "...wrapping ${it} to ${outputFileName}"
-							bnd.doWrap(null, it, outputFileName as File, jarFiles as File[], 0, extractAdditional(it))
-						}
+					if(it.source) {
+						// source jar
+						project.logger.info "Copying source jar ${it.qname}..."
+						project.ant.copy ( file : it.file , tofile : outputFileName )
+						//TODO update to include Eclipse source information
+					} else if (it.wrap) {
+						// normal jar
+					
+						// test if jar already is a bundle
+					
+						//assert it instanceof File && it.name.endsWith(".jar")
+						project.logger.info "Wrapping jar ${it.qname} as OSGi bundle using bnd..."
+						bnd.doWrap(null, it.file, outputFileName as File, jarFiles as File[], 0, [
+							(Analyzer.BUNDLE_VERSION): it.modversion,
+							(Analyzer.BUNDLE_NAME): it.bundlename,
+							(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname
+						])
+					}
+					else {
+						project.logger.info "Copying artifact $it.qname; ${it.reason}..."
+						project.ant.copy ( file : it.file , tofile : outputFileName )
+					}
 				}
-
-				project.logger.info "...contents of ${targetDir} updated, please reset your target platform"
 			}
 		})
 	}
-
-	protected Map extractAdditional(File jarFile) {
-		project.logger.debug "guessJarVersion: from filename ${jarFile}"
-
-		Map additional =[:]
-		List versionTokens = []
-		List qualifierTokens = []
-		String name;
-		try {
-			final Matcher m = versionPattern.matcher(jarFile.getName()).with{
-				it.matches() ? it : it
+	
+	protected def collectArtifactInfo(ResolvedArtifact artifact) {
+		// extract information from artifact
+		def file = artifact.file
+		def classifier = artifact.classifier
+		def extension = artifact.extension
+		def group = artifact.moduleVersion.id.group
+		def name = artifact.moduleVersion.id.name
+		def version = artifact.moduleVersion.id.version
+		
+		// derived information
+		
+		// is this a source bundle
+		def source = artifact.classifier == 'sources'
+		
+		// should the bundle be wrapped?
+		def wrap
+		// reason why a bundle is not wrapped
+		def reason = ''
+		if (source || extension != 'jar') {
+			// never wrap
+			wrap = false
+			reason = 'artifact type not supported'
+		}
+		else {
+			//TODO check if already a bundle
+			wrap = true
+		}
+		
+		// the unified name (that is equal for corresponding source and normal jars)
+		def uname = "$group:$name:$version"
+		// the qualified name (including classifier, unique)
+		def qname
+		if (classifier) {
+			qname = uname + ":$classifier"
+		}
+		else {
+			qname = uname
+		}
+		
+		// bundle and symbolic name
+		def bundlename = group + '.' + name
+		def symbolicname = bundlename
+		
+		// an eventually modified version
+		def modversion = version
+		if (wrap) {
+			// if the bundle is wrapped, create a modified version to mark this
+			Version v = Version.parseVersion(version)
+			def qualifier = v.qualifier
+			if (qualifier) {
+				qualifier += 'autowrapped'
 			}
-			(m.group(2).split('-') as List).with{
-				versionTokens.addAll(it.head().split('\\.'))
-				qualifierTokens.addAll(it.tail())
-				qualifierTokens.each{
-					it.replaceAll('\\.','_')
-
-				}
+			else {
+				qualifier = 'autowrapped'
 			}
-			project.logger.debug("versionTokens:${versionTokens}\n")
-			project.logger.debug("qualifierTokens:${qualifierTokens}\n")
-			name = m.group(1)
-		} catch (Exception e) {
-			project.logger.warn "${getClass().getSimpleName()}: COULD NOT GUESS VERSION AND/OR NAME FROM FILENAME ${jarFile}:\n   CAUSE: ${e}"
-		} finally {
-			qualifierTokens.push('autowrapped')
-			while(versionTokens.size()<3) versionTokens.push('0')
-			additional.put(Analyzer.BUNDLE_VERSION, versionTokens.take(3).join('.') + '.' + versionTokens.drop(3).plus(qualifierTokens).join('-'))
-			if(name && !name.trim().isEmpty()) { // don't override bnd default for bundle name if we don't extract anything useful here
-				additional.put(Analyzer.BUNDLE_NAME,name)
-				additional.put(Analyzer.BUNDLE_SYMBOLICNAME, name)
-			}
-			project.logger.info("...using additional properties: ${additional}")
-			return additional
+			Version mv = new Version(v.major, v.minor, v.micro, qualifier)
+			modversion = mv.toString()
+		}
+		
+		// name of the target file to create
+		def targetname = "${group}.${name}-${modversion}"
+		if (classifier) {
+			targetname += "-$classifier"
+		}
+		targetname += ".$extension"
+		
+		[
+			qname: qname,
+			uname: uname,
+			source: source,
+			file: file,
+			classifier: classifier,
+			extension: extension,
+			group: group,
+			name: name,
+			version: version,
+			modversion: modversion,
+			wrap: wrap,
+			reason: reason,
+			targetname: targetname,
+			bundlename: bundlename,
+			symbolicname: symbolicname
+		]
+	}
+	
+	// methods logging information for easier debugging
+	
+	protected void configInfo(Configuration config, def log) {
+		log("Configuration: $config.name")
+		
+		log('  Dependencies:')
+		config.allDependencies.each {
+			log("    - $it.group $it.name $it.version")
+//			it.properties.each {
+//				k, v ->
+//				log("    $k: $v")
+//			}
+		}
+		
+		log('  Files:')
+		config.collect().each {
+			log("    - ${it}")
+		}
+	}
+	
+	protected void resolvedConfigInfo(ResolvedConfiguration config, def log) {
+		log('Resolved configuration')
+		
+		log('  Artifacts:')
+		config.resolvedArtifacts.each {
+			log("    ${it.name}:")
+			log("      File: $it.file")
+			log("      Classifier: $it.classifier")
+			log("      Extension: $it.extension")
+			log("      Group: $it.moduleVersion.id.group")
+			log("      Name: $it.moduleVersion.id.name")
+			log("      Version: $it.moduleVersion.id.version")
+//			it.properties.each {
+//				k, v ->
+//				log("      $k: $v")
+//			}
 		}
 	}
 }

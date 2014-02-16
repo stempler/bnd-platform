@@ -1,3 +1,4 @@
 build/
+wrapped-jars/
 .gradle/
 *.class
