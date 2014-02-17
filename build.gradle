@@ -1,5 +1,5 @@
 
-apply plugin: PlatformPlugin
+apply plugin: org.standardout.gradle.plugin.platform.PlatformPlugin
 
 repositories {
 	mavenLocal()

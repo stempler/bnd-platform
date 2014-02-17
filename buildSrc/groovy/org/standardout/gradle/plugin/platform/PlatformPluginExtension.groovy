@@ -1,3 +1,4 @@
+package org.standardout.gradle.plugin.platform
 class PlatformPluginExtension {
 	boolean fetchSources = true
 	String featureId = 'platform.feature'

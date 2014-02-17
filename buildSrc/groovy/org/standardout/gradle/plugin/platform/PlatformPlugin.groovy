@@ -1,3 +1,4 @@
+package org.standardout.gradle.plugin.platform
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -15,6 +16,7 @@ import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
 
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
+import org.standardout.gradle.plugin.platform.internal.DependencyHelper;
 
 import aQute.bnd.main.bnd
 import aQute.lib.osgi.Analyzer

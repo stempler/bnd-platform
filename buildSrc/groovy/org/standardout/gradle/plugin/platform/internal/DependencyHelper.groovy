@@ -1,3 +1,4 @@
+package org.standardout.gradle.plugin.platform.internal
 /*
  * Copyright 2010 the original author or authors.
  *
