@@ -30,8 +30,6 @@ public class PlatformPlugin implements Plugin<Project> {
 	private File categoryFile
 	private File featuresDir
 	
-	private def artifacts
-
 	@Override
 	public void apply(Project project) {
 		this.project = project
@@ -78,7 +76,9 @@ public class PlatformPlugin implements Plugin<Project> {
 
 			// create artifact info representations
 			// qualified name is mapped to artifact infos
-			artifacts = [:]
+			// artifact info stored in project.ext (plugin instance doesn't seem to be shared between all task executions)
+			project.ext.platform_artifacts = [:]
+			def artifacts = project.ext.platform_artifacts 
 			resolved.resolvedArtifacts.each {
 				def info = collectArtifactInfo(it)
 				artifacts[info.qname] = info
@@ -90,6 +90,14 @@ public class PlatformPlugin implements Plugin<Project> {
 				sourceArtifacts.each {
 					def info = collectArtifactInfo(it)
 					artifacts[info.qname] = info
+					
+					// check if associated bundle is found
+					if (artifacts[info.uname]) {
+						def bundle = artifacts[info.uname]
+						// change info to resemble original bundle
+						info.bundlename = bundle.bundlename + ' Sources'
+						info.symbolicname = bundle.symbolicname + '.source'
+					}
 				}
 				
 				// output info
@@ -122,9 +130,26 @@ public class PlatformPlugin implements Plugin<Project> {
 					
 				if(it.source) {
 					// source jar
-					project.logger.info "-> Copying source jar ${it.qname}..."
-					project.ant.copy ( file : it.file , tofile : outputFile )
-					//TODO update to include Eclipse source information
+					
+					// find corresponding bundle
+					def bundle = artifacts[it.uname]
+					if (bundle) {
+						// wrap as source bundle
+						def sourceBundleDef = "${bundle.symbolicname};version=\"${bundle.modversion}\";roots:=\".\"" as String
+						
+						project.logger.info "-> Creating source bundle ${it.qname}..."
+						bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
+							(Analyzer.BUNDLE_VERSION): it.modversion,
+							(Analyzer.BUNDLE_NAME): it.bundlename,
+							(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname,
+							(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
+							(Analyzer.EXPORT_PACKAGE): '', // no exports
+							'Eclipse-SourceBundle': sourceBundleDef
+						])
+					}
+					else {
+						project.logger.warn "Ignoring source jar $it.qname as no associated jar was found"
+					}
 				} else if (it.wrap) {
 					// normal jar
 					project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
@@ -157,6 +182,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		 */
 		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
 			featureFile.parentFile.mkdirs()
+			def artifacts = project.ext.platform_artifacts
 			
 			featureFile.withWriter('UTF-8'){
 				w ->
