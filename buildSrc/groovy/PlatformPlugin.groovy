@@ -11,6 +11,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedArtifact
 
+import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
+
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
 
@@ -29,10 +31,16 @@ public class PlatformPlugin implements Plugin<Project> {
 	private File featureFile
 	private File categoryFile
 	private File featuresDir
+	private File downloadsDir
 	
 	@Override
 	public void apply(Project project) {
 		this.project = project
+		
+		configureEnvironment(project)
+		
+		// ensure download-task plugin is applied
+		project.apply(plugin: 'download-task')
 
 		// register extension
 		project.extensions.create('platform', PlatformPluginExtension)
@@ -43,6 +51,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		featureFile = new File(project.buildDir, 'feature.xml')
 		categoryFile = new File(project.buildDir, 'category.xml')
 		featuresDir = new File(project.buildDir, 'features')
+		downloadsDir = new File(project.buildDir, 'eclipse-downloads')
 		
 		// create configuration
 		project.configurations.create CONF_PLATFORM
@@ -174,6 +183,8 @@ public class PlatformPlugin implements Plugin<Project> {
 			categoryFile.delete()
 			featuresDir.deleteDir()
 			bundlesDir.deleteDir()
+			// don't delete download in default clean
+//			downloadsDir.deleteDir()
 			project.platform.updateSiteDir.deleteDir()
 		}
 		
@@ -256,13 +267,78 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 		
 		/*
+		 * Task that checks if Eclipse is there / Eclipse home is specified.
+		 */
+		Task checkEclipseTask = project.task('checkEclipse').doFirst {
+			// path to Eclipse provided in extension
+			if (project.platform.eclipseHome != null) {
+				return
+			}
+			
+			// from system property
+			def eclipseHome = System.properties['ECLIPSE_HOME']
+			
+			if (!eclipseHome) {
+				File downloadedEclipse = new File(downloadsDir, 'eclipse')
+				if (downloadedEclipse.exists()) {
+					// downloaded Eclipse already exists
+					eclipseHome = downloadedEclipse
+				}
+				else {
+					// download and extract Eclipse
+					def artifacts = project.platform.eclipseMirror
+					if (artifacts.containsKey(project.ext.osgiOS) && artifacts[project.ext.osgiOS].containsKey(project.ext.osgiWS) &&
+						artifacts[project.ext.osgiOS][project.ext.osgiWS].containsKey(project.ext.osgiArch)) {
+						
+						// Download artifact
+						String artifactDownloadUrl = artifacts[project.ext.osgiOS][project.ext.osgiWS][project.ext.osgiArch]
+						def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
+						def artifactZipPath = new File(downloadsDir, filename)
+						def artifactZipPathPart = new File(downloadsDir, filename + '.part')
+						if (!artifactZipPath.exists()) {
+							project.download {
+								src artifactDownloadUrl
+								dest artifactZipPathPart
+								overwrite true
+							}
+							artifactZipPathPart.renameTo(artifactZipPath)
+						}
+				
+						// Unzip artifact
+						println('Copying ' + name + ' ...')
+						def artifactInstallPath = downloadsDir
+						if (artifactZipPath.name.endsWith('.zip')) {
+							project.ant.unzip(src: artifactZipPath, dest: artifactInstallPath)
+						} else {
+							project.ant.untar(src: artifactZipPath, dest: artifactInstallPath, compression: 'gzip')
+						}
+						if (downloadedEclipse.exists()) {
+							eclipseHome = downloadedEclipse
+						}
+						else {
+							project.logger.error 'Could not find "eclipse" directory in extracted artifact'
+						}
+					}
+					else {
+						project.logger.error 'Unable to download eclipse artifact'
+					}
+					
+				}
+			}
+			
+			if (eclipseHome) {
+				project.platform.eclipseHome = eclipseHome as File
+			}
+		}
+		
+		/*
 		 * Build a p2 repository with all the bundles
 		 */
-		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeatureTask, generateCategoryTask]).doFirst {
+		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeatureTask, generateCategoryTask, checkEclipseTask]).doFirst {
 			project.platform.updateSiteDir.mkdirs()
 			
-			def eclipseHome = System.properties['ECLIPSE_HOME']
-			assert eclipseHome
+			assert project.platform.eclipseHome
+			def eclipseHome = project.platform.eclipseHome.absolutePath
 			
 			// find launcher jar
 			def launcherFiles = project.ant.fileScanner {
@@ -410,6 +486,24 @@ public class PlatformPlugin implements Plugin<Project> {
 			bundlename: bundlename,
 			symbolicname: symbolicname
 		]
+	}
+	
+	/**
+	 * Guess current environment and store information in project.ext.
+	 */
+	def configureEnvironment(Project project) {
+		project.with {
+			def eei = EclipseEnvironmentInfo.getDefault()
+			if (!ext.properties.containsKey('osgiOS')) {
+				ext.osgiOS = eei.getOS()
+			}
+			if (!ext.properties.containsKey('osgiWS')) {
+				ext.osgiWS = eei.getWS()
+			}
+			if (!ext.properties.containsKey('osgiArch')) {
+				ext.osgiArch = eei.getOSArch()
+			}
+		}
 	}
 	
 	// methods logging information for easier debugging
