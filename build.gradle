@@ -1,35 +1,22 @@
-
-apply plugin: org.standardout.gradle.plugin.platform.PlatformPlugin
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
 
 repositories {
 	mavenLocal()
 	mavenCentral()
-	maven {
-		url "http://repo.aduna-software.org/maven2/releases"
-	}
-	maven {
-		url "http://fortytwo.net/maven2"
-	}
-	
-	// ivy {   url "http://repo.mycompany.com/repo"}
-}
-
-
-platform {
-	fetchSources = true
-}
-
-project.ext {
-	groovyVersion='2.1.5'
+	maven {url "http://repo.aduna-software.org/maven2/releases/"}
 }
 
 dependencies {
-	platform "org.codehaus.groovy:groovy:${groovyVersion}"
-	platform 'org.slf4j:slf4j-api:1.7.5'
-//	platform 'org.slf4j:slf4j-api:1.7.5:sources'
-	platform "net.sf.opencsv:opencsv:2.3"
+	compile gradleApi()
+	compile 'biz.aQute:bnd:1.50.0'
+//	compile 'biz.aQute:bndlib:1.50.0'
+	compile 'org.osgi:org.osgi.core:4.3.0'
+	compile 'org.eclipse.tycho:org.eclipse.osgi:3.6.2.R36x_v20110210' // provides EclipseEnvironmentInfo
+	compile 'de.undercouch:gradle-download-task:0.5'
+	compile localGroovy()
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.11'
+	gradleVersion = '1.11'
 }

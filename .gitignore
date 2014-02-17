@@ -1,4 +1,7 @@
 build/
-wrapped-jars/
+bin/
 .gradle/
 *.class
+.classpath
+.project
+.settings/
