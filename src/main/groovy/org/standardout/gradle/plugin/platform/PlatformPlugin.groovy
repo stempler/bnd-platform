@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.standardout.gradle.plugin.platform
 
 import java.util.regex.Matcher
@@ -16,12 +32,20 @@ import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
 
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
+import org.standardout.gradle.plugin.platform.internal.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyHelper;
 
 import aQute.bnd.main.bnd
 import aQute.lib.osgi.Analyzer
 
 
+/**
+ * OSGi platform plugin for Gradle.
+ * 
+ * @author Robert Gregor
+ * @author Simon Templer
+ */
 public class PlatformPlugin implements Plugin<Project> {
 
 	public static final String TASK_BUNDLES = 'bundles'
@@ -63,6 +87,11 @@ public class PlatformPlugin implements Plugin<Project> {
 			if (project.platform.updateSiteDir == null) {
 				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
 			}
+			
+			// add project dependencies for bundle configurations
+			project.platform.bundles.each {
+				it.registerDependency(project)
+			}
 		}
 
 		// create bundles task
@@ -85,29 +114,27 @@ public class PlatformPlugin implements Plugin<Project> {
 				resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&info)
 			}
 
-			// create artifact info representations
-			// qualified name is mapped to artifact infos
-			// artifact info stored in project.ext (plugin instance doesn't seem to be shared between all task executions)
-			project.ext.platform_artifacts = [:]
-			def artifacts = project.ext.platform_artifacts 
+			// create artifact representations
+			// id is mapped to artifacts
+			def artifacts = project.platform.artifacts 
 			resolved.resolvedArtifacts.each {
-				def info = collectArtifactInfo(it)
-				artifacts[info.qname] = info
+				BundleArtifact artifact = new BundleArtifact(it, project)
+				artifacts[artifact.id] = artifact
 			}
 			
 			// source artifacts
 			if (project.platform.fetchSources) {
 				def sourceArtifacts = DependencyHelper.resolveSourceArtifacts(config, project.configurations)
 				sourceArtifacts.each {
-					def info = collectArtifactInfo(it)
-					artifacts[info.qname] = info
+					BundleArtifact artifact = new BundleArtifact(it, project)
+					artifacts[artifact.id] = artifact
 					
 					// check if associated bundle is found
-					if (artifacts[info.uname]) {
-						def bundle = artifacts[info.uname]
-						// change info to resemble original bundle
-						info.bundlename = bundle.bundlename + ' Sources'
-						info.symbolicname = bundle.symbolicname + '.source'
+					if (artifacts[artifact.unifiedName]) {
+						BundleArtifact bundle = artifacts[artifact.unifiedName]
+						// change names to resemble original bundle
+						artifact.bundleName = bundle.bundleName + ' Sources'
+						artifact.symbolicName = bundle.symbolicName + '.source'
 					}
 				}
 				
@@ -135,44 +162,55 @@ public class PlatformPlugin implements Plugin<Project> {
 			 */
 			def bnd = new bnd()
 
-			artifacts.values().each {
-				def outputFile = new File(targetDir, it.targetname)
-				it.outfile = outputFile
+			artifacts.values().each { BundleArtifact art ->
+				def outputFile = new File(targetDir, art.targetFileName)
+//				it.outfile = outputFile
 					
-				if(it.source) {
+				if(art.source) {
 					// source jar
 					
 					// find corresponding bundle
-					def bundle = artifacts[it.uname]
+					BundleArtifact bundle = artifacts[art.unifiedName]
 					if (bundle) {
 						// wrap as source bundle
-						def sourceBundleDef = "${bundle.symbolicname};version=\"${bundle.modversion}\";roots:=\".\"" as String
+						def sourceBundleDef = "${bundle.symbolicName};version=\"${bundle.modifiedVersion}\";roots:=\".\"" as String
 						
-						project.logger.info "-> Creating source bundle ${it.qname}..."
-						bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
-							(Analyzer.BUNDLE_VERSION): it.modversion,
-							(Analyzer.BUNDLE_NAME): it.bundlename,
-							(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname,
+						project.logger.info "-> Creating source bundle ${art.id}..."
+						bnd.doWrap(null, art.file, outputFile, jarFiles as File[], 0, [
+							(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
+							(Analyzer.BUNDLE_NAME): art.bundleName,
+							(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName,
 							(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
 							(Analyzer.EXPORT_PACKAGE): '', // no exports
 							'Eclipse-SourceBundle': sourceBundleDef
 						])
 					}
 					else {
-						project.logger.warn "Ignoring source jar $it.qname as no associated jar was found"
+						project.logger.warn "Ignoring source jar $art.id as no associated jar was found"
 					}
-				} else if (it.wrap) {
+				} else if (art.wrap) {
 					// normal jar
-					project.logger.info "-> Wrapping jar ${it.qname} as OSGi bundle using bnd..."
-					bnd.doWrap(null, it.file, outputFile, jarFiles as File[], 0, [
-						(Analyzer.BUNDLE_VERSION): it.modversion,
-						(Analyzer.BUNDLE_NAME): it.bundlename,
-						(Analyzer.BUNDLE_SYMBOLICNAME): it.symbolicname
-					])
+					project.logger.info "-> Wrapping jar ${art.id} as OSGi bundle using bnd..."
+					
+					Map<String, String> properties = [:]
+					if (art.dependency?.bndConfig) {
+						// use instructions from bnd config
+						BndConfig bndConfig = art.dependency.bndConfig
+						properties.putAll(bndConfig.properties) 
+					}
+					
+					// properties that are fixed (if they should be changed it should happen in BundleArtifact)
+					properties.putAll(
+						(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
+						(Analyzer.BUNDLE_NAME): art.bundleName,
+						(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
+					)
+					
+					bnd.doWrap(null, art.file, outputFile, jarFiles as File[], 0, properties)
 				}
 				else {
-					project.logger.info "-> Copying artifact $it.qname; ${it.reason}..."
-					project.ant.copy ( file : it.file , tofile : outputFile )
+					project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
+					project.ant.copy ( file : art.file , tofile : outputFile )
 				}
 			}
 		}
@@ -195,7 +233,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		 */
 		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
 			featureFile.parentFile.mkdirs()
-			def artifacts = project.ext.platform_artifacts
+			def artifacts = project.platform.artifacts
 			
 			featureFile.withWriter('UTF-8'){
 				w ->
@@ -208,13 +246,13 @@ public class PlatformPlugin implements Plugin<Project> {
 					label: project.platform.featureName,
 					version: project.platform.featureVersion
 				) {
-					for (def artifact : artifacts.values()) {
+					for (BundleArtifact artifact : artifacts.values()) {
 						// define each plug-in
 						plugin(
-							id: artifact.symbolicname,
+							id: artifact.symbolicName,
 							'download-size': 0,
 							'install-size': 0,
-							version: artifact.modversion,
+							version: artifact.modifiedVersion,
 							unpack: false)
 					}
 				}
@@ -384,111 +422,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 	}
 	
-	/**
-	 * Collect artifact/bundle information based on a given resolved artifact.
-	 */
-	protected def collectArtifactInfo(ResolvedArtifact artifact) {
-		// extract information from artifact
-		def file = artifact.file
-		def classifier = artifact.classifier
-		def extension = artifact.extension
-		def group = artifact.moduleVersion.id.group
-		def name = artifact.moduleVersion.id.name
-		def version = artifact.moduleVersion.id.version
-		
-		// derived information
-		
-		// is this a source bundle
-		def source = artifact.classifier == 'sources'
-
-		// bundle and symbolic name
-		def bundlename = group + '.' + name
-		def symbolicname = bundlename
-				
-		// should the bundle be wrapped?
-		def wrap
-		// reason why a bundle is not wrapped
-		def reason = ''
-		if (source || extension != 'jar') {
-			// never wrap
-			wrap = false
-			reason = 'artifact type not supported'
-			if (source) {
-				symbolicname += '.source'
-				bundlename += ' Sources'
-			}
-		}
-		else {
-			JarFile jar = new JarFile(file)
-			String symName = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_SYMBOLICNAME)
-			
-			if (symName) {
-				// assume it's already a bundle
-				wrap = false
-				reason = 'jar already constains OSGi manifest entries'
-
-				// determine bundle names
-				symbolicname = symName
-				bundlename = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_NAME)
-			}
-			else {
-				// not a bundle yet
-				wrap = true
-			}
-		}
-		
-		// the unified name (that is equal for corresponding source and normal jars)
-		def uname = "$group:$name:$version"
-		// the qualified name (including classifier, unique)
-		def qname
-		if (classifier) {
-			qname = uname + ":$classifier"
-		}
-		else {
-			qname = uname
-		}
-		
-		// an eventually modified version
-		def modversion = version
-		if (wrap) {
-			// if the bundle is wrapped, create a modified version to mark this
-			Version v = Version.parseVersion(version)
-			def qualifier = v.qualifier
-			if (qualifier) {
-				qualifier += 'autowrapped'
-			}
-			else {
-				qualifier = 'autowrapped'
-			}
-			Version mv = new Version(v.major, v.minor, v.micro, qualifier)
-			modversion = mv.toString()
-		}
-		
-		// name of the target file to create
-		def targetname = "${group}.${name}-${modversion}"
-		if (classifier) {
-			targetname += "-$classifier"
-		}
-		targetname += ".$extension"
-		
-		[
-			qname: qname,
-			uname: uname,
-			source: source,
-			file: file,
-			classifier: classifier,
-			extension: extension,
-			group: group,
-			name: name,
-			version: version,
-			modversion: modversion,
-			wrap: wrap,
-			reason: reason,
-			targetname: targetname,
-			bundlename: bundlename,
-			symbolicname: symbolicname
-		]
-	}
+	
 	
 	/**
 	 * Guess current environment and store information in project.ext.

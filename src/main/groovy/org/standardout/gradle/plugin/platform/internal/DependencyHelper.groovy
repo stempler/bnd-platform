@@ -1,4 +1,3 @@
-package org.standardout.gradle.plugin.platform.internal
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -14,6 +13,8 @@ package org.standardout.gradle.plugin.platform.internal
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
