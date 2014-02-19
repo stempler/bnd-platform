@@ -16,6 +16,7 @@
 
 package org.standardout.gradle.plugin.include
 
+import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project
 
@@ -43,7 +44,9 @@ class IncludePluginExtension {
 		// load script
 		Binding binding = new Binding()
 		binding.setVariable('project', project)
-		GroovyShell shell = new GroovyShell(binding)
+		CompilerConfiguration compilerConf = new CompilerConfiguration()
+		compilerConf.scriptBaseClass = IncludeScript.name
+		GroovyShell shell = new GroovyShell(IncludeScript.classLoader, binding, compilerConf)
 		Script script = shell.parse(loc)
 		
 		closure.delegate = new IncludeDelegate(script)
