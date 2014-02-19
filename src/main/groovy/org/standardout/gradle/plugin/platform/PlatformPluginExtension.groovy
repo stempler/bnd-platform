@@ -49,9 +49,9 @@ class PlatformPluginExtension {
 	String featureName = 'Generated platform feature'
 	
 	/**
-	 * The platform feature version.
+	 * The platform feature version, defaults to the project version if possible, otherwise to 1.0.0.
 	 */
-	String featureVersion = '1.0.0'
+	String featureVersion
 	
 	/**
 	 * The ID of the feature's category in the update site.

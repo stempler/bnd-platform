@@ -86,6 +86,20 @@ public class PlatformPlugin implements Plugin<Project> {
 			if (project.platform.updateSiteDir == null) {
 				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
 			}
+			
+			// feature version default
+			if (project.platform.featureVersion == null) {
+				if (project.version) {
+					try {
+						project.platform.featureVersion = Version.parseVersion(project.version).toString()
+					} catch (e) {
+						// ignore
+					}
+				}
+			}
+			if (project.platform.featureVersion == null) {
+				project.platform.featureVersion = '1.0.0'
+			}
 		}
 
 		// create bundles task
