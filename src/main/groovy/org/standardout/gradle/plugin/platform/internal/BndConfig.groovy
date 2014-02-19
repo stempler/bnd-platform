@@ -45,7 +45,20 @@ class BndConfig {
 	
 	final String name
 	
+	/**
+	 * Version that is either provided or can be set for file dependencies.
+	 */
 	String version
+	
+	/**
+	 * Custom symbolic name (currently only for file dependencies)
+	 */
+	String symbolicName
+	
+	/**
+	 * Custom bundle name (currently only for file dependencies)
+	 */
+	String bundleName
 	
 	/**
 	 * Map of bnd instruction names to instructions.

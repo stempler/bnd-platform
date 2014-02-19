@@ -33,6 +33,12 @@ class BundleDependency {
 	BundleDependency(Project project, def dependencyNotation,
 		Closure configClosure, boolean createDependency) {
 		
+		// support single files
+		if (dependencyNotation instanceof File) {
+			// create file collection
+			dependencyNotation = project.files(dependencyNotation)
+		}
+		
 		Closure bndClosure
 		
 		if (createDependency) {

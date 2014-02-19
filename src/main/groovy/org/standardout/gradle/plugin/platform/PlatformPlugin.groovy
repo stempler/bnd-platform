@@ -35,6 +35,9 @@ import org.osgi.framework.Constants
 import org.standardout.gradle.plugin.platform.internal.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 
 import aQute.bnd.main.bnd
 import aQute.lib.osgi.Analyzer
@@ -108,33 +111,45 @@ public class PlatformPlugin implements Plugin<Project> {
 				configInfo(config, project.logger.&info)
 				resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&info)
 			}
+			
+			// collect dependency files (to later be able to determine pure file dependencies)
+			def dependencyFiles = config.collect()
 
 			// create artifact representations
 			// id is mapped to artifacts
 			def artifacts = project.platform.artifacts 
 			resolved.resolvedArtifacts.each {
-				BundleArtifact artifact = new BundleArtifact(it, project)
+				BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
 				artifacts[artifact.id] = artifact
+				
+				dependencyFiles.remove(artifact.file)
 			}
 			
 			// source artifacts
 			if (project.platform.fetchSources) {
 				def sourceArtifacts = DependencyHelper.resolveSourceArtifacts(config, project.configurations)
 				sourceArtifacts.each {
-					BundleArtifact artifact = new BundleArtifact(it, project)
+					SourceBundleArtifact artifact = new SourceBundleArtifact(it, project)
 					artifacts[artifact.id] = artifact
 					
 					// check if associated bundle is found
 					if (artifacts[artifact.unifiedName]) {
 						BundleArtifact bundle = artifacts[artifact.unifiedName]
-						// change names to resemble original bundle
-						artifact.bundleName = bundle.bundleName + ' Sources'
-						artifact.symbolicName = bundle.symbolicName + '.source'
+						if (bundle) {
+							artifact.parentBundle = bundle
+						}
 					}
 				}
 				
 				// output info
 				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
+			}
+			
+			// file artifacts
+			dependencyFiles.each {
+				// for all remaining dependencies assume they are local files
+				FileBundleArtifact artifact = new FileBundleArtifact(it, project)
+				artifacts[artifact.id] = artifact
 			}
 			
 			File targetDir = bundlesDir

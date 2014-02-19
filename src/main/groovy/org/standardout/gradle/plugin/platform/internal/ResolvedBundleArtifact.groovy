@@ -23,9 +23,11 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
 
-class BundleArtifact {
+
+class ResolvedBundleArtifact implements BundleArtifact {
 	
-	final File file
+	private final File file
+	File getFile() { file }
 	
 	final String classifier
 	
@@ -35,38 +37,45 @@ class BundleArtifact {
 	
 	final String name
 	
-	final String version
+	private final String version
+	String getVersion() { version }
 
-	/**
-	 * If the bundle is a source bundle.	
-	 */
-	boolean source
+	private final boolean source
+	boolean isSource() { source }
 	
-	String bundleName
+	private final String bundleName
+	String getBundleName() { bundleName }
 	
-	String symbolicName
+	private final String symbolicName
+	String getSymbolicName() { symbolicName }
 	
 	/**
 	 * Should the bundle be wrapped?
 	 */
-	boolean wrap
+	private final boolean wrap
+	boolean isWrap() { wrap }
 	
-	String noWrapReason = ''
+	private final String noWrapReason
+	String getNoWrapReason() { noWrapReason }
 	
-	final BundleDependency dependency
+	private final BundleDependency dependency
+	BundleDependency getDependency() { dependency }
 	
 	final String unifiedName
 	
-	final String id
+	private final String id
+	String getId() { id }
 	
-	String modifiedVersion
+	private final String modifiedVersion
+	String getModifiedVersion() { modifiedVersion }
 	
-	String targetFileName
+	private final String targetFileName
+	String getTargetFileName() { targetFileName }
 	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
-	BundleArtifact(ResolvedArtifact artifact, Project project) {
+	ResolvedBundleArtifact(ResolvedArtifact artifact, Project project) {
 		// extract information from artifact
 		this.file = artifact.file
 		this.classifier = artifact.classifier
@@ -81,8 +90,8 @@ class BundleArtifact {
 		source = artifact.classifier == 'sources'
 
 		// bundle and symbolic name
-		bundleName = group + '.' + name
-		symbolicName = bundleName
+		def bundleName = group + '.' + name
+		def symbolicName = bundleName
 				
 		// reason why a bundle is not wrapped
 		if (source || extension != 'jar') {
@@ -111,12 +120,13 @@ class BundleArtifact {
 			else {
 				// not a bundle yet
 				wrap = true
+				noWrapReason = ''
 			}
 		}
 		
 		// the unified name (that is equal for corresponding source and normal jars)
 		// it also is the key for the bundle dependency (if any)
-		unifiedName = "$group:$name:$version"
+		def unifiedName = "$group:$name:$version"
 		// the qualified id (including classifier, unique)
 		if (classifier) {
 			id = unifiedName + ":$classifier"
@@ -124,12 +134,13 @@ class BundleArtifact {
 		else {
 			id = unifiedName
 		}
+		this.unifiedName = unifiedName
 		
 		// resolve bundle dependency
 		dependency = project.platform.bundleIndex[id]
 		
 		// an eventually modified version
-		modifiedVersion = version
+		def modifiedVersion = version
 		if (wrap) {
 			// if the bundle is wrapped, create a modified version to mark this
 			Version v
@@ -150,13 +161,18 @@ class BundleArtifact {
 			Version mv = new Version(v.major, v.minor, v.micro, qualifier)
 			modifiedVersion = mv.toString()
 		}
+		this.modifiedVersion = modifiedVersion
 		
 		// name of the target file to create
-		targetFileName = "${group}.${name}-${modifiedVersion}"
+		def targetFileName = "${group}.${name}-${modifiedVersion}"
 		if (classifier) {
 			targetFileName += "-$classifier"
 		}
 		targetFileName += ".$extension"
+		this.targetFileName = targetFileName
+		
+		this.bundleName = bundleName
+		this.symbolicName = symbolicName
 	}
 
 }
