@@ -9,9 +9,9 @@ repositories {
 
 dependencies {
 	compile gradleApi()
-	compile 'biz.aQute:bnd:1.50.0'
-//	compile 'biz.aQute:bndlib:1.50.0'
-	compile 'org.osgi:org.osgi.core:4.3.0'
+	compile 'biz.aQute.bnd:bndlib:2.2.0'
+//	compile 'biz.aQute.bnd:bnd:2.2.0'
+//	compile 'org.osgi:org.osgi.core:4.3.0'
 	compile 'org.eclipse.tycho:org.eclipse.osgi:3.6.2.R36x_v20110210' // provides EclipseEnvironmentInfo
 	compile 'de.undercouch:gradle-download-task:0.5'
 	compile localGroovy()

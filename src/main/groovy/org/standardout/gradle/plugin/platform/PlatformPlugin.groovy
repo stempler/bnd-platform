@@ -39,10 +39,6 @@ import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 
-import aQute.bnd.main.bnd
-import aQute.lib.osgi.Analyzer
-
-
 /**
  * OSGi platform plugin for Gradle.
  * 
@@ -100,130 +96,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		bundlesTask.dependsOn(project.configurations.getByName(CONF_PLATFORM).allArtifacts.buildDependencies)
 		
 		// define bundles task
-		bundlesTask.doFirst {
-			assert project
-
-			Configuration config = project.getConfigurations().getByName(CONF_PLATFORM)
-			ResolvedConfiguration resolved = config.resolvedConfiguration
-			
-			if (project.logger.infoEnabled) {
-				// output some debug information on the configuration
-				configInfo(config, project.logger.&info)
-				resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&info)
-			}
-			
-			// collect dependency files (to later be able to determine pure file dependencies)
-			def dependencyFiles = config.collect()
-
-			// create artifact representations
-			// id is mapped to artifacts
-			def artifacts = project.platform.artifacts 
-			resolved.resolvedArtifacts.each {
-				BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
-				artifacts[artifact.id] = artifact
-				
-				dependencyFiles.remove(artifact.file)
-			}
-			
-			// source artifacts
-			if (project.platform.fetchSources) {
-				def sourceArtifacts = DependencyHelper.resolveSourceArtifacts(config, project.configurations)
-				sourceArtifacts.each {
-					SourceBundleArtifact artifact = new SourceBundleArtifact(it, project)
-					artifacts[artifact.id] = artifact
-					
-					// check if associated bundle is found
-					if (artifacts[artifact.unifiedName]) {
-						BundleArtifact bundle = artifacts[artifact.unifiedName]
-						if (bundle) {
-							artifact.parentBundle = bundle
-						}
-					}
-				}
-				
-				// output info
-				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
-			}
-			
-			// file artifacts
-			dependencyFiles.each {
-				// for all remaining dependencies assume they are local files
-				FileBundleArtifact artifact = new FileBundleArtifact(it, project)
-				artifacts[artifact.id] = artifact
-			}
-			
-			File targetDir = bundlesDir
-			targetDir.mkdirs()
-
-			if(!artifacts) {
-				project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
-				return
-			} else {
-				project.logger.info "Processing ${artifacts.size()} dependency artifacts:"
-			}
-			
-			def jarFiles = artifacts.values().collect {
-				it.file
-			}
-
-			/*
-			 * Currently referring to bnd version 1.50.0
-			 * https://github.com/bndtools/bnd/blob/74cb2aabc743e5d3c22cc40905fe4cd6867176da/biz.aQute.bnd/src/aQute/bnd/main/bnd.java 
-			 */
-			def bnd = new bnd()
-
-			artifacts.values().each { BundleArtifact art ->
-				def outputFile = new File(targetDir, art.targetFileName)
-//				it.outfile = outputFile
-					
-				if(art.source) {
-					// source jar
-					
-					// find corresponding bundle
-					BundleArtifact bundle = artifacts[art.unifiedName]
-					if (bundle) {
-						// wrap as source bundle
-						def sourceBundleDef = "${bundle.symbolicName};version=\"${bundle.modifiedVersion}\";roots:=\".\"" as String
-						
-						project.logger.info "-> Creating source bundle ${art.id}..."
-						bnd.doWrap(null, art.file, outputFile, jarFiles as File[], 0, [
-							(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
-							(Analyzer.BUNDLE_NAME): art.bundleName,
-							(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName,
-							(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
-							(Analyzer.EXPORT_PACKAGE): '', // no exports
-							'Eclipse-SourceBundle': sourceBundleDef
-						])
-					}
-					else {
-						project.logger.warn "Ignoring source jar $art.id as no associated jar was found"
-					}
-				} else if (art.wrap) {
-					// normal jar
-					project.logger.info "-> Wrapping jar ${art.id} as OSGi bundle using bnd..."
-					
-					Map<String, String> properties = [:]
-					if (art.dependency?.bndConfig) {
-						// use instructions from bnd config
-						BndConfig bndConfig = art.dependency.bndConfig
-						properties.putAll(bndConfig.properties) 
-					}
-					
-					// properties that are fixed (if they should be changed it should happen in BundleArtifact)
-					properties.putAll(
-						(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
-						(Analyzer.BUNDLE_NAME): art.bundleName,
-						(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
-					)
-					
-					bnd.doWrap(null, art.file, outputFile, jarFiles as File[], 0, properties)
-				}
-				else {
-					project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
-					project.ant.copy ( file : art.file , tofile : outputFile )
-				}
-			}
-		}
+		bundlesTask.doFirst(new BundlesAction(project, bundlesDir))
 		
 		/*
 		 * Clean task.
@@ -451,43 +324,5 @@ public class PlatformPlugin implements Plugin<Project> {
 			}
 		}
 	}
-	
-	// methods logging information for easier debugging
-	
-	protected void configInfo(Configuration config, def log) {
-		log("Configuration: $config.name")
-		
-		log('  Dependencies:')
-		config.allDependencies.each {
-			log("    - $it.group $it.name $it.version")
-//			it.properties.each {
-//				k, v ->
-//				log("    $k: $v")
-//			}
-		}
-		
-		log('  Files:')
-		config.collect().each {
-			log("    - ${it}")
-		}
-	}
-	
-	protected void resolvedConfigInfo(String title = 'Resolved configuration', Iterable<ResolvedArtifact> resolvedArtifacts, def log) {
-		log(title)
-		
-		log('  Artifacts:')
-		resolvedArtifacts.each {
-			log("    ${it.name}:")
-			log("      File: $it.file")
-			log("      Classifier: $it.classifier")
-			log("      Extension: $it.extension")
-			log("      Group: $it.moduleVersion.id.group")
-			log("      Name: $it.moduleVersion.id.name")
-			log("      Version: $it.moduleVersion.id.version")
-//			it.properties.each {
-//				k, v ->
-//				log("      $k: $v")
-//			}
-		}
-	}
+
 }
