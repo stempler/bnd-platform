@@ -69,7 +69,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		project.apply(plugin: 'download-task')
 
 		// register extension
-		project.extensions.create('platform', PlatformPluginExtension)
+		project.extensions.create('platform', PlatformPluginExtension, project)
 		
 		// initialize file/directory members
 		// names are fixed because of update site conventions
@@ -86,11 +86,6 @@ public class PlatformPlugin implements Plugin<Project> {
 			// update site directory default
 			if (project.platform.updateSiteDir == null) {
 				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
-			}
-			
-			// add project dependencies for bundle configurations
-			project.platform.bundles.each {
-				it.registerDependency(project)
 			}
 		}
 

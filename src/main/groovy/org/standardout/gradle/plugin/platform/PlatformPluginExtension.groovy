@@ -16,6 +16,7 @@
 
 package org.standardout.gradle.plugin.platform
 
+import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundleDependency;
 
@@ -25,6 +26,12 @@ import org.standardout.gradle.plugin.platform.internal.BundleDependency;
  * @author Simon Templer
  */
 class PlatformPluginExtension {
+	
+	PlatformPluginExtension(Project project) {
+		this.project = project
+	}
+	
+	final Project project
 	
 	/**
 	 * States if source for external dependencies should be fetched and corresponding source bundles created. 
@@ -105,8 +112,26 @@ class PlatformPluginExtension {
 	 */
 	def bundle(def dependencyNotation, Closure configClosure = null) {
 		bundles << new BundleDependency(
-				dependencyNotation: dependencyNotation,
-				configClosure: configClosure
+				project,
+				dependencyNotation,
+				configClosure,
+				true // create dependency
+			)
+	}
+	
+	/**
+	 * Call bnd to configure artifact, but don't add as dependency.
+	 *
+	 * @param dependencyNotation a dependency notation as supported by Gradle
+	 * @param bndClosure a closure that specifying the custom bnd configuration
+	 * @return
+	 */
+	def bnd(def dependencyNotation, Closure bndClosure) {
+		bundles << new BundleDependency(
+				project,
+				dependencyNotation,
+				bndClosure,
+				false // don't create dependency
 			)
 	}
 	

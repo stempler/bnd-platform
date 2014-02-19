@@ -30,69 +30,41 @@ import org.standardout.gradle.plugin.platform.PlatformPlugin
  */
 class BundleDependency {
 	
-	/**
-	 * The original dependency notation.
-	 */
-	def dependencyNotation
-	
-	/**
-	 * The configuration closure.
-	 */
-	Closure configClosure
-	
-	/**
-	 * Custom bnd configuration. 
-	 */
-	BndConfig bndConfig = new BndConfig()
-	
-	/**
-	 * The project dependency once it was registered using registerDependency.
-	 */
-	Dependency dependency
-	
-	/**
-	 * Delegate for the configuration closure to intercept calls
-	 * for the bundle configuration.
-	 */
-	private class CustomConfigDelegate {
-		private final def orgDelegate
-		CustomConfigDelegate(def orgDelegate) {
-			this.orgDelegate = orgDelegate
+	BundleDependency(Project project, def dependencyNotation,
+		Closure configClosure, boolean createDependency) {
+		
+		Closure bndClosure
+		
+		if (createDependency) {
+			// add as platform dependency
+			Closure maskedConfig = null
+			CustomConfigDelegate maskingDelegate = null
+			if (configClosure) {
+				maskedConfig = {
+					maskingDelegate = new CustomConfigDelegate(delegate)
+					configClosure.delegate = maskingDelegate
+					configClosure()
+				}
+			}
+		
+			dependency = project.dependencies.add(PlatformPlugin.CONF_PLATFORM, dependencyNotation, maskedConfig)
+			if (maskingDelegate) {
+				bndClosure = maskingDelegate.bndClosure
+			}
+		}
+		else {
+			// create detached dependency
+			dependency = project.dependencies.create(dependencyNotation)
+			bndClosure = configClosure
 		}
 		
-		@Override
-		def invokeMethod(String name, def args) {
-			if (name == 'bnd') {
-				// bnd configuration
-				def argList = InvokerHelper.asList(args)
-				assert argList.size() == 1
-				assert argList[0] instanceof Closure
-				
-				Closure bndClosure = argList[0]
-				bndClosure.delegate = bndConfig
-				bndClosure()
-			}
-			else {
-				// delegate to original delegate
-				orgDelegate."$name"(args)
-			}
+		bndConfig = new BndConfig(project, dependency)
+		if (bndClosure) {
+			// store bnd configuration
+			bndClosure.delegate = bndConfig
+			bndClosure.resolveStrategy = Closure.DELEGATE_FIRST
+			bndClosure()
 		}
-	}
-	
-	/**
-	 * Register the bundle as dependency to the project.
-	 */
-	Dependency registerDependency(Project project) {
-		Closure maskedConfig = null 
-		if (configClosure) {
-			maskedConfig = {
-				def maskingDelegate = new CustomConfigDelegate(delegate)
-				configClosure.delegate = maskingDelegate
-				configClosure()
-			}
-		}
-		
-		dependency = project.dependencies.add(PlatformPlugin.CONF_PLATFORM, dependencyNotation, maskedConfig)
 		
 		// add to bundle index
 		if (dependencyNotation instanceof FileCollection) {
@@ -106,8 +78,48 @@ class BundleDependency {
 			String id = dependency.group + ':' + dependency.name + ':' + dependency.version
 			project.platform.bundleIndex[id] = this
 		}
+	}
+	
+	/**
+	 * Custom bnd configuration. 
+	 */
+	final BndConfig bndConfig
+	
+	/**
+	 * The project dependency once it was registered using registerDependency.
+	 */
+	final Dependency dependency
+	
+	/**
+	 * Delegate for the configuration closure to intercept calls
+	 * for the bundle configuration.
+	 */
+	private static class CustomConfigDelegate {
+		private final def orgDelegate
+		CustomConfigDelegate(def orgDelegate) {
+			this.orgDelegate = orgDelegate
+		}
+
+		/**
+		 * Extracted bnd closure		
+		 */
+		Closure bndClosure
 		
-		dependency
+		@Override
+		def invokeMethod(String name, def args) {
+			if (name == 'bnd') {
+				// bnd configuration
+				def argList = InvokerHelper.asList(args)
+				assert argList.size() == 1
+				assert argList[0] instanceof Closure
+				
+				bndClosure = argList[0]
+			}
+			else {
+				// delegate to original delegate
+				orgDelegate."$name"(args)
+			}
+		}
 	}
 	
 }

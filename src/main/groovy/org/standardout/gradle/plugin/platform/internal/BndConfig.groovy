@@ -17,6 +17,8 @@
 package org.standardout.gradle.plugin.platform.internal
 
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 
 /**
  * Stores the configuration of a bundle concerning bnd.
@@ -24,30 +26,38 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 class BndConfig {
 	
 	/**
+	 * Constructor.
+	 * 
+	 * @param project the gradle project
+	 * @param dependency the dependency to configure
+	 */
+	BndConfig(Project project, Dependency dependency) {
+		this.project = project
+		
+		group = dependency.group
+		name = dependency.name
+		version = dependency.version
+	}
+	
+	final Project project
+	
+	final String group
+	
+	final String name
+	
+	String version
+	
+	/**
 	 * Map of bnd instruction names to instructions.
 	 */
 	final Map<String, String> properties = [:]
 	
 	/**
-	 * Custom settings.
+	 * Create a bnd instruction.
 	 */
-	final Map<String, String> settings = [:]
-	
-//	@Override
-//	def invokeMethod(String name, def args) {
-//		def argList = InvokerHelper.asList(args)
-//		assert argList.size() == 1
-//		properties[name] = argList[0] as String
-//	}
-	
 	def instruction(String name, def value) {
 		properties[name] = (value as String).trim()
 		this
 	}
 	
-	@Override
-	void setProperty(String name, def value) {
-		settings[name] = value as String
-	}
-
 }
