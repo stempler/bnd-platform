@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform.internal
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import aQute.bnd.osgi.Constants
 
 /**
  * Represents the configuration of a bundle concerning bnd.
@@ -50,17 +51,32 @@ class BndConfig {
 	/**
 	 * Version that is either provided or can be set for file dependencies.
 	 */
-	String version
+	void setVersion(String version) {
+		properties[Constants.BUNDLE_VERSION] = version
+	}
+	def getVersion() {
+		properties[Constants.BUNDLE_VERSION]
+	}
 	
 	/**
-	 * Custom symbolic name (currently only for file dependencies)
+	 * Custom symbolic name.
 	 */
-	String symbolicName
+	void setSymbolicName(String symbolicName) {
+		properties[Constants.BUNDLE_SYMBOLICNAME] = symbolicName
+	}
+	def getSymbolicName() {
+		properties[Constants.BUNDLE_SYMBOLICNAME]
+	}
 	
 	/**
-	 * Custom bundle name (currently only for file dependencies)
+	 * Custom bundle name.
 	 */
-	String bundleName
+	void setBundleName(String bundleName) {
+		properties[Constants.BUNDLE_NAME] = bundleName
+	}
+	def getBundleName() {
+		properties[Constants.BUNDLE_NAME]
+	}
 	
 	/**
 	 * Map of bnd instruction names to instructions.

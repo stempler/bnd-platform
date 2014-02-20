@@ -161,11 +161,24 @@ class ResolvedBundleArtifact implements BundleArtifact {
 			Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
 			modifiedVersion = mv.toString()
 		}
-		this.modifiedVersion = modifiedVersion
 		
 		// resolve bundle dependency
 		StoredConfig config = project.platform.configurations.getConfiguration(group, name, version)
 		bndConfig = config?.evaluate(project, group, name, modifiedVersion, file)
+		if (bndConfig) {
+			// override symbolic name or bundle name
+			if (bndConfig.symbolicName) {
+				symbolicName = bndConfig.symbolicName
+			}
+			if (bndConfig.bundleName) {
+				bundleName = bndConfig.bundleName
+			}
+			if (bndConfig.version && bndConfig.version != modifiedVersion) {
+				modifiedVersion = bndConfig.version
+			}
+		}
+		
+		this.modifiedVersion = modifiedVersion
 		
 		// name of the target file to create
 		def targetFileName = "${group}.${name}-${modifiedVersion}"
