@@ -64,9 +64,9 @@ public interface BundleArtifact {
 	String getNoWrapReason();
 	
 	/**
-	 * The associated bundle dependency configuration, if any
+	 * The associated bnd configuration, if any
 	 */
-	BundleDependency getDependency();
+	BndConfig getBndConfig();
 	
 	/**
 	 * The unique identifier.

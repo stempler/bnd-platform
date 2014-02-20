@@ -158,9 +158,9 @@ class BundlesAction implements Action<Task> {
 				properties[Analyzer.IMPORT_PACKAGE] = '*'
 				
 				// bnd config
-				if (art.dependency?.bndConfig) {
+				if (art.bndConfig) {
 					// use instructions from bnd config
-					BndConfig bndConfig = art.dependency.bndConfig
+					BndConfig bndConfig = art.bndConfig
 					properties.putAll(bndConfig.properties) 
 				}
 				

@@ -51,5 +51,11 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 	public boolean isSource() {
 		true
 	}
+
+	@Override
+	public BndConfig getBndConfig() {
+		// no bnd configuration applicable
+		null
+	}
 	
 }

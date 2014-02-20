@@ -64,32 +64,30 @@ class BundleDependency {
 			bndClosure = configClosure
 		}
 		
-		bndConfig = new BndConfig(project, dependency)
 		if (bndClosure) {
-			// store bnd configuration
-			bndClosure.delegate = bndConfig
-			bndClosure.resolveStrategy = Closure.DELEGATE_FIRST
-			bndClosure()
-		}
-		
-		// add to bundle index
-		if (dependencyNotation instanceof FileCollection) {
-			// add per file, with file name as key
-			dependencyNotation.each {
-				project.platform.bundleIndex[it as String] = this
+			StoredConfig config = new StoredConfig(bndClosure)
+			
+			// add to configurations
+			if (dependencyNotation instanceof FileCollection) {
+				def files = dependencyNotation as List
+				if (files.size() == 1) {
+					// save configuration for file
+					project.platform.configurations.putConfiguration(files[0], config)
+				}
+				else {
+					throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
+				}
+			}
+			else {
+				// save dependency configuration
+				project.platform.configurations.putConfiguration(
+					dependency.group, 
+					dependency.name, 
+					dependency.version, 
+					config)
 			}
 		}
-		else {
-			// add with unified name as key
-			String id = dependency.group + ':' + dependency.name + ':' + dependency.version
-			project.platform.bundleIndex[id] = this
-		}
 	}
-	
-	/**
-	 * Custom bnd configuration. 
-	 */
-	final BndConfig bndConfig
 	
 	/**
 	 * The project dependency once it was registered using registerDependency.

@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 
 /**
- * Stores the configuration of a bundle concerning bnd.
+ * Represents the configuration of a bundle concerning bnd.
  */
 class BndConfig {
 	
@@ -29,14 +29,14 @@ class BndConfig {
 	 * Constructor.
 	 * 
 	 * @param project the gradle project
-	 * @param dependency the dependency to configure
 	 */
-	BndConfig(Project project, Dependency dependency) {
+	BndConfig(Project project, String group, String name, String version, File file) {
 		this.project = project
 		
-		group = dependency.group
-		name = dependency.name
-		version = dependency.version
+		this.group = group
+		this.name = name
+		this.version = version
+		this.file = file
 	}
 	
 	final Project project
@@ -44,6 +44,8 @@ class BndConfig {
 	final String group
 	
 	final String name
+	
+	final File file
 	
 	/**
 	 * Version that is either provided or can be set for file dependencies.

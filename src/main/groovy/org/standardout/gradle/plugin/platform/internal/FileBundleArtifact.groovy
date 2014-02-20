@@ -37,7 +37,7 @@ class FileBundleArtifact implements BundleArtifact {
 	
 	final String symbolicName
 	
-	final BundleDependency dependency
+	final BndConfig bndConfig
 	
 	final String id
 	
@@ -54,16 +54,17 @@ class FileBundleArtifact implements BundleArtifact {
 		this.id = artifactFile as String
 		
 		// resolve bundle dependency
-		dependency = project.platform.bundleIndex[id]
+		StoredConfig config = project.platform.configurations.getConfiguration(file)
+		bndConfig = config?.evaluate(project, file)
 		
-		assert dependency : "No bnd configuration for file dependency: $file"
-		assert dependency.bndConfig.version : "No version specified for file dependency: $file"
-		version = modifiedVersion = dependency.bndConfig.version
+		assert bndConfig : "No bnd configuration for file dependency: $file"
+		assert bndConfig.version : "No version specified for file dependency: $file"
+		version = modifiedVersion = bndConfig.version
 		
-		assert dependency.bndConfig.symbolicName : "No symbolic name specified for file dependency: $file"
-		symbolicName = dependency.bndConfig.symbolicName
-		if (dependency.bndConfig.bundleName) {
-			bundleName = dependency.bndConfig.bundleName
+		assert bndConfig.symbolicName : "No symbolic name specified for file dependency: $file"
+		symbolicName = bndConfig.symbolicName
+		if (bndConfig.bundleName) {
+			bundleName = bndConfig.bundleName
 		}
 		else {
 			bundleName = symbolicName

@@ -37,7 +37,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	
 	final String name
 	
-	private final String version
+	private String version
 	String getVersion() { version }
 
 	private final boolean source
@@ -58,8 +58,8 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	private final String noWrapReason
 	String getNoWrapReason() { noWrapReason }
 	
-	private final BundleDependency dependency
-	BundleDependency getDependency() { dependency }
+	private final BndConfig bndConfig
+	BndConfig getBndConfig() { bndConfig }
 	
 	final String unifiedName
 	
@@ -136,32 +136,36 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		}
 		this.unifiedName = unifiedName
 		
-		// resolve bundle dependency
-		dependency = project.platform.bundleIndex[id]
+		// determine osgi version
+		Version osgiVersion
+		try {
+			osgiVersion = Version.parseVersion(version)
+		} catch (NumberFormatException e) {
+			// try again with version stripped of anything but dots and digits
+			String strippedVersion = version.replaceAll(/[^0-9\.]/, '')
+			osgiVersion = Version.parseVersion(strippedVersion)
+			project.logger.warn "Replacing illegal OSGi version $version by $strippedVersion for artifact $name"
+		}
 		
 		// an eventually modified version
-		def modifiedVersion = version
+		def modifiedVersion = osgiVersion.toString()
 		if (wrap) {
 			// if the bundle is wrapped, create a modified version to mark this
-			Version v
-			try {
-				v = Version.parseVersion(version)
-			} catch (NumberFormatException e) {
-				// try again with version stripped of anything but dots and digits
-				String strippedVersion = version.replaceAll(/[^0-9\.]/, '')
-				v = Version.parseVersion(strippedVersion)
-			}
-			def qualifier = v.qualifier
+			def qualifier = osgiVersion.qualifier
 			if (qualifier) {
 				qualifier += 'autowrapped'
 			}
 			else {
 				qualifier = 'autowrapped'
 			}
-			Version mv = new Version(v.major, v.minor, v.micro, qualifier)
+			Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
 			modifiedVersion = mv.toString()
 		}
 		this.modifiedVersion = modifiedVersion
+		
+		// resolve bundle dependency
+		StoredConfig config = project.platform.configurations.getConfiguration(group, name, version)
+		bndConfig = config?.evaluate(project, group, name, modifiedVersion, file)
 		
 		// name of the target file to create
 		def targetFileName = "${group}.${name}-${modifiedVersion}"

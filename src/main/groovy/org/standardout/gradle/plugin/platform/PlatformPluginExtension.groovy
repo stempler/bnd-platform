@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform
 import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundleDependency;
+import org.standardout.gradle.plugin.platform.internal.Configurations;
 
 /**
  * Extension for the platform plugin.
@@ -29,6 +30,7 @@ class PlatformPluginExtension {
 	
 	PlatformPluginExtension(Project project) {
 		this.project = project
+		this.configurations = new Configurations(project)
 	}
 	
 	final Project project
@@ -111,12 +113,12 @@ class PlatformPluginExtension {
 	 * @return
 	 */
 	def bundle(def dependencyNotation, Closure configClosure = null) {
-		bundles << new BundleDependency(
-				project,
-				dependencyNotation,
-				configClosure,
-				true // create dependency
-			)
+		new BundleDependency(
+			project,
+			dependencyNotation,
+			configClosure,
+			true // create dependency
+		)
 	}
 	
 	/**
@@ -127,25 +129,20 @@ class PlatformPluginExtension {
 	 * @return
 	 */
 	def bnd(def dependencyNotation, Closure bndClosure) {
-		bundles << new BundleDependency(
-				project,
-				dependencyNotation,
-				bndClosure,
-				false // don't create dependency
-			)
+		new BundleDependency(
+			project,
+			dependencyNotation,
+			bndClosure,
+			false // don't create dependency
+		)
 	}
 	
 	// for internal use
 	
 	/**
-	 * Collects bundle dependencies added with {@link #bundle(def, Closure)}
+	 * Stores bnd configurations.
 	 */
-	final List<BundleDependency> bundles = []
-	
-	/**
-	 * Maps dependency IDs to {@link BundleDependency}ies
-	 */
-	final Map<String, BundleDependency> bundleIndex = [:]
+	final Configurations configurations
 	
 	/**
 	 * Maps artifact IDs to {@link BundleArtifact}s
