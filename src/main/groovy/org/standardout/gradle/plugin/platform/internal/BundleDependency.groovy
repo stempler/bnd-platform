@@ -60,8 +60,35 @@ class BundleDependency {
 		}
 		else {
 			// create detached dependency
-			dependency = project.dependencies.create(dependencyNotation)
+			if (dependencyNotation instanceof Map) {
+				dependency = new DummyDependency(dependencyNotation)
+			}
+			else {
+				dependency = project.dependencies.create(dependencyNotation)
+			}
 			bndClosure = configClosure
+		}
+		
+		// determine matchClosure
+		if (dependencyNotation instanceof FileCollection) {
+			def files = dependencyNotation as List
+			if (files.size() == 1) {
+				// match based on the file
+				matchClosure = {
+					it.file == files[0]
+				}
+			}
+			else {
+				throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
+			}
+		}
+		else {
+			// match based on group, name and version
+			matchClosure = {
+				(dependency.group == null || dependency.group == it.group) &&
+				(dependency.name == null || dependency.name == it.name) &&
+				(dependency.version == null || dependency.version == it.version)
+			}
 		}
 		
 		if (bndClosure) {
@@ -70,13 +97,8 @@ class BundleDependency {
 			// add to configurations
 			if (dependencyNotation instanceof FileCollection) {
 				def files = dependencyNotation as List
-				if (files.size() == 1) {
-					// save configuration for file
-					project.platform.configurations.putConfiguration(files[0], config)
-				}
-				else {
-					throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
-				}
+				// save configuration for file
+				project.platform.configurations.putConfiguration(files[0], config)
 			}
 			else {
 				// save dependency configuration
@@ -93,6 +115,11 @@ class BundleDependency {
 	 * The project dependency once it was registered using registerDependency.
 	 */
 	final Dependency dependency
+	
+	/**
+	 * A closure that matches this dependency against a given {@link BundleArtifact}.
+	 */
+	final Closure matchClosure
 	
 	/**
 	 * Delegate for the configuration closure to intercept calls

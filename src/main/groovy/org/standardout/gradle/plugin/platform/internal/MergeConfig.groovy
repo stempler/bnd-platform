@@ -30,10 +30,12 @@ class MergeConfig {
 		bundleConfig
 	}
 	
-	private Closure matchClosure
-	def Closure getMatchClosure() {
-		matchClosure
+	private final List<Closure> matchClosures = []
+	def List<Closure> getMatchClosures() {
+		matchClosures
 	}
+	
+	private Set<String> bundleIds = new HashSet<String>()
 	
 	final Map<String, Object> properties
 	
@@ -43,17 +45,48 @@ class MergeConfig {
 		this.project = project
 		this.properties = properties 
 		mergeClosure.delegate = this
+		mergeClosure.resolveStrategy = Closure.DELEGATE_FIRST
 		mergeClosure()
 	}
 	
 	def bnd(Closure bndClosure) {
 		this.bundleConfig = new StoredConfig(bndClosure)
 	}
-	
+
+	/**
+	 * Defines a closure that matches against {@link BundleArtifact}s to merge.
+	 */
 	def match(Closure matchClosure) {
-		this.matchClosure = matchClosure
+		this.matchClosures << matchClosure
 	}
 	
-	//TODO bundle / include calls
+	/**
+	 * Add a bundle to merge and as dependency.
+	 */
+	def bundle(def dependencyNotation) {
+		BundleDependency dep = new BundleDependency(
+			project,
+			dependencyNotation,
+			null,
+			true // create dependency
+		)
+		if (dep.matchClosure != null) {
+			this.matchClosures << dep.matchClosure
+		}
+	}
 	
+	/**
+	 * Include a bundle to merge, but not as dependency.
+	 */
+	def include(def dependencyNotation) {
+		BundleDependency dep = new BundleDependency(
+			project,
+			dependencyNotation,
+			null,
+			false // don't create dependency
+		)
+		if (dep.matchClosure != null) {
+			this.matchClosures << dep.matchClosure
+		}
+	}
 }

@@ -96,6 +96,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		def symbolicName = bundleName
 				
 		// reason why a bundle is not wrapped
+		boolean wrap
 		if (source || extension != 'jar') {
 			// never wrap
 			wrap = false
@@ -168,6 +169,11 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		StoredConfig config = project.platform.configurations.getConfiguration(group, name, version)
 		bndConfig = config?.evaluate(project, group, name, modifiedVersion, file)
 		if (bndConfig) {
+			if (!wrap && !source) {
+				project.logger.warn "Bnd configuration found for bundle $symbolicName, so it is wrapped even though a bundle manifest seems to be already present"
+				wrap = true
+			}
+			
 			// override symbolic name or bundle name
 			if (bndConfig.symbolicName) {
 				symbolicName = bndConfig.symbolicName
@@ -192,6 +198,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		
 		this.bundleName = bundleName
 		this.symbolicName = symbolicName
+		this.wrap = wrap
 	}
 
 }

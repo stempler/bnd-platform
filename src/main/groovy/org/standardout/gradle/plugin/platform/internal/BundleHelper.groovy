@@ -111,7 +111,7 @@ class BundleHelper {
 		}
 		
 		if (project.logger.infoEnabled) {
-			project.logger.info 'Merging jars ' + jars.join(',')
+			project.logger.info 'Merging jars ' + jars.collect{ it.name }.join(',')
 		}
 		
 		// merge jars
@@ -128,10 +128,16 @@ class BundleHelper {
 					collectServices: true
 				])
 				FileBundleArtifact sourceArtifact = new FileBundleArtifact(artifact, sourceJar)
+				
+				// register artifact so it is included in the platform feature
+				project.platform.artifacts[sourceArtifact.id] = sourceArtifact
 			}
 			
 			// create bundle (and source bundle)
 			bundle(project, artifact, targetDir)
+			
+			// register artifact so it is included in the platform feature
+			project.platform.artifacts[artifact.id] = artifact
 		}
 		finally {
 			tmpJar.delete()

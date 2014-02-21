@@ -43,17 +43,20 @@ class Configurations {
 	 * Create bundles for the given artifacts.
 	 */
 	void createBundles(Iterable<BundleArtifact> artifacts, File targetDir) {
-		List<List<BundleArtifact>> mergeBuckets = new ArrayList<>(merges.size())
+		List<List<BundleArtifact>> mergeBuckets = new ArrayList<List<BundleArtifact>>(merges.size())
 		List<BundleArtifact> remaining = []
 		
 		artifacts.each {
 			BundleArtifact art ->
 			if (!art.isSource()) { // ignore source bundles
 				boolean added = false
+				def matchAgainst = new LaxPropertyDecorator(art)
 				// check for each merge if the bundle is part of the merge
 				merges.eachWithIndex {
 					MergeConfig merge, int index ->
-					if (merge.matchClosure(new LaxPropertyDecorator(art))) { // call match closure with artifact
+					// call match closure(s) with artifact
+					// any match will result in the bundle being merged
+					if (merge.matchClosures.any { it(matchAgainst) }) {
 						List<BundleArtifact> bucket = mergeBuckets[index]
 						if (bucket == null) {
 							bucket = []

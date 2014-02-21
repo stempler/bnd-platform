@@ -58,10 +58,10 @@ class BundlesAction implements Action<Task> {
 		Configuration config = project.getConfigurations().getByName(PlatformPlugin.CONF_PLATFORM)
 		ResolvedConfiguration resolved = config.resolvedConfiguration
 		
-		if (project.logger.infoEnabled) {
+		if (project.logger.debugEnabled) {
 			// output some debug information on the configuration
-			configInfo(config, project.logger.&info)
-			resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&info)
+			configInfo(config, project.logger.&debug)
+			resolvedConfigInfo(resolved.resolvedArtifacts, project.logger.&debug)
 		}
 		
 		// collect dependency files (to later be able to determine pure file dependencies)
@@ -71,10 +71,13 @@ class BundlesAction implements Action<Task> {
 		// id is mapped to artifacts
 		def artifacts = project.platform.artifacts 
 		resolved.resolvedArtifacts.each {
-			BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
-			artifacts[artifact.id] = artifact
+			if (it.extension == 'jar') {
+				// only Jars are valid artifacts (ignore poms)
+				BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
+				artifacts[artifact.id] = artifact
+			}
 			
-			dependencyFiles.remove(artifact.file)
+			dependencyFiles.remove(it.file)
 		}
 		
 		// dependency source artifacts
@@ -98,8 +101,8 @@ class BundlesAction implements Action<Task> {
 			}
 			
 			// output info
-			if (project.logger.infoEnabled) {
-				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
+			if (project.logger.debugEnabled) {
+				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&debug)
 			}
 		}
 		
