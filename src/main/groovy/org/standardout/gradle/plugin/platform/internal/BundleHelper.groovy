@@ -86,13 +86,15 @@ class BundleHelper {
 				(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
 			)
 			
-			Builder builder = BndHelper.createBuilder()
-			// source jar
-			builder.addClasspath(art.file)
-			// set properties
-			builder.addProperties(properties)
-			// build
-			BndHelper.buildAndClose(builder, outputFile)
+			BndHelper.wrap(art.file, null, outputFile, properties)
+			
+//			Builder builder = BndHelper.createBuilder()
+//			// source jar
+//			builder.addClasspath(art.file)
+//			// set properties
+//			builder.addProperties(properties)
+//			// build
+//			BndHelper.buildAndClose(builder, outputFile)
 		}
 		else {
 			project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
@@ -148,10 +150,7 @@ class BundleHelper {
 			}
 			else {
 				Jar sub = new Jar(it)
-				
 				addAll(jar, sub, properties)
-				
-				jar = sub
 			}
 		}
 		
@@ -171,19 +170,39 @@ class BundleHelper {
 	}
 	
 	private static void mergeResource(Jar parent, Jar sub, String name, Map<String, Object> properties) {
-//		if (properties.collectServices && parent.getResource(name) != null && name.startsWith('META-INF/services/')) {
-//			// append resource
-//			Resource res = parent.getResource(name)
-//			//TODO
-//		}
-//		else {
+		if (properties.collectServices && parent.getResource(name) != null && name.startsWith('META-INF/services/')) {
+			// append resource
+			Resource res = parent.getResource(name)
+			parent.putResource(name, combineServices(res, sub.getResource(name)))
+		}
+		else {
 			boolean duplicate = parent.putResource(name, sub.getResource(name), true);
 			if (duplicate) {
 				if (properties.failOnDuplicate) {
 					throw new IllegalStateException("Duplicate resource $name when merging jars, but failOnDuplicate is enabled")
 				}
 			}
-//		}
+		}
+	}
+	
+	/**
+	 * Combine all service classes in a META-INF/services file.
+	 */
+	private static Resource combineServices(Resource first, Resource second) {
+		def lines = []
+		lines.addAll(first.openInputStream().withStream {
+			InputStream input ->
+			input.readLines()
+		})
+		lines.addAll(second.openInputStream().withStream {
+			InputStream input ->
+			input.readLines()
+		})
+		lines = lines.findAll() // all non-empty lines
+		String content = lines.join('\n')
+		return new ByteArrayResource(
+			content.bytes, 
+			Math.max(first.lastModified(), second.lastModified()))
 	}
 
 }

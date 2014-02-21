@@ -52,7 +52,6 @@ class FileBundleArtifact implements BundleArtifact {
 	 */
 	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null) {
 		this.file = artifactFile
-		this.targetFileName = artifactFile.name
 		this.id = artifactFile as String
 		
 		if (config == null) {
@@ -73,6 +72,8 @@ class FileBundleArtifact implements BundleArtifact {
 		else {
 			bundleName = symbolicName
 		}
+		
+		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
 	}
 	
 	@Override
