@@ -30,11 +30,13 @@ class StoredConfig {
 	 * 
 	 * @param bndClosure the closure representing the bnd configuration
 	 */
-	StoredConfig(Closure bndClosure) {
-		this.bndClosure = bndClosure
+	StoredConfig(Closure bndClosure = null) {
+		if (bndClosure != null) {
+			bndClosures << bndClosure
+		}
 	}
 	
-	final Closure bndClosure
+	final List<Closure> bndClosures = []
 
 	BndConfig evaluate(Project project, File file) {
 		evaluate(project, null, null, null, file)
@@ -42,18 +44,42 @@ class StoredConfig {
 	
 	BndConfig evaluate(Project project, String group, String name, String version, File file = null) {
 		BndConfig res = null
-		if (bndClosure) {
+		if (bndClosures) {
 			res = new BndConfig(project, group, name, version, file)
-			bndClosure.delegate = res
-			bndClosure.resolveStrategy = Closure.DELEGATE_FIRST
-			bndClosure()
+			bndClosures.each {
+				// evaluate bnd closures in order (later may override properties set in previous)
+				Closure bndClosure -> 
+				bndClosure.delegate = res
+				bndClosure.resolveStrategy = Closure.DELEGATE_FIRST
+				bndClosure()
+			}
 		}
 		
 		res
 	}
+
+	/**
+	 * Append the given configuration.	
+	 */
+	def leftShift(StoredConfig other) {
+		if (other != null) {
+			bndClosures.addAll(other.bndClosures)
+		}
+		this
+	}
+	
+	/**
+	 * Prepend the own configuration to the given configuration object.
+	 */
+	def rightShift(StoredConfig other) {
+		if (other != null) {
+			other.bndClosures.addAll(0, bndClosures)
+		}
+		this
+	}
 	
 	boolean isEmpty() {
-		bndClosure == null
+		bndClosures.empty
 	}
 	
 }

@@ -33,8 +33,11 @@ class Configurations {
 	void putConfiguration(File file, StoredConfig config) {
 		assert file
 		
-		if (fileConfigurations.containsKey(file)) {
-			project.logger.warn "Multiple bnd configurations for file $file, using only the first encountered"
+		StoredConfig current = fileConfigurations[file] 
+		if (current != null) {
+			// append configuration
+			current << config
+			project.logger.warn "Multiple bnd configurations for file $file, later definitions may override previous"
 		}
 		else {
 			fileConfigurations[file] = config
@@ -49,41 +52,79 @@ class Configurations {
 		assert group || name: 'At least group or name must be specified for bnd configuration'
 		
 		Map<String, StoredConfig> nameConfig = dependencyConfigurations.get(group, [:]).get(name, [:])
-		if (nameConfig.containsKey(version)) {
-			project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, using only the first encountered"
+		StoredConfig current = nameConfig.get(version)
+		if (current != null) {
+			// append configuration
+			current << config
+			project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, later definitions may override previous"
 		}
 		else {
 			nameConfig.put(version, config)
 		}
 	}
 	
+	/**
+	 * Get the (combined) configuration for the given parameters defining a dependency.
+	 * @return the configuration, may be <code>null</code>
+	 */
 	StoredConfig getConfiguration(String group, String name, String version) {
-		StoredConfig res = null
+		final StoredConfig res = new StoredConfig()
+		StoredConfig tmp
 		
 		// fully qualified
-		res = dependencyConfigurations.get(group)?.get(name)?.get(version)
-		if (res == null) {
-			// w/o version
-			res = dependencyConfigurations.get(group)?.get(name)?.get(null)
-		}
-		if (res == null) {
-			// w/o group
-			res = dependencyConfigurations.get(null)?.get(name)?.get(version)
-		}
-		if (res == null) {
-			// w/o name
-			res = dependencyConfigurations.get(group)?.get(null)?.get(version)
-		}
-		if (res == null) {
-			// only name
-			res = dependencyConfigurations.get(null)?.get(name)?.get(null)
-		}
-		if (res == null) {
-			// only group
-			res = dependencyConfigurations.get(group)?.get(null)?.get(null)
+		if (group && name && version) {
+			tmp = dependencyConfigurations.get(group)?.get(name)?.get(version)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
 		}
 		
-		res
+		// w/o version
+		if (group && name) {
+			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
+		}
+			
+		// w/o group
+		if (name && version) {
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
+		}
+		
+		// w/o name
+		if (group && version) {
+			tmp = dependencyConfigurations.get(group)?.get(null)?.get(version)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
+		}
+		
+		// only name
+		if (name) {
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
+		}
+		
+		// only group
+		if (group) {
+			tmp = dependencyConfigurations.get(group)?.get(null)?.get(null)
+			if (tmp != null) {
+				tmp >> res // prepend configuration
+			}
+		}
+		
+		if (res.empty) {
+			null
+		}
+		else {
+			res
+		}
 	}
 
 }
