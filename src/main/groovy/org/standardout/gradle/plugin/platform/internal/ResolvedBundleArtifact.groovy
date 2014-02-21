@@ -37,6 +37,8 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	
 	final String name
 	
+	BundleArtifact sourceBundle
+	
 	private String version
 	String getVersion() { version }
 

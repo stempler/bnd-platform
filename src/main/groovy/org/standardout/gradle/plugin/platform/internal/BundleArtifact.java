@@ -77,5 +77,15 @@ public interface BundleArtifact {
 	 * The name of the target file.
 	 */
 	String getTargetFileName();
+	
+	/**
+	 * The associated source bundle, if any.
+	 */
+	BundleArtifact getSourceBundle();
+	
+	/**
+	 * Set the associated source bundle, may be <code>null</code>.
+	 */
+	void setSourceBundle(BundleArtifact sourceBundle);
 
 }

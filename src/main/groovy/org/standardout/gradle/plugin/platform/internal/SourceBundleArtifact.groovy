@@ -33,7 +33,7 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 			parentBundle.bundleName + ' Sources'
 		}
 		else {
-			super.getBundleName()
+			super.getBundleName() + ' ' +  classifier
 		}
 	}
 
@@ -43,7 +43,7 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 			parentBundle.symbolicName + '.source'
 		}
 		else {
-			super.getSymbolicName()
+			super.getSymbolicName() + ".$classifier"
 		}
 	}
 

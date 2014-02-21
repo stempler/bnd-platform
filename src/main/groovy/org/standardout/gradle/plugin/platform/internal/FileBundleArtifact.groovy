@@ -45,16 +45,20 @@ class FileBundleArtifact implements BundleArtifact {
 	
 	final String targetFileName
 	
+	BundleArtifact sourceBundle
+	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
-	FileBundleArtifact(File artifactFile, Project project) {
+	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null) {
 		this.file = artifactFile
 		this.targetFileName = artifactFile.name
 		this.id = artifactFile as String
 		
-		// resolve bundle dependency
-		StoredConfig config = project.platform.configurations.getConfiguration(file)
+		if (config == null) {
+			// resolve file dependency configuration
+			config = project.platform.configurations.getConfiguration(file)
+		}
 		bndConfig = config?.evaluate(project, file)
 		
 		assert bndConfig : "No bnd configuration for file dependency: $file"

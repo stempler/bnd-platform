@@ -16,10 +16,13 @@
 
 package org.standardout.gradle.plugin.platform
 
+import groovy.lang.Closure;
+
 import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundleDependency;
 import org.standardout.gradle.plugin.platform.internal.Configurations;
+import org.standardout.gradle.plugin.platform.internal.MergeConfig;
 
 /**
  * Extension for the platform plugin.
@@ -135,6 +138,16 @@ class PlatformPluginExtension {
 			bndClosure,
 			false // don't create dependency
 		)
+	}
+	
+	/**
+	 * Call merge to create bundle that is merged from different dependencies.
+	 * @param mergeClosure the merge closure, specifying a match and bnd configuration
+	 * @return
+	 */
+	def merge(Map<String, Object> properties = [failOnDuplicate: true, collectServices: true], Closure mergeClosure) {
+		MergeConfig config = new MergeConfig(project, properties, mergeClosure)
+		configurations.addMerge(config)
 	}
 	
 	// for internal use

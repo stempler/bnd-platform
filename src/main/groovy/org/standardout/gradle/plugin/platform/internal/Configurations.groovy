@@ -18,6 +18,9 @@ package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.Project;
 
+/**
+ * Bundle configuration index.
+ */
 class Configurations {
 	
 	private final Project project
@@ -26,10 +29,73 @@ class Configurations {
 	
 	private final Map<String, Map<String, Map<String, StoredConfig>>> dependencyConfigurations = [:]
 	
+	private final List<MergeConfig> merges = []
+	
 	Configurations(Project project) {
 		this.project = project
 	}
 	
+	void addMerge(MergeConfig merge) {
+		merges << merge
+	}
+	
+	/**
+	 * Create bundles for the given artifacts.
+	 */
+	void createBundles(Iterable<BundleArtifact> artifacts, File targetDir) {
+		List<List<BundleArtifact>> mergeBuckets = new ArrayList<>(merges.size())
+		List<BundleArtifact> remaining = []
+		
+		artifacts.each {
+			BundleArtifact art ->
+			if (!art.isSource()) { // ignore source bundles
+				boolean added = false
+				// check for each merge if the bundle is part of the merge
+				merges.eachWithIndex {
+					MergeConfig merge, int index ->
+					if (merge.matchClosure(new LaxPropertyDecorator(art))) { // call match closure with artifact
+						List<BundleArtifact> bucket = mergeBuckets[index]
+						if (bucket == null) {
+							bucket = []
+							mergeBuckets[index] = bucket
+						}
+						bucket << art
+						added = true
+					}
+				}
+				
+				if (!added) {
+					remaining << art
+				}
+			}
+		}
+		
+		// collect all jars for classpath
+//		def jarFiles = artifacts.collect {
+//			it.file
+//		}
+		
+		// merged bundles
+		mergeBuckets.eachWithIndex {
+			def bundles, int index ->
+			if (bundles) {
+				BundleHelper.merge(project, merges[index], bundles, targetDir)
+			}
+			else {
+				project.logger.warn 'No bundles match merge'
+			}
+		}
+		
+		// other bundles
+		remaining.each {
+			BundleArtifact art ->
+			BundleHelper.bundle(project, art, targetDir)
+		}
+	}
+	
+	/**
+	 * Add configuration for a file based dependency.
+	 */
 	void putConfiguration(File file, StoredConfig config) {
 		assert file
 		
@@ -44,10 +110,16 @@ class Configurations {
 		}
 	}
 	
+	/**
+	 * Get configuration for a file based dependency.
+	 */
 	StoredConfig getConfiguration(File file) {
 		fileConfigurations[file]
 	}
 	
+	/**
+	 * Add configuration for a dependency.
+	 */
 	void putConfiguration(String group = null, String name = null, String version = null, StoredConfig config) {
 		assert group || name: 'At least group or name must be specified for bnd configuration'
 		

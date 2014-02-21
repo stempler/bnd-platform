@@ -77,24 +77,30 @@ class BundlesAction implements Action<Task> {
 			dependencyFiles.remove(artifact.file)
 		}
 		
-		// source artifacts
+		// dependency source artifacts
 		if (project.platform.fetchSources) {
 			def sourceArtifacts = DependencyHelper.resolveSourceArtifacts(config, project.configurations)
 			sourceArtifacts.each {
 				SourceBundleArtifact artifact = new SourceBundleArtifact(it, project)
 				artifacts[artifact.id] = artifact
 				
-				// check if associated bundle is found
+				// check if associated bundle is found, associated source to 
 				if (artifacts[artifact.unifiedName]) {
 					BundleArtifact bundle = artifacts[artifact.unifiedName]
 					if (bundle) {
 						artifact.parentBundle = bundle
+						bundle.sourceBundle = artifact
+					}
+					else {
+						project.logger.warn "No parent bundle for source ${artifact.id} found"
 					}
 				}
 			}
 			
 			// output info
-			resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
+			if (project.logger.infoEnabled) {
+				resolvedConfigInfo('Source artifacts', sourceArtifacts, project.logger.&info)
+			}
 		}
 		
 		// file artifacts
@@ -102,88 +108,22 @@ class BundlesAction implements Action<Task> {
 			// for all remaining dependencies assume they are local files
 			FileBundleArtifact artifact = new FileBundleArtifact(it, project)
 			artifacts[artifact.id] = artifact
+			
+			if (project.platform.fetchSources) {
+				//TODO look for and associate source bundle
+			}
 		}
 		
 		targetDir.mkdirs()
 
 		if(!artifacts) {
-			project.logger.warn "${getClass().getSimpleName()}: no dependency artifacts could be found"
+			project.logger.warn 'No platform artifacts could be found, no bundles created'
 			return
 		} else {
 			project.logger.info "Processing ${artifacts.size()} dependency artifacts:"
 		}
 		
-		// collect all jars for classpath
-		def jarFiles = artifacts.values().collect {
-			it.file
-		}
-
-		artifacts.values().each { BundleArtifact art ->
-			def outputFile = new File(targetDir, art.targetFileName)
-				
-			if(art.source) {
-				// source jar
-				
-				// find corresponding bundle
-				BundleArtifact bundle = artifacts[art.unifiedName]
-				if (bundle) {
-					// wrap as source bundle
-					project.logger.info "-> Creating source bundle ${art.id}..."
-					
-					// calculated properties
-					def sourceBundleDef = "${bundle.symbolicName};version=\"${bundle.modifiedVersion}\";roots:=\".\"" as String
-					
-					BndHelper.wrap(art.file, null, outputFile, [
-						(Analyzer.BUNDLE_NAME): art.bundleName,
-						(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
-						(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName,
-						(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
-						(Analyzer.EXPORT_PACKAGE): '', // no exports
-						'Eclipse-SourceBundle': sourceBundleDef
-					])
-				}
-				else {
-					project.logger.warn "Ignoring source jar $art.id as no associated jar was found"
-				}
-			} else if (art.wrap) {
-				// normal jar
-				project.logger.info "-> Wrapping jar ${art.id} as OSGi bundle using bnd..."
-				
-				Map<String, String> properties = [:]
-				
-				// default properties
-				Version version = Version.parseVersion(art.modifiedVersion)
-				Version versionDigits = new Version(version.major, version.minor, version.micro)
-				properties[Analyzer.EXPORT_PACKAGE] = "*;version=${versionDigits.toString()}" as String
-				properties[Analyzer.IMPORT_PACKAGE] = '*'
-				
-				// bnd config
-				if (art.bndConfig) {
-					// use instructions from bnd config
-					BndConfig bndConfig = art.bndConfig
-					properties.putAll(bndConfig.properties) 
-				}
-				
-				// properties that are fixed (if they should be changed it should happen in BundleArtifact)
-				properties.putAll(
-					(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
-					(Analyzer.BUNDLE_NAME): art.bundleName,
-					(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
-				)
-				
-				Builder builder = BndHelper.createBuilder()
-				// source jar
-				builder.addClasspath(art.file)
-				// set properties
-				builder.addProperties(properties)
-				// build
-				BndHelper.buildAndClose(builder, outputFile)
-			}
-			else {
-				project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
-				project.ant.copy ( file : art.file , tofile : outputFile )
-			}
-		}
+		project.platform.configurations.createBundles(artifacts.values(), targetDir)
 	}
 	
 	// methods logging information for easier debugging
