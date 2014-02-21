@@ -47,12 +47,15 @@ class FileBundleArtifact implements BundleArtifact {
 	
 	BundleArtifact sourceBundle
 	
+	private final boolean source
+	
 	/**
-	 * Create a bundle artifact from a resolved artifact.
+	 * Create a bundle artifact represented by a Jar.
 	 */
 	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null) {
 		this.file = artifactFile
 		this.id = artifactFile as String
+		this.source = false
 		
 		if (config == null) {
 			// resolve file dependency configuration
@@ -76,13 +79,37 @@ class FileBundleArtifact implements BundleArtifact {
 		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
 	}
 	
+	/**
+	 * Create a source bundle artifact from a Jar.
+	 * 
+	 * @param bundle the bundle the source bundle belongs to
+	 * @param sourceBundleFile the source bundle file
+	 */
+	FileBundleArtifact(BundleArtifact bundle, File sourceBundleFile) {
+		this.file = sourceBundleFile
+		this.id = sourceBundleFile as String
+		this.source = true
+		
+		bndConfig = null
+		
+		version = modifiedVersion = bundle.version
+		
+		symbolicName = bundle.symbolicName + '.source'
+		bundleName = bundle.bundleName + ' Sources'
+		
+		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
+		
+		// associate to bundle
+		bundle.sourceBundle = this
+	}
+	
 	@Override
 	public boolean isSource() {
-		false
+		source
 	}
 	@Override
 	public boolean isWrap() {
-		true
+		!source
 	}
 	@Override
 	public String getNoWrapReason() {

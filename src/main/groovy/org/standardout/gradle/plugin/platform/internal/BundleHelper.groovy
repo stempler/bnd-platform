@@ -87,14 +87,6 @@ class BundleHelper {
 			)
 			
 			BndHelper.wrap(art.file, null, outputFile, properties)
-			
-//			Builder builder = BndHelper.createBuilder()
-//			// source jar
-//			builder.addClasspath(art.file)
-//			// set properties
-//			builder.addProperties(properties)
-//			// build
-//			BndHelper.buildAndClose(builder, outputFile)
 		}
 		else {
 			project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
@@ -122,17 +114,29 @@ class BundleHelper {
 			project.logger.info 'Merging jars ' + jars.join(',')
 		}
 		
+		// merge jars
 		File tmpJar = File.createTempFile('merge', '.jar')
+		File sourceJar = File.createTempFile('merge', '-sources.jar')
 		try {
 			mergeJars(project, jars, tmpJar, merge.properties)
-			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, merge.bundleConfig) 
+			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, merge.bundleConfig)
+			
+			// merge sources & associate to bundle artifact
+			if (sourceJars) {
+				mergeJars(project, sourceJars, sourceJar, [
+					failOnDuplicate: false,
+					collectServices: true
+				])
+				FileBundleArtifact sourceArtifact = new FileBundleArtifact(artifact, sourceJar)
+			}
+			
+			// create bundle (and source bundle)
 			bundle(project, artifact, targetDir)
 		}
 		finally {
 			tmpJar.delete()
+			sourceJar.delete()
 		}
-		
-		//TODO merge sources
 	}
 	
 	static void mergeJars(Project project, List<File> jarFiles, File targetFile, Map<String, Object> properties) {
