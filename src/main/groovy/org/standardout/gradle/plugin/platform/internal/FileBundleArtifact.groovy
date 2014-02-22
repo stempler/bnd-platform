@@ -52,6 +52,8 @@ class FileBundleArtifact implements BundleArtifact {
 	
 	private final boolean source
 	
+	private final boolean wrap
+	
 	/**
 	 * Create a bundle artifact represented by a Jar.
 	 */
@@ -61,13 +63,24 @@ class FileBundleArtifact implements BundleArtifact {
 		this.source = false
 		
 		JarInfo jarInfo = null
+		boolean includeDefaultConfig = true
 		if (!source) {
 			jarInfo = new JarInfo(file)
+			if (jarInfo.symbolicName) {
+				includeDefaultConfig = false
+			}
 		}
 		
 		if (config == null) {
 			// resolve file dependency configuration
-			config = project.platform.configurations.getConfiguration(file, true)
+			config = project.platform.configurations.getConfiguration(file, includeDefaultConfig)
+		}
+		if (source) {
+			wrap = false
+		}
+		else {
+			// only wrap if there is a configuration (retain existing bundles)
+			wrap = !config.isEmpty()
 		}
 		bndConfig = config?.evaluate(project, file, jarInfo?.instructions)
 		
@@ -117,11 +130,11 @@ class FileBundleArtifact implements BundleArtifact {
 	}
 	@Override
 	public boolean isWrap() {
-		!source
+		wrap
 	}
 	@Override
 	public String getNoWrapReason() {
-		''
+		'Jar is already a bundle'
 	}
 
 }
