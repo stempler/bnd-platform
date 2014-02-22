@@ -54,6 +54,11 @@ class IncludePluginExtension {
 		closure()
 	}
 	
+	// alias for location
+	def from(def file, Closure closure) {
+		location(file, closure)
+	}
+	
 	private class IncludeDelegate {
 		private final Script script
 		IncludeDelegate(Script script) {
