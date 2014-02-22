@@ -28,6 +28,7 @@ import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStoredConfig;
+import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
 
@@ -105,6 +106,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		def symbolicName = bundleName
 				
 		// reason why a bundle is not wrapped
+		JarInfo jarInfo = null
 		boolean wrap
 		if (source || extension != 'jar') {
 			// never wrap
@@ -117,17 +119,15 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		}
 		else {
 			// check if already a bundle
-			JarFile jar = new JarFile(file)
-			String symName = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_SYMBOLICNAME)
-			
-			if (symName) {
+			jarInfo = new JarInfo(file)
+			if (jarInfo.symbolicName) {
 				// assume it's already a bundle
 				wrap = false
 				noWrapReason = 'jar already constains OSGi manifest entries'
 
 				// determine bundle names
-				symbolicName = symName
-				bundleName = jar.manifest.mainAttributes.getValue(Constants.BUNDLE_NAME)
+				symbolicName = jarInfo.symbolicName
+				bundleName = jarInfo.bundleName
 			}
 			else {
 				// not a bundle yet
@@ -196,7 +196,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 			pomInfo = null
 		}
 		
-		bndConfig = config.evaluate(project, group, name, modifiedVersion, file)
+		bndConfig = config.evaluate(project, group, name, modifiedVersion, file, jarInfo?.instructions)
 		if (bndConfig) {
 			if (!wrap && !source) {
 				wrap = true // must be wrapped to apply configuration

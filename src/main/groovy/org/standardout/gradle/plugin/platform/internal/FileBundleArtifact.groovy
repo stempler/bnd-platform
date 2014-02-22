@@ -24,6 +24,7 @@ import org.osgi.framework.Constants
 import org.osgi.framework.Version
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 
 
 /**
@@ -59,11 +60,16 @@ class FileBundleArtifact implements BundleArtifact {
 		this.id = artifactFile as String
 		this.source = false
 		
+		JarInfo jarInfo = null
+		if (!source) {
+			jarInfo = new JarInfo(file)
+		}
+		
 		if (config == null) {
 			// resolve file dependency configuration
 			config = project.platform.configurations.getConfiguration(file, true)
 		}
-		bndConfig = config?.evaluate(project, file)
+		bndConfig = config?.evaluate(project, file, jarInfo?.instructions)
 		
 		assert bndConfig : "No bnd configuration for file dependency: $file"
 		assert bndConfig.version : "No version specified for file dependency: $file"

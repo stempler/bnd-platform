@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.gradle.api.Project;
 
@@ -38,18 +39,18 @@ class UnmodifiableStoredConfig implements StoredConfig {
 		return Collections.unmodifiableList(decoratee.getBndClosures());
 	}
 
-	public BndConfig evaluate(Project project, File file) {
-		return decoratee.evaluate(project, file);
+	public BndConfig evaluate(Project project, File file, Map<String, String> initialProperties) {
+		return decoratee.evaluate(project, file, initialProperties);
 	}
 
 	public BndConfig evaluate(Project project, String group, String name,
-			String version) {
-		return decoratee.evaluate(project, group, name, version);
+			String version, Map<String, String> initialProperties) {
+		return decoratee.evaluate(project, group, name, version, initialProperties);
 	}
 
 	public BndConfig evaluate(Project project, String group, String name,
-			String version, File file) {
-		return decoratee.evaluate(project, group, name, version, file);
+			String version, File file, Map<String, String> initialProperties) {
+		return decoratee.evaluate(project, group, name, version, file, initialProperties);
 	}
 
 	public void leftShift(StoredConfig other) {

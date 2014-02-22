@@ -31,13 +31,19 @@ class BndConfig {
 	 * 
 	 * @param project the gradle project
 	 */
-	BndConfig(Project project, String group, String name, String version, File file) {
+	BndConfig(Project project, String group, String name, String version, File file,
+		Map<String, String> initialProperties) {
+		
 		this.project = project
 		
 		this.group = group
 		this.name = name
 		this.version = version
 		this.file = file
+		
+		if (initialProperties) {
+			properties.putAll(initialProperties)
+		}
 	}
 	
 	final Project project
@@ -98,6 +104,12 @@ class BndConfig {
 		def list = packages as List
 		list = list.collect { it + ';resolution:=optional' }
 		instruction 'Import-Package', list.join(',') + ',' + (properties['Import-Package']?:'*')
+		
+		/*
+		 * XXX if a package is already contained in the import package
+		 * instruction it may appear repeatedly through this, should we
+		 * try to purge the existing instruction? 
+		 */
 	}
 	
 }

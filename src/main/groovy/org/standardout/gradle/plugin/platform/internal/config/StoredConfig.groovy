@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform.internal.config
 import groovy.lang.Closure;
 
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
@@ -32,11 +33,11 @@ interface StoredConfig {
 	
 	List<Closure> getBndClosures()
 
-	BndConfig evaluate(Project project, File file)
+	BndConfig evaluate(Project project, File file, Map<String, String> initialProperties)
 	
-	BndConfig evaluate(Project project, String group, String name, String version)
+	BndConfig evaluate(Project project, String group, String name, String version, Map<String, String> initialProperties)
 	
-	BndConfig evaluate(Project project, String group, String name, String version, File file)
+	BndConfig evaluate(Project project, String group, String name, String version, File file, Map<String, String> initialProperties)
 	
 	/**
 	 * Append the given configuration.	

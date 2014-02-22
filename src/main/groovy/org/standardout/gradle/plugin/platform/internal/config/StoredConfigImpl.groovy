@@ -42,14 +42,16 @@ class StoredConfigImpl implements StoredConfig {
 	
 	final List<Closure> bndClosures = []
 
-	BndConfig evaluate(Project project, File file) {
-		evaluate(project, null, null, null, file)
+	BndConfig evaluate(Project project, File file, Map<String, String> initialProperties) {
+		evaluate(project, null, null, null, file, initialProperties)
 	}	
 	
-	BndConfig evaluate(Project project, String group, String name, String version, File file = null) {
+	BndConfig evaluate(Project project, String group, String name, String version, File file = null,
+		Map<String, String> initialProperties) {
+		
 		BndConfig res = null
 		if (bndClosures) {
-			res = new BndConfig(project, group, name, version, file)
+			res = new BndConfig(project, group, name, version, file, initialProperties)
 			
 			/*
 			 * Evaluate bnd closures in order (later may override properties set in previous)
