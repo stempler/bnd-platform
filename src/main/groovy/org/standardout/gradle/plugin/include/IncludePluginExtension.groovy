@@ -34,7 +34,7 @@ class IncludePluginExtension {
 		this.project = project
 	}
 	
-	def location(def file, Closure closure) {
+	def location(def file, Closure closure = null) {
 		// determine script location
 		def loc = file
 		if (!(loc instanceof File)) {
@@ -49,13 +49,18 @@ class IncludePluginExtension {
 		GroovyShell shell = new GroovyShell(IncludeScript.classLoader, binding, compilerConf)
 		Script script = shell.parse(loc)
 		
+		if (closure == null) {
+			closure = {
+				script.run()
+			}
+		}
 		closure.delegate = new IncludeDelegate(script)
 		closure.resolveStrategy = Closure.DELEGATE_FIRST
 		closure()
 	}
 	
 	// alias for location
-	def from(def file, Closure closure) {
+	def from(def file, Closure closure = null) {
 		location(file, closure)
 	}
 	
