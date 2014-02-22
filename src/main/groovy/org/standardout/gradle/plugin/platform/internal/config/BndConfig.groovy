@@ -91,4 +91,13 @@ class BndConfig {
 		this
 	}
 	
+	/**
+	 * Add packages for optional import.
+	 */
+	def optionalImport(String... packages) {
+		def list = packages as List
+		list = list.collect { it + ';resolution:=optional' }
+		instruction 'Import-Package', list.join(',') + ',' + (properties['Import-Package']?:'*')
+	}
+	
 }
