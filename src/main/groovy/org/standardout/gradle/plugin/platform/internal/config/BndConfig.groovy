@@ -102,14 +102,37 @@ class BndConfig {
 	 */
 	def optionalImport(String... packages) {
 		def list = packages as List
-		list = list.collect { it + ';resolution:=optional' }
-		instruction 'Import-Package', list.join(',') + ',' + (properties['Import-Package']?:'*')
+		def options = list.collect { it + ';resolution:=optional' }
+		String imports = (properties['Import-Package']?:'*').trim()
 		
 		/*
-		 * XXX if a package is already contained in the import package
-		 * instruction it may appear repeatedly through this, should we
-		 * try to purge the existing instruction? 
+		 * If a package is already contained in the import package
+		 * instruction it may appear repeatedly through this, this
+		 * will lead to illegal bundles - so we need to remove those
+		 * references, at least fully qualified packages.
 		 */
+		def packageMatchers = list.collect {
+			String packageExpr ->
+			// create a regex from the package expression
+			String pRegex = packageExpr.replaceAll(/\./, '\\.') // escape dots
+			pRegex = pRegex.replaceAll(/\*/, '[^,]+') // wildcards match anything save comma and wildcards
+			'^' + pRegex + '$' // must match a full package
+			
+			//XXX possible to use the bnd API for matching?
+		}
+		
+		// check for each package entry if it is OK
+		def importList = imports.split(',').collect{ it.trim() }
+		def accepted = importList.findAll {
+			String pkg ->
+			boolean match = packageMatchers.any {
+				pkg ==~ it
+			}
+			!match
+		}
+		imports = accepted.join(',') // keep all that were accepted (meaning where there was no match)
+		
+		instruction 'Import-Package', options.join(',') + ',' + imports
 	}
 	
 }
