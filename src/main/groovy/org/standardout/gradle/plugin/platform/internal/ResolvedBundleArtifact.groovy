@@ -19,6 +19,8 @@ package org.standardout.gradle.plugin.platform.internal
 import groovy.util.slurpersupport.GPathResult;
 
 import java.util.jar.JarFile
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -154,9 +156,21 @@ class ResolvedBundleArtifact implements BundleArtifact {
 			osgiVersion = Version.parseVersion(version)
 		} catch (NumberFormatException e) {
 			// try again with version stripped of anything but dots and digits
-			String strippedVersion = version.replaceAll(/[^0-9\.]/, '')
-			osgiVersion = Version.parseVersion(strippedVersion)
-			project.logger.warn "Replacing illegal OSGi version $version by $strippedVersion for artifact $name"
+		
+			Matcher matcher = version =~/^(\d+)(\.(\d+))?(\.(\d+))?(\.|-)?(.*)$/
+			def match = matcher[0]
+			if (match) {
+				osgiVersion = new Version(
+					match[1] as int,
+					(match[3] as Integer)?:0,
+					(match[5] as Integer)?:0,
+					match[7])
+			}
+			else {
+				String strippedVersion = version.replaceAll(/[^0-9\.]/, '')
+				osgiVersion = Version.parseVersion(strippedVersion)
+			}
+			project.logger.warn "Replacing illegal OSGi version $version by ${osgiVersion.toString()} for artifact $name"
 		}
 		
 		// an eventually modified version
