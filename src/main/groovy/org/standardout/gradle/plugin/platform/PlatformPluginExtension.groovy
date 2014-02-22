@@ -20,9 +20,11 @@ import groovy.lang.Closure;
 
 import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.BundleDependency;
-import org.standardout.gradle.plugin.platform.internal.Configurations;
-import org.standardout.gradle.plugin.platform.internal.MergeConfig;
+import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
+import org.standardout.gradle.plugin.platform.internal.config.Configurations;
+import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 
 /**
  * Extension for the platform plugin.
@@ -138,6 +140,18 @@ class PlatformPluginExtension {
 			bndClosure,
 			false // don't create dependency
 		)
+	}
+	
+	/**
+	 * Call bnd to extend/overwrite the default bnd configuration for all bundles.
+	 * Note that the default configuration does not apply to Jars that already were bundles.
+	 */
+	def bnd(Closure bndClosure) {
+		// warn as the user should be able to check if this is intended
+		project.logger.warn 'Adding custom configuration to default bnd configuration'
+		if (bndClosure != null) {
+			configurations.addDefaultConfig(new StoredConfigImpl(bndClosure))
+		}
 	}
 	
 	/**

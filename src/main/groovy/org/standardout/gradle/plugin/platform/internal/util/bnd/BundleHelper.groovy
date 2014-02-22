@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.util.bnd
 
 import org.gradle.api.Project
 import org.osgi.framework.Version;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 
 import com.sun.media.sound.JARSoundbankReader;
 
@@ -66,12 +72,6 @@ class BundleHelper {
 			
 			Map<String, String> properties = [:]
 			
-			// default properties
-			Version version = Version.parseVersion(art.modifiedVersion)
-			Version versionDigits = new Version(version.major, version.minor, version.micro)
-			properties[Analyzer.EXPORT_PACKAGE] = "*;version=${versionDigits.toString()}" as String
-			properties[Analyzer.IMPORT_PACKAGE] = '*'
-			
 			// bnd config
 			if (art.bndConfig) {
 				// use instructions from bnd config
@@ -110,16 +110,20 @@ class BundleHelper {
 			}
 		}
 		
-		if (project.logger.infoEnabled) {
-			project.logger.info 'Merging jars ' + jars.collect{ it.name }.join(',')
-		}
+		project.logger.warn 'Merging jars ' + jars.collect{ it.name }.join(',') + ' - the jars will not be available as separate bundles'
 		
 		// merge jars
 		File tmpJar = File.createTempFile('merge', '.jar')
 		File sourceJar = File.createTempFile('merge', '-sources.jar')
 		try {
 			mergeJars(project, jars, tmpJar, merge.properties)
-			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, merge.bundleConfig)
+			
+			// make sure to include default configuration for merged Jar
+			StoredConfig config = new StoredConfigImpl()
+			config << project.platform.configurations.defaultConfig // default config
+			config << merge.bundleConfig // merge config
+			
+			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)
 			
 			// merge sources & associate to bundle artifact
 			if (sourceJars) {

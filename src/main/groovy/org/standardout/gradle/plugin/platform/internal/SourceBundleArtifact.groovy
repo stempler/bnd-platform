@@ -18,6 +18,7 @@ package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 
 class SourceBundleArtifact extends ResolvedBundleArtifact {
 

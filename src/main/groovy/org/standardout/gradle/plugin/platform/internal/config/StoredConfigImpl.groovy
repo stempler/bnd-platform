@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.config
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.standardout.gradle.plugin.platform.internal.util.groovy.IgnoreMethodDecorator;
+import org.standardout.gradle.plugin.platform.internal.util.groovy.IgnoreSetPropertyDecorator;
+
+import java.io.File
 
 /**
  * Stores the configuration of a bundle concerning bnd.
  */
-class StoredConfig {
+class StoredConfigImpl implements StoredConfig {
 	
 	/**
 	 * Constructor.
 	 * 
 	 * @param bndClosure the closure representing the bnd configuration
 	 */
-	StoredConfig(Closure bndClosure = null) {
+	StoredConfigImpl(Closure bndClosure = null) {
 		if (bndClosure != null) {
 			bndClosures << bndClosure
 		}
@@ -46,36 +50,53 @@ class StoredConfig {
 		BndConfig res = null
 		if (bndClosures) {
 			res = new BndConfig(project, group, name, version, file)
-			bndClosures.each {
-				// evaluate bnd closures in order (later may override properties set in previous)
-				Closure bndClosure -> 
-				bndClosure.delegate = res
-				bndClosure.resolveStrategy = Closure.DELEGATE_FIRST
-				bndClosure()
-			}
+			
+			/*
+			 * Evaluate bnd closures in order (later may override properties set in previous)
+			 * 
+			 * We do it two times, so instructions in early closures may access variables
+			 * specified later (e.g. the bundle version through version = ...). The first
+			 * run ignores instruction calls, the second ignores setting properties. 
+			 */
+			
+			// first run (no instructions)
+			def delegate = new IgnoreMethodDecorator(res)
+			callBndClosures(delegate)
+			
+			// second run (only instructions)
+			delegate = new IgnoreSetPropertyDecorator(res)
+			callBndClosures(delegate)
 		}
 		
 		res
+	}
+	
+	private void callBndClosures(def delegate) {
+		bndClosures.each {
+			Closure bndClosure ->
+			Closure copy = bndClosure.clone()
+			copy.delegate = delegate
+			copy.resolveStrategy = Closure.DELEGATE_FIRST
+			copy()
+		}
 	}
 
 	/**
 	 * Append the given configuration.	
 	 */
-	def leftShift(StoredConfig other) {
+	void leftShift(StoredConfig other) {
 		if (other != null) {
 			bndClosures.addAll(other.bndClosures)
 		}
-		this
 	}
 	
 	/**
 	 * Prepend the own configuration to the given configuration object.
 	 */
-	def rightShift(StoredConfig other) {
+	void rightShift(StoredConfig other) {
 		if (other != null) {
 			other.bndClosures.addAll(0, bndClosures)
 		}
-		this
 	}
 	
 	boolean isEmpty() {

@@ -32,12 +32,13 @@ import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
 
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
-import org.standardout.gradle.plugin.platform.internal.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.BundlesAction;
 import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
 /**
  * OSGi platform plugin for Gradle.

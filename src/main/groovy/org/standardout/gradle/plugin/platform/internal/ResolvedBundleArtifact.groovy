@@ -16,12 +16,19 @@
 
 package org.standardout.gradle.plugin.platform.internal
 
+import groovy.util.slurpersupport.GPathResult;
+
 import java.util.jar.JarFile
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
+import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStoredConfig;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
 
 class ResolvedBundleArtifact implements BundleArtifact {
@@ -36,6 +43,8 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	final String group
 	
 	final String name
+	
+	final PomInfo pomInfo
 	
 	BundleArtifact sourceBundle
 	
@@ -165,13 +174,38 @@ class ResolvedBundleArtifact implements BundleArtifact {
 			modifiedVersion = mv.toString()
 		}
 		
-		// resolve bundle dependency
-		StoredConfig config = project.platform.configurations.getConfiguration(group, name, version)
-		bndConfig = config?.evaluate(project, group, name, modifiedVersion, file)
+		// resolve bundle configuration
+		StoredConfig config = new StoredConfigImpl()
+		// only include default configuration if not yet a bundle
+		StoredConfig bundleConfig = project.platform.configurations.getConfiguration(group, name, version, wrap)
+		config << bundleConfig
+		
+		// determine additional configuration from information in POM
+		StoredConfig pomConfig = null
+		if (!source) {
+			pomInfo = extractPomInfo(group: group, name: name, version: version, project)
+			if (pomInfo) {
+				pomConfig = pomInfo.toStoredConfig()
+				if (pomConfig) {
+					// prepend configuration
+					pomConfig >> config
+				}
+			} 
+		}
+		else {
+			pomInfo = null
+		}
+		
+		bndConfig = config.evaluate(project, group, name, modifiedVersion, file)
 		if (bndConfig) {
 			if (!wrap && !source) {
-				project.logger.warn "Bnd configuration found for bundle $symbolicName, so it is wrapped even though a bundle manifest seems to be already present"
-				wrap = true
+				wrap = true // must be wrapped to apply configuration
+				if (bundleConfig != null && !bundleConfig.empty) {
+					project.logger.warn "Bnd configuration found for existing bundle $symbolicName, so it is wrapped even though a bundle manifest seems to be already present"
+				}
+				else {
+					project.logger.warn "Existing bundle $symbolicName will be augmented with additional information from the POM"
+				}
 			}
 			
 			// override symbolic name or bundle name
@@ -199,6 +233,92 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		this.bundleName = bundleName
 		this.symbolicName = symbolicName
 		this.wrap = wrap
+	}
+	
+	/**
+	 * Represents license information retrieved from a POM file.
+	 */
+	public static class LicenseInfo {
+		LicenseInfo(String licenseName, String licenseUrl) {
+			this.licenseName = licenseName
+			this.licenseUrl = licenseUrl
+		}
+		final String licenseName
+		final String licenseUrl
+	}
+	
+	/**
+	 * Represents information retrieved from a POM file.
+	 */
+	public static class PomInfo {
+		final List<LicenseInfo> licenses = []
+		String organization
+		
+		boolean isEmpty() {
+			licenses.empty && !organization
+		}
+		
+		/**
+		 * Convert to stored configuration.
+		 * @return the represented configuration or <code>null</code>
+		 */
+		StoredConfig toStoredConfig() {
+			if (empty) {
+				null
+			}
+			else {
+				def licenseStrings = []
+				licenses.each {
+					LicenseInfo license ->
+					if (license.licenseUrl) {
+						if (license.licenseName) {
+							licenseStrings << "${license.licenseUrl};description=\"${license.licenseName}\""
+						}
+						else {
+							licenseStrings << license.licenseUrl
+						}
+					}
+					else if (license.licenseName) {
+						licenseStrings << license.licenseName
+					}
+				}
+				
+				def bndClosure = {
+					if (organization) {
+						instruction 'Bundle-Vendor', organization
+					}
+					if (licenseStrings) {
+						instruction 'Bundle-License', licenseStrings.join(',')
+					}
+				}
+				new UnmodifiableStoredConfig(new StoredConfigImpl(bndClosure))
+			}
+		}
+	}
+	
+	/**
+	 * Extract information from the POM file of the given dependency.
+	 */
+	private static PomInfo extractPomInfo(Map dependencyNotation, Project project) {
+		String pom = "${dependencyNotation.group}:${dependencyNotation.name}:${dependencyNotation.version}@pom"
+		File pomFile = DependencyHelper.getDetachedDependency(project, pom, 'pom')
+		
+		PomInfo result = new PomInfo()
+		if (pomFile) {
+			def xml = new XmlSlurper().parse(pomFile)
+	
+	        xml.licenses.license.each {
+	            def license = new LicenseInfo(it.name.text().trim(), it.url.text().trim())
+	            result.licenses << license
+	        }
+			
+			def orgName = xml.organization.name.find()
+			if (orgName) {
+				result.organization = orgName.text().trim()
+			}
+		}
+		
+		result
 	}
 
 }

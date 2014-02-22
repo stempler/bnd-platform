@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.config
 
 import org.gradle.api.Project;
+import org.osgi.framework.Version;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper;
+import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
+
+import aQute.bnd.osgi.Analyzer;
 
 /**
  * Bundle configuration index.
@@ -31,12 +37,32 @@ class Configurations {
 	
 	private final List<MergeConfig> merges = []
 	
+	private final StoredConfig defaultConfiguration
+	
 	Configurations(Project project) {
 		this.project = project
+		
+		// default bnd configuration for wrapped bundles
+		// does not apply to bundles that are already bundles
+		def defaultBndConfig = {
+			Version v = Version.parseVersion(version)
+			Version vDigits = new Version(v.major, v.minor, v.micro)
+			properties[Analyzer.EXPORT_PACKAGE] = "*;version=${vDigits.toString()}" as String
+			properties[Analyzer.IMPORT_PACKAGE] = '*'
+		}
+		defaultConfiguration = new StoredConfigImpl(defaultBndConfig)
 	}
 	
 	void addMerge(MergeConfig merge) {
 		merges << merge
+	}
+	
+	void addDefaultConfig(StoredConfig config) {
+		defaultConfiguration << config
+	}
+	
+	StoredConfig getDefaultConfig() {
+		new UnmodifiableStoredConfig(defaultConfiguration)
 	}
 	
 	/**
@@ -116,8 +142,21 @@ class Configurations {
 	/**
 	 * Get configuration for a file based dependency.
 	 */
-	StoredConfig getConfiguration(File file) {
-		fileConfigurations[file]
+	StoredConfig getConfiguration(File file, boolean includeDefaultConfig) {
+		StoredConfig result = new StoredConfigImpl()
+		
+		if (includeDefaultConfig) {
+			// add default configuration to configuration
+			result << defaultConfig
+		}
+		
+		StoredConfig fileConfig = fileConfigurations[file]
+		if (fileConfig) {
+			// add file specific configuration
+			result << fileConfig
+		}
+		
+		result
 	}
 	
 	/**
@@ -140,10 +179,9 @@ class Configurations {
 	
 	/**
 	 * Get the (combined) configuration for the given parameters defining a dependency.
-	 * @return the configuration, may be <code>null</code>
 	 */
-	StoredConfig getConfiguration(String group, String name, String version) {
-		final StoredConfig res = new StoredConfig()
+	StoredConfig getConfiguration(String group, String name, String version, boolean includeDefaultConfig) {
+		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
 		
 		// fully qualified
@@ -194,12 +232,12 @@ class Configurations {
 			}
 		}
 		
-		if (res.empty) {
-			null
+		if (includeDefaultConfig) {
+			// prepend default configuration
+			defaultConfig >> res
 		}
-		else {
-			res
-		}
+		
+		res
 	}
 
 }

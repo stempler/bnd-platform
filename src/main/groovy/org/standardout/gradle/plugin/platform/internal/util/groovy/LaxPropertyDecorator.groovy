@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.util.groovy
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 

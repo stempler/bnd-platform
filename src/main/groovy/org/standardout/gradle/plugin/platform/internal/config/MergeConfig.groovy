@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.config
 
 import org.gradle.api.Project;
 
@@ -27,7 +27,7 @@ class MergeConfig {
 
 	private StoredConfig bundleConfig
 	def StoredConfig getBundleConfig() {
-		bundleConfig
+		new UnmodifiableStoredConfig(bundleConfig)
 	}
 	
 	private final List<Closure> matchClosures = []
@@ -50,7 +50,7 @@ class MergeConfig {
 	}
 	
 	def bnd(Closure bndClosure) {
-		this.bundleConfig = new StoredConfig(bndClosure)
+		this.bundleConfig = new StoredConfigImpl(bndClosure)
 	}
 
 	/**

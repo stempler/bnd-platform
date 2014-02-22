@@ -22,6 +22,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 
 
 /**
@@ -59,7 +61,7 @@ class FileBundleArtifact implements BundleArtifact {
 		
 		if (config == null) {
 			// resolve file dependency configuration
-			config = project.platform.configurations.getConfiguration(file)
+			config = project.platform.configurations.getConfiguration(file, true)
 		}
 		bndConfig = config?.evaluate(project, file)
 		

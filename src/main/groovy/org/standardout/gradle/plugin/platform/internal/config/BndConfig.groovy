@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.config
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;

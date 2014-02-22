@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.util.gradle
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -40,6 +41,48 @@ class DependencyHelper {
 	private static class ExternalDependencySpec implements Spec<Dependency> {
 		public boolean isSatisfiedBy(Dependency element) {
 			return element instanceof ExternalDependency
+		}
+	}
+	
+	/**
+	 * Spec that accepts all dependencies.
+	 */
+	private static class SatisfyAllSpec implements Spec<Dependency> {
+		public boolean isSatisfiedBy(Dependency element) {
+			true
+		}
+	}
+	private static final SatisfyAllSpec SATISFY_ALL = new SatisfyAllSpec()
+	
+	/**
+	 * Retrieve a specific dependency.
+	 */
+	static File getDetachedDependency(Project project, def dependencyNotation, String requiredExtension = null, boolean nullOnMultiple = false) {
+		Dependency dep = project.dependencies.create(dependencyNotation)
+		Configuration configuration = project.configurations.detachedConfiguration(dep)
+		Set<File> artifacts = configuration.resolve()
+		if (requiredExtension != null) {
+			artifacts = artifacts.findAll {
+				File file ->
+				// only accept files w/ specific extension
+				file.name.endsWith(requiredExtension)
+			}
+		}
+		if (artifacts.empty) {
+			null
+		}
+		else if (artifacts.size() == 1) {
+			artifacts.iterator().next()
+		}
+		else {
+			if (nullOnMultiple) {
+				project.logger.warn "Multiple files retrieved for dependency $dependencyNotation, ignoring result"
+				null
+			}
+			else {
+				project.logger.warn "Multiple files retrieved for dependency $dependencyNotation, using a random instance"
+				artifacts.iterator().next()
+			}
 		}
 	}
 	

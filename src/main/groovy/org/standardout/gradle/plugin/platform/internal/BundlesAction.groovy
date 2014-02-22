@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform
+package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Project;
@@ -23,13 +23,9 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.osgi.framework.Version;
-import org.standardout.gradle.plugin.platform.internal.BndConfig;
-import org.standardout.gradle.plugin.platform.internal.BndHelper;
-import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.DependencyHelper;
-import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact;
+import org.standardout.gradle.plugin.platform.PlatformPlugin;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.util.bnd.BndHelper;
 
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Builder;

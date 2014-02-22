@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal.config
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.standardout.gradle.plugin.platform.PlatformPlugin
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency;
 
 
 /**
@@ -49,6 +50,8 @@ class BundleDependency {
 				maskedConfig = {
 					maskingDelegate = new CustomConfigDelegate(delegate)
 					configClosure.delegate = maskingDelegate
+					// ensure that not the wrong bnd method is called
+					configClosure.resolveStrategy = Closure.DELEGATE_FIRST
 					configClosure()
 				}
 			}
@@ -92,7 +95,7 @@ class BundleDependency {
 		}
 		
 		if (bndClosure) {
-			StoredConfig config = new StoredConfig(bndClosure)
+			StoredConfig config = new StoredConfigImpl(bndClosure)
 			
 			// add to configurations
 			if (dependencyNotation instanceof FileCollection) {
@@ -144,12 +147,20 @@ class BundleDependency {
 				assert argList.size() == 1
 				assert argList[0] instanceof Closure
 				
-				bndClosure = argList[0]
+				this.bndClosure = argList[0]
 			}
 			else {
 				// delegate to original delegate
 				orgDelegate."$name"(args)
 			}
+		}
+		
+		@Override
+		def getProperty(String name) {
+			if (name == 'bndClosure') {
+				return this.bndClosure
+			}
+			orgDelegate."$name"
 		}
 	}
 	

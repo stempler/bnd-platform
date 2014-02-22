@@ -18,6 +18,8 @@ package org.standardout.gradle.plugin.platform.internal;
 
 import java.io.File;
 
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+
 /**
  * Represents a bundle artifact represented by a single file.
  */

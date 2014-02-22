@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.standardout.gradle.plugin.platform.internal;
+package org.standardout.gradle.plugin.platform.internal.util.bnd;
 
 import java.io.File;
 import java.util.Collection;
