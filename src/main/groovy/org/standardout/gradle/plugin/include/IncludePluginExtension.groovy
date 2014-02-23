@@ -56,7 +56,7 @@ class IncludePluginExtension {
 				script.run()
 			}
 		}
-		closure.delegate = new IncludeDelegate(script)
+		closure.delegate = new IncludeDelegate(script, project)
 		closure.resolveStrategy = Closure.DELEGATE_FIRST
 		closure()
 	}
@@ -66,15 +66,28 @@ class IncludePluginExtension {
 		location(file, closure)
 	}
 	
-	private class IncludeDelegate {
+	private static class IncludeDelegate {
 		private final Script script
-		IncludeDelegate(Script script) {
+		private final Project project
+		
+		IncludeDelegate(Script script, Project project) {
 			this.script = script
+			this.project = project
 		}
 		
 		def invokeMethod(String name, def args) {
 			// invoke script method
 			InvokerHelper.invokeMethod(script, name, args)
+		}
+		
+		def getProperty(String name) {
+			if (name == 'project') {
+				this.project
+			}
+			else {
+				// delegate properties to project
+				this.project."$name"
+			}
 		}
 	}
 	
