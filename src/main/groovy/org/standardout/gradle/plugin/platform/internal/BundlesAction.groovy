@@ -109,7 +109,21 @@ class BundlesAction implements Action<Task> {
 			artifacts[artifact.id] = artifact
 			
 			if (project.platform.fetchSources) {
-				//TODO look for and associate source bundle
+				// try to find associated source jar by name
+				String filename = artifact.file.name
+				File sourceJar = ['-sources', '-source'].collect {
+					String extension = (filename =~ /\.\w+$/)[0]
+					String candidateName = filename[0..-(extension.length()+1)] + it + filename[-extension.length()..-1]
+					new File(artifact.file.parentFile, candidateName)
+				}.find {
+					it.exists()
+				}
+				if (sourceJar) {
+					FileBundleArtifact source = new FileBundleArtifact(artifact, sourceJar)
+					
+					// register artifact so it is included in the platform feature
+					project.platform.artifacts[source.id] = source
+				}
 			}
 		}
 		
