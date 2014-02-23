@@ -179,7 +179,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 			// if the bundle is wrapped, create a modified version to mark this
 			def qualifier = osgiVersion.qualifier
 			if (qualifier) {
-				qualifier += 'autowrapped'
+				qualifier += '-autowrapped'
 			}
 			else {
 				qualifier = 'autowrapped'
