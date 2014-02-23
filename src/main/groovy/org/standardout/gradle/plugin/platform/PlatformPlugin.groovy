@@ -83,11 +83,6 @@ public class PlatformPlugin implements Plugin<Project> {
 		project.configurations.create CONF_PLATFORM
 		
 		project.afterEvaluate {
-			// update site directory default
-			if (project.platform.updateSiteDir == null) {
-				project.platform.updateSiteDir = new File(project.buildDir, 'updatesite')
-			}
-			
 			// feature version default
 			if (project.platform.featureVersion == null) {
 				if (project.version) {
@@ -124,6 +119,7 @@ public class PlatformPlugin implements Plugin<Project> {
 			// don't delete download in default clean
 //			downloadsDir.deleteDir()
 			project.platform.updateSiteDir.deleteDir()
+			project.platform.updateSiteZipFile.delete()
 		}
 		
 		/*
@@ -317,6 +313,17 @@ public class PlatformPlugin implements Plugin<Project> {
 			}
 			
 			project.logger.info 'Built p2 repository.'
+		}
+		
+		/*
+		 * Archive update site.
+		 */
+		Task siteArchiveTask = project.task('updateSiteZip', dependsOn: [updateSiteTask]).doFirst {
+			project.ant.zip(destfile: project.platform.updateSiteZipFile) {
+				fileset(dir: project.platform.updateSiteDir) {
+					include(name: '**')
+				}
+			}
 		}
 	}
 	

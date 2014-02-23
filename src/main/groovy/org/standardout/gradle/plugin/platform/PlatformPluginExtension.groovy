@@ -36,6 +36,12 @@ class PlatformPluginExtension {
 	PlatformPluginExtension(Project project) {
 		this.project = project
 		this.configurations = new Configurations(project)
+		
+		// update site directory default
+		updateSiteDir = new File(project.buildDir, 'updatesite')
+		
+		// update site zip default
+		updateSiteZipFile = new File(project.buildDir, 'updatesite.zip')
 	}
 	
 	final Project project
@@ -74,6 +80,11 @@ class PlatformPluginExtension {
 	 * The directory to place the update site in. Will default to 'updatesite' in the build folder.
 	 */
 	File updateSiteDir
+	
+	/**
+	 * The target file for the 'updateSiteZip' task.
+	 */
+	File updateSiteZipFile
 	
 	/**
 	 * The directory of a local Eclipse installation. If none is specified the
