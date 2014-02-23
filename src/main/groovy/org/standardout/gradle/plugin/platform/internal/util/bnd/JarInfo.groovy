@@ -55,9 +55,24 @@ class JarInfo {
 		}
 		instructions = properties.asImmutable() 
 		
-		symbolicName = main.getValue(Analyzer.BUNDLE_SYMBOLICNAME)
-		bundleName = main.getValue(Analyzer.BUNDLE_VERSION)
-		version = main.getValue(Analyzer.BUNDLE_NAME)
+		symbolicName = extractSymbolicName(main.getValue(Analyzer.BUNDLE_SYMBOLICNAME))
+		bundleName = main.getValue(Analyzer.BUNDLE_NAME)
+		version = main.getValue(Analyzer.BUNDLE_VERSION)
+	}
+	
+	private static String extractSymbolicName(String name) {
+		if (name == null) {
+			return name
+		}
+		
+		int end = name.indexOf(';')
+		if (end > 0) {
+			// remove all additional instructions
+			name[0..(end - 1)]
+		}
+		else {
+			name
+		}
 	}
 	
 }
