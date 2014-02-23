@@ -44,6 +44,8 @@ class IncludePluginExtension {
 		// load script
 		Binding binding = new Binding()
 		binding.setVariable('project', project)
+		binding.setVariable('thisFile', loc)
+		binding.setVariable('thisDir', loc.parentFile)
 		CompilerConfiguration compilerConf = new CompilerConfiguration()
 		compilerConf.scriptBaseClass = IncludeScript.name
 		GroovyShell shell = new GroovyShell(IncludeScript.classLoader, binding, compilerConf)
