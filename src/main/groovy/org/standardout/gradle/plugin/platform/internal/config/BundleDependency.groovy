@@ -75,14 +75,10 @@ class BundleDependency {
 		// determine matchClosure
 		if (dependencyNotation instanceof FileCollection) {
 			def files = dependencyNotation as List
-			if (files.size() == 1) {
-				// match based on the file
-				matchClosure = {
-					it.file == files[0]
-				}
-			}
-			else {
-				throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
+			// match based on files
+			matchClosure = {
+				File toMatch = it.file
+				files.any { it == toMatch }
 			}
 		}
 		else {
@@ -101,7 +97,12 @@ class BundleDependency {
 			if (dependencyNotation instanceof FileCollection) {
 				def files = dependencyNotation as List
 				// save configuration for file
-				project.platform.configurations.putConfiguration(files[0], config)
+				if (files.size() == 1) {
+					project.platform.configurations.putConfiguration(files[0], config)
+				}
+				else {
+					throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
+				}
 			}
 			else {
 				// save dependency configuration

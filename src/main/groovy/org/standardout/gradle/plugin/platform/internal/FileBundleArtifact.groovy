@@ -84,17 +84,32 @@ class FileBundleArtifact implements BundleArtifact {
 		}
 		bndConfig = config?.evaluate(project, file, jarInfo?.instructions)
 		
-		assert bndConfig : "No bnd configuration for file dependency: $file"
-		assert bndConfig.version : "No version specified for file dependency: $file"
-		version = modifiedVersion = bndConfig.version
-		
-		assert bndConfig.symbolicName : "No symbolic name specified for file dependency: $file"
-		symbolicName = bndConfig.symbolicName
-		if (bndConfig.bundleName) {
-			bundleName = bndConfig.bundleName
+		if (bndConfig && bndConfig.version && bndConfig.symbolicName) {
+			// bnd configuration present
+			version = modifiedVersion = bndConfig.version
+			
+			symbolicName = bndConfig.symbolicName
+			if (bndConfig.bundleName) {
+				bundleName = bndConfig.bundleName
+			}
+			else {
+				bundleName = symbolicName
+			}
+		}
+		else if (jarInfo && jarInfo.symbolicName && jarInfo.version) {
+			// only jar info present (and jar is bundle)
+			version = modifiedVersion = jarInfo.version
+			
+			symbolicName = jarInfo.symbolicName
+			if (jarInfo.bundleName) {
+				bundleName = jarInfo.bundleName
+			}
+			else {
+				bundleName = symbolicName
+			}
 		}
 		else {
-			bundleName = symbolicName
+			throw new IllegalStateException('A file dependency must either already be a bundle or a bnd configuration including version and symbolicName must be specified: ' + file)
 		}
 		
 		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
