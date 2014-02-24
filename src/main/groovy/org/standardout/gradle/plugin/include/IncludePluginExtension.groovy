@@ -49,7 +49,7 @@ class IncludePluginExtension {
 		CompilerConfiguration compilerConf = new CompilerConfiguration()
 		compilerConf.scriptBaseClass = IncludeScript.name
 		GroovyShell shell = new GroovyShell(IncludeScript.classLoader, binding, compilerConf)
-		Script script = shell.parse(loc)
+		Script script = shell.parse(loc.text) // use file content instead of file as source, to avoid restrictions on the file name
 		
 		if (closure == null) {
 			closure = {
