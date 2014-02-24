@@ -106,7 +106,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 
 		// bundle and symbolic name
 		def bundleName = group + '.' + name
-		def symbolicName = bundleName
+		def symbolicName = getDefaultSymbolicName(file, group, name)
 				
 		// reason why a bundle is not wrapped
 		JarInfo jarInfo = null
@@ -240,6 +240,38 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		this.bundleName = bundleName
 		this.symbolicName = symbolicName
 		this.wrap = wrap
+	}
+	
+	private static String getDefaultSymbolicName(File file, String group, String name) {
+		int i = group.lastIndexOf('.')
+		if (i < 0) {
+			if (group == name) {
+				name
+			}
+			else {
+				group + '.' + name
+			}
+		}
+		else {
+			String lastSection = group.substring( ++i );
+			if (name == lastSection) {
+				group
+			}
+			else if (name.startsWith(lastSection)) {
+				String id = name.substring(lastSection.length())
+				if (Character.isLetterOrDigit(id.charAt(0)))
+				{
+					group + '.' + id
+				}
+				else
+				{
+					group + '.' + id.substring(1)
+				}
+			}
+			else {
+				group + '.' + name
+			}
+		}
 	}
 	
 	/**
