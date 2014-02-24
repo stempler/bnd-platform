@@ -28,6 +28,8 @@ import org.gradle.api.Project
  */
 class IncludePluginExtension {
 	
+	private static final List<String> DEF_EXTENSIONS = ['.groovy', '.gradle'].asImmutable()
+	
 	private final Project project
 	
 	IncludePluginExtension(Project project) {
@@ -40,6 +42,37 @@ class IncludePluginExtension {
 		if (!(loc instanceof File)) {
 			loc = project.file(loc as String)
 		}
+		
+		if (loc.isDirectory()) {
+			// look for a script with the same name as the directory
+			def candidate = DEF_EXTENSIONS.collect {
+				new File(loc, loc.name + it)
+			}.find {
+				File c ->
+				c.exists() && !c.isDirectory()
+			}
+			if (candidate) {
+				// use the candidate
+				loc = candidate
+			}
+			else {
+				// call with all valid script files
+				boolean found = false
+				loc.eachFile {
+					File f ->
+					if (DEF_EXTENSIONS.any { f.name.endsWith(it) } && !f.isDirectory()) {
+						location(f, closure?.clone())
+						found = true
+					}
+				}
+				if (!found) {
+					throw new IllegalStateException("Could not find any script files to include in $loc")
+				}
+				return
+			}
+		}
+		
+		project.logger.info "Including script from $loc"
 		
 		// load script
 		Binding binding = new Binding()
