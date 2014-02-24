@@ -83,8 +83,9 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	private final String modifiedVersion
 	String getModifiedVersion() { modifiedVersion }
 	
-	private final String targetFileName
-	String getTargetFileName() { targetFileName }
+	String getTargetFileName() {
+		"${getSymbolicName()}_${getModifiedVersion()}.$extension"
+	}
 	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
@@ -235,14 +236,6 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		}
 		
 		this.modifiedVersion = modifiedVersion
-		
-		// name of the target file to create
-		def targetFileName = "${group}.${name}-${modifiedVersion}"
-		if (classifier) {
-			targetFileName += "-$classifier"
-		}
-		targetFileName += ".$extension"
-		this.targetFileName = targetFileName
 		
 		this.bundleName = bundleName
 		this.symbolicName = symbolicName

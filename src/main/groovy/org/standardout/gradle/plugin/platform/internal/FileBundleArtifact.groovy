@@ -112,7 +112,7 @@ class FileBundleArtifact implements BundleArtifact {
 			throw new IllegalStateException('A file dependency must either already be a bundle or a bnd configuration including version and symbolicName must be specified: ' + file)
 		}
 		
-		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
+		this.targetFileName = symbolicName + '_' + modifiedVersion + '.jar'
 	}
 	
 	/**
@@ -133,7 +133,7 @@ class FileBundleArtifact implements BundleArtifact {
 		symbolicName = bundle.symbolicName + '.source'
 		bundleName = bundle.bundleName + ' Sources'
 		
-		this.targetFileName = symbolicName + '-' + modifiedVersion + '.jar'
+		this.targetFileName = symbolicName + '_' + modifiedVersion + '.jar'
 		
 		// associate to bundle
 		bundle.sourceBundle = this
