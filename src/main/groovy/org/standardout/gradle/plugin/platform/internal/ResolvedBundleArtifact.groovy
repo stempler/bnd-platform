@@ -219,7 +219,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 					project.logger.warn "Bnd configuration found for existing bundle $symbolicName, so it is wrapped even though a bundle manifest seems to be already present"
 				}
 				else {
-					project.logger.warn "Existing bundle $symbolicName will be augmented with additional information from the POM"
+					project.logger.warn "Existing bundle $symbolicName may be augmented with additional information from the POM"
 				}
 			}
 			
@@ -323,10 +323,10 @@ class ResolvedBundleArtifact implements BundleArtifact {
 				}
 				
 				def bndClosure = {
-					if (organization) {
+					if (organization && !properties['Bundle-Vendor']) {
 						instruction 'Bundle-Vendor', organization
 					}
-					if (licenseStrings) {
+					if (licenseStrings && !properties['Bundle-License']) {
 						instruction 'Bundle-License', licenseStrings.join(',')
 					}
 				}
