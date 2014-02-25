@@ -31,7 +31,9 @@ class JarInfo {
 		Analyzer.BUNDLE_VERSION,
 		Analyzer.BUNDLE_NAME,
 		Analyzer.EXPORT_PACKAGE,
-		Analyzer.IMPORT_PACKAGE
+		Analyzer.IMPORT_PACKAGE,
+		Analyzer.BUNDLE_LICENSE,
+		Analyzer.BUNDLE_VENDOR
 	] as Set).asImmutable()
 
 	final Map<String, String> instructions
