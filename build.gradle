@@ -48,6 +48,13 @@ artifacts {
 	archives packageSources
 }
 
+install {
+	repositories.mavenInstaller {
+		// ensure correct artifact ID when installing locally
+		pom.artifactId = 'bnd-platform'
+	}
+}
+
 // sign all artifacts
 signing {
 	required { gradle.taskGraph.hasTask(uploadArchives) }
