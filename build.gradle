@@ -1,3 +1,4 @@
+
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
@@ -9,11 +10,13 @@ repositories {
 }
 
 group = 'org.standardout'
-version = '0.1'
+version = '0.2-SNAPSHOT'
 
 jar {
 	// include license into jar
-	from 'LICENSE'
+	into 'META-INF', {
+		from 'LICENSE'
+	}
 }
 
 dependencies {
@@ -29,9 +32,9 @@ task wrapper(type: Wrapper) {
 	gradleVersion = '1.11'
 }
 
-// package javadoc into a jar file
-task packageJavadoc(type: Jar, dependsOn: 'javadoc') {
-	from javadoc.destinationDir
+// package groovydoc into a jar file
+task packageJavadoc(type: Jar, dependsOn: 'groovydoc') {
+	from groovydoc.destinationDir
 	classifier = 'javadoc'
 }
 
@@ -48,10 +51,45 @@ artifacts {
 	archives packageSources
 }
 
+def configurePom(def pom) {
+	// ensure correct artifact ID
+	pom.artifactId = 'bnd-platform'
+	
+	// pom file details
+	pom.project {
+	   name 'bnd-platform'
+	   packaging 'jar'
+	   description 'Build OSGi bundles and Eclipse Update Sites from existing JARs, e.g. from Maven repositories (Plugin for Gradle)'
+	   url 'https://github.com/stempler/bnd-platform'
+
+	   scm {
+		   url 'scm:git:https://github.com/stempler/bnd-platform.git'
+		   connection 'scm:git:https://github.com/stempler/bnd-platform.git'
+		   developerConnection 'scm:git:https://github.com/stempler/bnd-platform.git'
+	   }
+
+	   licenses {
+		   license {
+			   name 'The Apache Software License, Version 2.0'
+			   url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+			   distribution 'repo'
+		   }
+	   }
+
+	   developers {
+		   developer {
+			   id 'stempler'
+			   name 'Simon Templer'
+			   email 'simon@templer.cc'
+		   }
+	   }
+   }
+}
+
 install {
 	repositories.mavenInstaller {
 		// ensure correct artifact ID when installing locally
-		pom.artifactId = 'bnd-platform'
+		configurePom(pom)
 	}
 }
 
@@ -67,41 +105,13 @@ uploadArchives {
 			// sign artifacts before upload
 			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 			
-			// upload to sonatype OSS
-//			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
-//				authentication(userName: this.hasProperty('sonatypeUsername') ? sonatypeUsername : '',
-//					password: this.hasProperty('sonatypePassword') ? sonatypePassword : '')
-//			}
+			// upload to sonatype OSS (release)
+			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+				authentication(userName: this.hasProperty('sonatypeUsername') ? sonatypeUsername : '',
+					password: this.hasProperty('sonatypePassword') ? sonatypePassword : '')
+			}
 			
-			// pom file details
-			pom.project {
-			   name 'bnd-platform'
-			   packaging 'jar'
-			   description 'Build OSGi bundles and Eclipse Update Sites from existing JARs, e.g. from Maven repositories (Plugin for Gradle)'
-			   url 'https://github.com/stempler/bnd-platform'
- 
-			   scm {
-				   url 'scm:git@github.com:stempler/bnd-platform.git'
-				   connection 'scm:git@github.com:stempler/bnd-platform.git'
-				   developerConnection 'scm:git@github.com:stempler/bnd-platform.git'
-			   }
- 
-			   licenses {
-				   license {
-					   name 'The Apache Software License, Version 2.0'
-					   url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-					   distribution 'repo'
-				   }
-			   }
- 
-			   developers {
-				   developer {
-					   id 'stempler'
-					   name 'Simon Templer'
-					   email 'simon@templer.cc'
-				   }
-			   }
-		   }
+			configurePom(pom)
 		}
 	}
 }
