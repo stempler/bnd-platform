@@ -27,17 +27,16 @@ Usage
 There is no official release available yet, so applying the plugin to a Gradle project can either be done by including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency and plugin to your build.gradle script:
 
 ```groovy
-apply plugin: 'platform'
-
 buildscript {
-    repositories {
-		mavenLocal()
+	repositories {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:0.1'
+		classpath 'org.standardout:bnd-platform:0.2'
 	}
 }
+
+apply plugin: 'platform'
 ```
 
 *bnd-platform* has been tested with Gradle 1.11.
