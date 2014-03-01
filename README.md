@@ -265,7 +265,7 @@ platform {
 ```
 
 Providing the **symbolicName** and **version** as part of the *bnd* configuration is mandatory for merged bundles, as the information from the original JARs' manifests is discarded.
-Please note that the example above misses the Maven repositories needed to actually retrieve those bundles, see the sample project for a [more complete example](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy).
+Please note that the example above misses the Maven repositories needed to actually retrieve those artifacts, see the sample project for a [more complete example](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy).
 
 If you use `match { ... }` to merge bundles, it is called for each artifact. The artifact can be accessed via the variable **it**. An artifact has the following properties that can be useful to check against in a *match*:
 
@@ -310,7 +310,29 @@ platform {
 Plugin settings
 ---------------
 
-*TODO: implemented but not documented*
+Via the platform extension there are several settings you can provide:
+
+* **fetchSources** - if sources for external dependencies should be fetched and source bundles created (default: **true**)
+* **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
+* **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
+* **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
+* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*, the URLs are identified per osgiOS (win32, linux, macosx), osgiWS (win32, gtk, cocoa) and arch (x86, x86_64), e.g. `eclipseMirror.win32.win32.x86_64 = ...` (defaults to official Eclipse mirrors with Eclipse Indigo)
+* **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
+* **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
+* **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
+* **categoryId** - the identifier of the feature's category (default: **'platform'**)
+* **categoryName** - the name of the feature's category (default: **'Target platform'**)
+
+For example:
+
+```groovy
+platform {
+	fetchSources = false
+	featureVersion = '3.1.0'
+	eclipseHome = new File('/opt/eclipse')
+	eclipseMirror.linux.gtk.x86_64 = 'http://myeclipsedownload.com/eclipse.tar.gz'
+}
+```
 
 License
 -------
