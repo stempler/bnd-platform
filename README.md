@@ -17,14 +17,14 @@ For a quick start, check out the [sample project on GitHub](https://github.com/s
 * Adapt the configuration for wrapping JARs or adapting existing bundles, e.g. to influence the imported packages
 * Create an Eclipse Update Site / p2 repository from the created bundles
 
-**What *bnd-platform* does not:**
+**What *bnd-platform* does not (or at least not yet):**
 * Automatically associate version numbers to imported packages
 * Create bundles or update sites from source projects (though that would probably not be too complicated - contributions welcome!)
 
 Usage
 -----
 
-There is no official release available yet, so applying the plugin to a Gradle project can either be done by including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency and plugin to your build.gradle script:
+The simplest way to apply the plugin to your Gradle build is using the latest release hosted on Maven Central:
 
 ```groovy
 buildscript {
@@ -39,6 +39,8 @@ buildscript {
 apply plugin: 'platform'
 ```
 
+Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
+
 *bnd-platform* has been tested with Gradle 1.11.
 
 ### Tasks
@@ -49,7 +51,9 @@ The **platform** plugin comes with several Gradle tasks - the following are the 
 * ***updateSite*** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
 * ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default) 
 
-In addition, the ***clean*** task deletes all previously created bundles or update site artifacts.
+In addition, the ***clean*** task deletes all previously created bundles or update site artifacts. Usually you will want to clean the created bundles when building an update site, e.g. `gradle clean updateSite`.
+
+Be aware that for building the p2 repository Eclipse is used. If no path to a local Eclipse installation is configured (see the settings section later on) the plugin will by default download Eclipse Indigo and use it for that purpose.
 
 ### Adding dependencies
 
@@ -131,7 +135,7 @@ platform {
 }
 ```
 
-### Default configuration and configuration priority
+### Default configuration
 
 *bnd-platform* will by default leave JARs that are recognized as bundles (meaning they have a *Bundle-SymbolicName* header already defined) as they are, except to eventually added *Bundle-License* and *Bundle-Vendor* headers if not yet present. If an existing bundle is wrapped because a bundle configuration applies to it, the configration from the bundle manifest applies as default configuration.
 
@@ -148,6 +152,8 @@ platform {
 ```
 
 But be careful what you put into the default configuration - setting the *symbolicName* or *version* here will not be seen as error, but does not make any sense and may lead to unpredicatable behavior (as there can't be two bundles with the same symbolic name and version).
+
+###  Configuration priority
 
 A bundle configuration that is more concrete will always override/extend a more general configuration. A configuration applied to a dependency group takes precedence over the default configuration, while a configuration specified for a combination of group and name in turn takes precedence over a group configuration.
 If configurations are defined on the same level, the configuration that is defined later in the script will override/extend a previous one.
@@ -167,20 +173,141 @@ platform {
 }
 ```
 
+### Sharing configurations
+
+Even though setting up an extensive platform of OSGi bundles can be done quite fast using *bnd-platform*, in many cases additional configuration is necessary. It comes naturally that it should be possible to reuse and share those configurations.
+
+With Gradle you can use `apply from: 'someScript.gradle'` to include other build scripts. In those you can define dependencies, bnd configuration or remote repositories like you would do in the main build script.
+
+An alternative is using the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) which allows you to include specific methods from an external script and thus provide parameters to the include. In context of *bnd-platform* it often makes sense to provide a version number as parameter. See the [sample project](https://github.com/stempler/bnd-platform-sample) for some nice examples, e.g. the [logging](https://github.com/stempler/bnd-platform-sample/blob/master/modules/logging.groovy) or [geotools](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy) platform modules defined there. Using the *include* plugin these modules are applied to the sample build like this:
+
+```groovy
+include {
+	from('modules/logging.groovy') {
+		slf4jAndLogback '1.7.2', '1.0.10' // slf4j and logback with given versions
+	}
+
+	from('modules/geotools.groovy') {
+		geotools() // include geotools with default modules and version
+	}
+}
+```
+
+We have created a repository on GitHub to collect the platform modules and configurations we use for our projects and you are welcome to fork and contribute: [shared-platform](https://github.com/igd-geo/shared-platform). The repository is designed to be used with the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) and to enable the sharing of configurations without imposing them on you - just include the configuration that makes sense for you and augment it with your own.
+
 ### Local dependencies
 
-*TODO: implemented but not documented*
+You can easily add local JARs to the platform. **If the JAR is not an OSGi bundle yet**, you have add it on its own and at least provide **symbolicName** and **version**:
+
+```groovy
+platform {
+	bundle file('someLibrary.jar'), {
+		bnd {
+			version = '1.0.0' // mandatory
+			symbolicName = 'com.example.library.some' // mandatory
+			bundleName = 'Some Library'
+			instruction 'Export-Package', "com.example.library.some.*;version=$version"
+		}
+	}
+
+	// depends on groovy
+	bundle 'org.codehaus.groovy:groovy:1.8.5'
+} 
+```
+
+As in the example above, you should make sure to add additional dependencies that might be needed by the JAR. Please note that for a JAR `filename.jar` sources provided in a `filename-sources.jar` will be wrapped automatically in a corresponding source bundle.
+
+**JARs that are already OSGi bundles** you can include en masse, and without the need for additional configuration, for example:
+
+```groovy
+platform {
+	// all bundles in a directory
+	bundle fileTree(dir: 'lib') {
+		include '*.jar'
+	}
+	
+	// specific bundles
+	bundle files('someBundle.jar', 'someOtherBundle.jar')
+}
+```
+
 
 ### Merged bundles
 
-*TODO: implemented but not documented*
+Sometimes it is necessary to create a bundle out of multiple JARs, most often due to class loading issues. The [Geotools](http://www.geotools.org/) library is a famous example of that. It uses [Java SPI](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html) as extension mechanism, which does only recognize extensions from the same class loader. One way [suggested to cope with this](http://docs.geotools.org/stable/userguide/welcome/integration.html#osgi) is creating a monolithic bundle that includes all the needed geotools modules (which I prefer because with Geotools otherwise you have different bundles partly exporting the same packages). Doing this with *bnd-platform* is quite easy:
 
-Include plugin
---------------
+```groovy
+platform {
+	def geotoolsVersion = '10.4'
 
-*TODO: implemented but not documented*
+	// define the merged bundle
+	merge {
+		// the match closure is applied to all dependencies/artifacts encountered
+		// if true, an artifact is included in the bundle
+		match {
+			// merge all artifacts in org.geotools group, but not gt-opengis
+			it.group == 'org.geotools' && it.name != 'gt-opengis'
+		}
 
-Platform settings
+		bnd {
+			symbolicName = 'org.geotools'
+			bundleName = 'Geotools'
+			version = geotoolsVersion
+			instruction 'Export-Package', "org.geotools.*;version=$version"
+			instruction 'Private-Package', '*'
+		}
+	}
+	
+	// add geotools modules as dependencies
+	bundle "org.geotools:gt-shapefile:$geotoolsVersion"
+	// etc.
+}
+```
+
+Providing the **symbolicName** and **version** as part of the *bnd* configuration is mandatory for merged bundles, as the information from the original JARs' manifests is discarded.
+Please note that the example above misses the Maven repositories needed to actually retrieve those bundles, see the sample project for a [more complete example](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy).
+
+If you use `match { ... }` to merge bundles, it is called for each artifact. The artifact can be accessed via the variable **it**. An artifact has the following properties that can be useful to check against in a *match*:
+
+* **group** - the group name of the artifact, e.g. *'org.geotools'*
+* **name** - the name (artifact ID) of the artifact, e.g. *'gt-shapefile'*
+* **version** - the version of the artifact
+* **file** - the local or downloaded file of the artifact, as File object
+ 
+As alternative to **match** or in combination with it you can add bundles to merge via **bundle** or **include**. The syntax is the same as when adding dependencies. However, using **include** you just specify an artifact to be included if it is a dependency defined somewhere else, it does not add it as dependency.
+
+```groovy
+platform {
+	merge {
+		bundle 'someGroup:someArtifact:1.0.0' // also added as dependency
+		include group: 'someGroup', name: 'someOtherArtifact' // not added as dependency
+		
+		bnd {
+			...
+		}
+	}
+}
+
+```
+
+#### Merge settings
+
+You can supply parameters to **merge**, currently those are:
+
+* **failOnDuplicate** - fail if the same file occurs in more than one JAR (not taking into account the manifest)  (default: **true**)
+* **collectServices** - combines files in `META-INF/services` defining extensions via SPI (default: **true**)
+
+You can specify them as named parameters, e.g.:
+
+```groovy
+platform {
+	merge(failOnDuplicate: false, collectServices: true) {
+		...
+	}
+}
+```
+
+Plugin settings
 ---------------
 
 *TODO: implemented but not documented*
