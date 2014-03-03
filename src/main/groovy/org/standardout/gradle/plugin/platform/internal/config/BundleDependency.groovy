@@ -163,6 +163,11 @@ class BundleDependency {
 			}
 			orgDelegate."$name"
 		}
+		
+		@Override
+		void setProperty(String name, def value) {
+			orgDelegate."$name" = value
+		}
 	}
 	
 }
