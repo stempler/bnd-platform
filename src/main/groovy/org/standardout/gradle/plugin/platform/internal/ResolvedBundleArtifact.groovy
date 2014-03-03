@@ -340,7 +340,12 @@ class ResolvedBundleArtifact implements BundleArtifact {
 	 */
 	private static PomInfo extractPomInfo(Map dependencyNotation, Project project) {
 		String pom = "${dependencyNotation.group}:${dependencyNotation.name}:${dependencyNotation.version}@pom"
-		File pomFile = DependencyHelper.getDetachedDependency(project, pom, 'pom')
+		File pomFile = null
+		try {
+			DependencyHelper.getDetachedDependency(project, pom, 'pom')
+		} catch (e) {
+			project.logger.warn "Could not retrieve POM $pom"
+		}
 		
 		PomInfo result = new PomInfo()
 		if (pomFile) {
