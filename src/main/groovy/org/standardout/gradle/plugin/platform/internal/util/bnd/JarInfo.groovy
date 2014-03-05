@@ -47,19 +47,30 @@ class JarInfo {
 	JarInfo(File file) {
 		JarFile jar = new JarFile(file)
 		
-		def main = jar.manifest.mainAttributes
+		def manifest = jar.manifest
 		Map<String, String> properties = [:]
-		INSTRUCTION_PROPERTIES.each {
-			String value = main.getValue(it)
-			if (value) {
-				properties[it] = value
-			}
-		}
-		instructions = properties.asImmutable() 
 		
-		symbolicName = extractSymbolicName(main.getValue(Analyzer.BUNDLE_SYMBOLICNAME))
-		bundleName = main.getValue(Analyzer.BUNDLE_NAME)
-		version = main.getValue(Analyzer.BUNDLE_VERSION)
+		if (manifest != null) {
+			def main = manifest.mainAttributes
+			INSTRUCTION_PROPERTIES.each {
+				String value = main.getValue(it)
+				if (value) {
+					properties[it] = value
+				}
+			}
+			
+			bundleName = main.getValue(Analyzer.BUNDLE_NAME)
+			version = main.getValue(Analyzer.BUNDLE_VERSION)
+			symbolicName = extractSymbolicName(main.getValue(Analyzer.BUNDLE_SYMBOLICNAME))
+		}
+		else {
+			// the Jar has no manifest
+			bundleName = null
+			version = null
+			symbolicName = null
+		}
+		
+		instructions = properties.asImmutable() 
 	}
 	
 	private static String extractSymbolicName(String name) {
