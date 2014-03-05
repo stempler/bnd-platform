@@ -19,6 +19,8 @@ package org.standardout.gradle.plugin.platform.internal.config
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
+
 import aQute.bnd.osgi.Constants
 
 /**
@@ -58,7 +60,10 @@ class BndConfig {
 	 * Version that is either provided or can be set for file dependencies.
 	 */
 	void setVersion(String version) {
-		properties[Constants.BUNDLE_VERSION] = version
+		// ensure set version is a valid OSGi version
+		properties[Constants.BUNDLE_VERSION] = VersionUtil.toOsgiVersion(version) {
+			project.logger.warn "Replacing illegal OSGi version $version by ${it} in bnd configuration"
+		}.toString()
 	}
 	def getVersion() {
 		properties[Constants.BUNDLE_VERSION]

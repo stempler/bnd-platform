@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform.internal.config
 import org.gradle.api.Project;
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper;
 import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
 
@@ -45,7 +46,7 @@ class Configurations {
 		// default bnd configuration for wrapped bundles
 		// does not apply to bundles that are already bundles
 		def defaultBndConfig = {
-			Version v = Version.parseVersion(version)
+			Version v = VersionUtil.toOsgiVersion(version)
 			Version vDigits = new Version(v.major, v.minor, v.micro)
 			properties[Analyzer.EXPORT_PACKAGE] = "*;version=${vDigits.toString()}" as String
 			properties[Analyzer.IMPORT_PACKAGE] = '*'

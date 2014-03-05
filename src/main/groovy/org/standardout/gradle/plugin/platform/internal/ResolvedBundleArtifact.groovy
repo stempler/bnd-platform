@@ -30,6 +30,7 @@ import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStoredConfig;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
@@ -152,26 +153,8 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		this.unifiedName = unifiedName
 		
 		// determine osgi version
-		Version osgiVersion
-		try {
-			osgiVersion = Version.parseVersion(version)
-		} catch (NumberFormatException e) {
-			// try again with version stripped of anything but dots and digits
-		
-			Matcher matcher = version =~/^(\d+)(\.(\d+))?(\.(\d+))?(\.|-)?(.*)$/
-			def match = matcher[0]
-			if (match) {
-				osgiVersion = new Version(
-					match[1] as int,
-					(match[3] as Integer)?:0,
-					(match[5] as Integer)?:0,
-					match[7])
-			}
-			else {
-				String strippedVersion = version.replaceAll(/[^0-9\.]/, '')
-				osgiVersion = Version.parseVersion(strippedVersion)
-			}
-			project.logger.warn "Replacing illegal OSGi version $version by ${osgiVersion.toString()} for artifact $name"
+		Version osgiVersion = VersionUtil.toOsgiVersion(version) {
+			project.logger.warn "Replacing illegal OSGi version $version by ${it} for artifact $name"
 		}
 		
 		// an eventually modified version
