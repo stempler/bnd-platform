@@ -55,7 +55,7 @@ class BundleHelper {
 			// calculated properties
 			def sourceBundleDef = "${art.symbolicName};version=\"${art.modifiedVersion}\";roots:=\".\"" as String
 			
-			BndHelper.wrap(sourceArt.file, null, sourceJar, [
+			boolean written = BndHelper.wrap(sourceArt.file, null, sourceJar, [
 				(Analyzer.BUNDLE_NAME): sourceArt.bundleName,
 				(Analyzer.BUNDLE_VERSION): sourceArt.modifiedVersion,
 				(Analyzer.BUNDLE_SYMBOLICNAME): sourceArt.symbolicName,
@@ -63,6 +63,11 @@ class BundleHelper {
 				(Analyzer.EXPORT_PACKAGE): '', // no exports
 				'Eclipse-SourceBundle': sourceBundleDef
 			])
+			if (!written) {
+				project.logger.warn "Skipping creating source bundle for empty or corrupted JAR: $sourceArt.file"
+				// remove from artifact map (so it is not included in the update site feature)
+				project.platform.artifacts.remove(sourceArt.id)
+			}
 		}
 
 		def outputFile = new File(targetDir, art.targetFileName)
@@ -86,7 +91,10 @@ class BundleHelper {
 				(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
 			)
 			
-			BndHelper.wrap(art.file, null, outputFile, properties)
+			boolean written = BndHelper.wrap(art.file, null, outputFile, properties)
+			if (!written) {
+				throw new IllegalStateException("Empty or corrupted JAR cannot be wrapped: $art.file")
+			}
 		}
 		else {
 			project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."

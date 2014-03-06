@@ -20,6 +20,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.jar.Manifest;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Builder;
@@ -76,10 +78,25 @@ public class BndHelper {
 	 * @param classpath the class path
 	 * @param target the target file 
 	 * @param properties the bnd properties
+	 * @return if the target file was created, it will not be created if the source
+	 *   Jar is empty or invalid
 	 * @throws Exception if wrapping the Jar fails
 	 */
-	public static void wrap(File source, Collection<File> classpath, File target, Map<String, String> properties) throws Exception {
+	public static boolean wrap(File source, Collection<File> classpath, File target,
+			Map<String, String> properties) throws Exception {
 		File file = source;
+		
+		// test file
+		try (ZipFile zip = new ZipFile(file)) {
+			// (actually we never get here if it is empty)
+			if (!zip.entries().hasMoreElements()) {
+				// empty Zip file
+				return false;
+			}
+		} catch (ZipException e) {
+			// empty or corrupt Zip file
+			return false;
+		}
 
 		Analyzer wrapper = new Analyzer();
 		try {
@@ -89,7 +106,7 @@ public class BndHelper {
 				}
 			}
 
-			wrapper.setJar(file);
+			wrapper.setJar(file); // fails for empty JARs!
 
 			File outputFile = target;
 			outputFile.delete();
@@ -117,6 +134,8 @@ public class BndHelper {
 		finally {
 			wrapper.close();
 		}
+		
+		return true;
 	}
 
 }
