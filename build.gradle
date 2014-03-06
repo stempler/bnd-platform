@@ -115,3 +115,15 @@ uploadArchives {
 		}
 	}
 }
+
+// groovydoc task work-around
+
+configurations {
+	jansi.extendsFrom(runtime)
+}
+groovydoc {
+	groovyClasspath = project.configurations.jansi
+}
+dependencies {
+	jansi 'org.fusesource.jansi:jansi:1.11'
+}
