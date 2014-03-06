@@ -39,8 +39,8 @@ class VersionUtil {
 		} catch (NumberFormatException e) {
 			// try again with adapted versions
 			Matcher matcher = version =~/^(\d+)(\.(\d+))?(\.(\d+))?(\.|-)?(.*)$/
-			def match = matcher[0]
-			if (match) {
+			if (matcher.count > 0) {
+				def match = matcher[0]
 				String qualifier = match[7]
 				if (qualifier != null) {
 					qualifier = qualifier.replaceAll(/[^0-9a-zA-Z\-_]/, '_')
