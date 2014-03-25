@@ -17,13 +17,16 @@
 package org.standardout.gradle.plugin.platform.internal.config
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper;
 import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
 
+import aQute.bnd.header.Attrs;
 import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Descriptors.PackageRef;
 
 /**
  * Bundle configuration index.
@@ -181,7 +184,8 @@ class Configurations {
 	/**
 	 * Get the (combined) configuration for the given parameters defining a dependency.
 	 */
-	StoredConfig getConfiguration(String group, String name, String version, boolean includeDefaultConfig) {
+	StoredConfig getConfiguration(String group, String name, String version, boolean includeDefaultConfig,
+		Set<ResolvedArtifact> dependencies) {
 		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
 		
@@ -234,11 +238,65 @@ class Configurations {
 		}
 		
 		if (includeDefaultConfig) {
+			//XXX imports based on dependencies
+//			println name
+			defaultImports(dependencies) >> res
+			
 			// prepend default configuration
 			defaultConfig >> res
 		}
 		
 		res
+	}
+		
+	StoredConfig defaultImports(Set<ResolvedArtifact> deps) {
+		def importMap = [:]
+		
+		deps.each {
+			ResolvedArtifact dep ->
+			if (dep.extension != 'jar' || dep.classifier) {
+				return
+			}
+			
+			// for the default behavior assuming the module version as  default import version for the packages
+			def osgiVersion = VersionUtil.toOsgiVersion(dep.moduleVersion.id.version)
+			def version = "${osgiVersion.major}.${osgiVersion.minor}.${osgiVersion.micro}"
+			
+			// determine packages
+			Analyzer analyzer = new Analyzer()
+			analyzer.setJar(dep.file);
+			analyzer.analyze()
+			
+			analyzer.getContained().each {
+				PackageRef p, Attrs attrs ->
+				String name = p.FQN
+				if (name != '.') {
+					// package import with wildcard and version
+					importMap[name + '.*'] = "version=\"$version\"" 
+				}
+			}
+		}
+		
+		// make other imports optional (as they are not provided through dependencies)
+		importMap['*'] = 'resolution:=optional'
+		
+		//XXX debug
+//		println importMap
+		
+		Closure bndClosure = {
+			//TODO don't overwrite!!!
+			instruction 'Import-Package', importMap.collect {
+				String p, String attrs ->
+				if (attrs) {
+					"$p;$attrs"
+				}
+				else {
+					p
+				}
+			}.join(',')
+		}
+		
+		new StoredConfigImpl(bndClosure)
 	}
 
 }

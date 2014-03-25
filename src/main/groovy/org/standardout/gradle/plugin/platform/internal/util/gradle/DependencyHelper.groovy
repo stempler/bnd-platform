@@ -87,6 +87,26 @@ class DependencyHelper {
 	}
 	
 	/**
+	 * Retrieve a specific dependency.
+	 */
+	static Set<ResolvedArtifact> getDirectDependencies(Project project, def dependencyNotation) {
+		Dependency dep = project.dependencies.create(dependencyNotation)
+		Configuration configuration = project.configurations.detachedConfiguration(dep)
+		
+		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies(SATISFY_ALL)
+		
+		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
+		resolvedDependencies.each {
+			ResolvedDependency rd ->
+			rd.children.each {
+				result.addAll(it.moduleArtifacts)
+			}
+		}
+		
+		result
+	}
+	
+	/**
 	 * Resolve source artifacts for dependencies in the given configuration.
 	 */
 	static Set<ResolvedArtifact> resolveSourceArtifacts(Configuration configuration, ConfigurationContainer configurationContainer) {

@@ -175,7 +175,8 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		// resolve bundle configuration
 		StoredConfig config = new StoredConfigImpl()
 		// only include default configuration if not yet a bundle
-		StoredConfig bundleConfig = project.platform.configurations.getConfiguration(group, name, version, wrap)
+		StoredConfig bundleConfig = project.platform.configurations.getConfiguration(group, name, version, wrap,
+			DependencyHelper.getDirectDependencies(project, id))
 		config << bundleConfig
 		
 		// determine additional configuration from information in POM
