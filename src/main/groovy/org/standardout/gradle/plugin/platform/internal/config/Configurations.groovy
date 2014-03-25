@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform.internal.config
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Version;
+import org.standardout.gradle.plugin.platform.PlatformPluginExtension;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
@@ -254,16 +255,17 @@ class Configurations {
 	StoredConfig defaultImports(Iterable<ResolvedArtifact> deps) {
 		def importMap = [:]
 		
+		Closure defaultStrategy = project.platform.importVersionStrategy
+		
+		// create a map of package names to version number and strategies
 		deps.each {
 			ResolvedArtifact dep ->
 			if (dep.extension != 'jar' || dep.classifier) {
 				return
 			}
 			
-			// for the default behavior assuming the module version as  default import version for the packages
+			// for the default behavior assuming the module version as default import version for the packages
 			def osgiVersion = VersionUtil.toOsgiVersion(dep.moduleVersion.id.version)
-			Closure strategy = project.platform.importVersionStrategy
-			def version = strategy(osgiVersion)
 			
 			// determine packages
 			Analyzer analyzer = new Analyzer()
@@ -274,8 +276,22 @@ class Configurations {
 				PackageRef p, Attrs attrs ->
 				String name = p.FQN
 				if (name != '.') {
-					// package import with wildcard and version
-					importMap[name + '.*'] = "version=\"$version\"" 
+					if (importMap.containsKey(name)) {
+						// package present multiple times
+						project.logger.warn("Package $name provided by multiple dependencies, using minimal version")
+						Version otherVersion = importMap[name][0]
+						if (osgiVersion.compareTo(otherVersion) < 0) {
+							// replace version
+							importMap[name][0] = osgiVersion
+						}
+						// force minimum strategy
+						importMap[name][1] = PlatformPluginExtension.MINIMUM
+					}
+					else {
+						// add package w/ default strategy
+						//TODO strategy per dependency / package? 
+						importMap[name] = [osgiVersion, defaultStrategy]
+					} 
 				}
 			}
 		}
@@ -285,6 +301,19 @@ class Configurations {
 			return new StoredConfigImpl()
 		}
 		
+		// turn map in map of package instructions and attributes
+		importMap = importMap.collectEntries {
+			String pkg, def versionAndStrategy ->
+			// determine version assignment
+			Version osgiVersion = versionAndStrategy[0]
+			Closure strategy = versionAndStrategy[1]
+			// apply given strategy
+			def version = strategy(osgiVersion) as String
+			
+			// each package import with wildcard and version
+			[pkg + '.*', "version=\"$version\""]
+		}
+				
 		// make other imports optional (as they are not provided through dependencies)
 		importMap['*'] = 'resolution:=optional'
 		
