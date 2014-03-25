@@ -238,9 +238,10 @@ class Configurations {
 		}
 		
 		if (includeDefaultConfig) {
-			//XXX imports based on dependencies
-//			println name
-			defaultImports(dependencies) >> res
+			if (project.platform.determineImportVersions) {
+				// import package versions based on dependencies
+				defaultImports(dependencies) >> res
+			}
 			
 			// prepend default configuration
 			defaultConfig >> res
@@ -260,7 +261,8 @@ class Configurations {
 			
 			// for the default behavior assuming the module version as  default import version for the packages
 			def osgiVersion = VersionUtil.toOsgiVersion(dep.moduleVersion.id.version)
-			def version = "${osgiVersion.major}.${osgiVersion.minor}.${osgiVersion.micro}"
+			Closure strategy = project.platform.importVersionStrategy
+			def version = strategy(osgiVersion)
 			
 			// determine packages
 			Analyzer analyzer = new Analyzer()
@@ -280,11 +282,8 @@ class Configurations {
 		// make other imports optional (as they are not provided through dependencies)
 		importMap['*'] = 'resolution:=optional'
 		
-		//XXX debug
-//		println importMap
-		
 		Closure bndClosure = {
-			//TODO don't overwrite!!!
+			// overrides any previous Import-Package configuration!
 			instruction 'Import-Package', importMap.collect {
 				String p, String attrs ->
 				if (attrs) {

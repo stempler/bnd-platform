@@ -19,6 +19,7 @@ package org.standardout.gradle.plugin.platform
 import groovy.lang.Closure;
 
 import org.gradle.api.Project;
+import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
 import org.standardout.gradle.plugin.platform.internal.config.Configurations;
@@ -32,6 +33,32 @@ import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
  * @author Simon Templer
  */
 class PlatformPluginExtension {
+	
+	/**
+	 * Version strategy that uses the given version as minimum version.
+	 */
+	public static final Closure MINIMUM = {
+		Version v ->
+		"${v.major}.${v.minor}.${v.micro}"
+	}
+	/**
+	 * Version strategy that requires a minimum version and extends
+	 * to (not including) the next major version.
+	 */
+	public static final Closure MAJOR = {
+		Version v ->
+		def min = MINIMUM.call(v)
+		"[${min},${v.major + 1}.0.0)"
+	}
+	/**
+	 * Version strategy that requires a minimum version and extends
+	 * to (not including) the next minor version.
+	 */
+	public static final Closure MINOR = {
+		Version v ->
+		def min = MINIMUM.call(v)
+		"[${min},${v.major}.${v.minor + 1}.0)"
+	}
 	
 	PlatformPluginExtension(Project project) {
 		this.project = project
@@ -50,6 +77,18 @@ class PlatformPluginExtension {
 	 * States if source for external dependencies should be fetched and corresponding source bundles created. 
 	 */
 	boolean fetchSources = true
+	
+	/**
+	 * States if the package import versions for automatically wrapped bundles should be determined automatically.
+	 */
+	boolean determineImportVersions = true
+	
+	/**
+	 * Defines the global import version strategy.
+	 * 
+	 * The strategy is a closure taking an OSGi version number and returning a version assignment for bnd as String.
+	 */
+	Closure importVersionStrategy = MINIMUM
 	
 	/**
 	 * The ID for the platform feature.
