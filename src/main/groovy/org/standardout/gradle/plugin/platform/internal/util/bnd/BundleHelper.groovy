@@ -17,8 +17,10 @@
 package org.standardout.gradle.plugin.platform.internal.util.bnd
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
@@ -129,6 +131,18 @@ class BundleHelper {
 			// make sure to include default configuration for merged Jar
 			StoredConfig config = new StoredConfigImpl()
 			config << project.platform.configurations.defaultConfig // default config
+			// import defaults config
+			if (project.platform.determineImportVersions) {
+				Set<ResolvedArtifact> directDeps = new HashSet<ResolvedArtifact>()
+				// collect merged artifact dependencies
+				bundles.each {
+					if (it instanceof DependencyArtifact) {
+						directDeps.addAll(it.getDirectDependencies(project))
+					}
+				}
+				// configuration
+				config << project.platform.configurations.defaultImports(directDeps)
+			}
 			config << merge.bundleConfig // merge config
 			
 			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)

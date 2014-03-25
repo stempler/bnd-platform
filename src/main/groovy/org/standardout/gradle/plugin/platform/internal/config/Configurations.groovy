@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper;
 import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
@@ -185,7 +186,7 @@ class Configurations {
 	 * Get the (combined) configuration for the given parameters defining a dependency.
 	 */
 	StoredConfig getConfiguration(String group, String name, String version, boolean includeDefaultConfig,
-		Set<ResolvedArtifact> dependencies) {
+		DependencyArtifact artifact) {
 		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
 		
@@ -238,9 +239,9 @@ class Configurations {
 		}
 		
 		if (includeDefaultConfig) {
-			if (project.platform.determineImportVersions) {
+			if (artifact != null && project.platform.determineImportVersions) {
 				// import package versions based on dependencies
-				defaultImports(dependencies) >> res
+				defaultImports(artifact.getDirectDependencies(project)) >> res
 			}
 			
 			// prepend default configuration
@@ -250,7 +251,7 @@ class Configurations {
 		res
 	}
 		
-	StoredConfig defaultImports(Set<ResolvedArtifact> deps) {
+	StoredConfig defaultImports(Iterable<ResolvedArtifact> deps) {
 		def importMap = [:]
 		
 		deps.each {
@@ -277,6 +278,11 @@ class Configurations {
 					importMap[name + '.*'] = "version=\"$version\"" 
 				}
 			}
+		}
+		
+		if (importMap.empty) {
+			// return an empty configuration that doesn't override anything
+			return new StoredConfigImpl()
 		}
 		
 		// make other imports optional (as they are not provided through dependencies)

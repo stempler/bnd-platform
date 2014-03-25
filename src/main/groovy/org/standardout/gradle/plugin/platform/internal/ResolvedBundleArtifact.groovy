@@ -18,6 +18,7 @@ package org.standardout.gradle.plugin.platform.internal
 
 import groovy.util.slurpersupport.GPathResult;
 
+import java.util.Set;
 import java.util.jar.JarFile
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +36,7 @@ import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
 
-class ResolvedBundleArtifact implements BundleArtifact {
+class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 	
 	private final File file
 	File getFile() { file }
@@ -176,7 +177,7 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		StoredConfig config = new StoredConfigImpl()
 		// only include default configuration if not yet a bundle
 		StoredConfig bundleConfig = project.platform.configurations.getConfiguration(group, name, version, wrap,
-			DependencyHelper.getDirectDependencies(project, id))
+			this)
 		config << bundleConfig
 		
 		// determine additional configuration from information in POM
@@ -226,6 +227,11 @@ class ResolvedBundleArtifact implements BundleArtifact {
 		this.wrap = wrap
 	}
 	
+	@Override
+	public Set<ResolvedArtifact> getDirectDependencies(Project project) {
+		DependencyHelper.getDirectDependencies(project, id)
+	}
+
 	private static String getDefaultSymbolicName(File file, String group, String name) {
 		int i = group.lastIndexOf('.')
 		if (i < 0) {
