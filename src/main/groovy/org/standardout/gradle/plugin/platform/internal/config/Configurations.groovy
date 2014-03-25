@@ -317,6 +317,11 @@ class Configurations {
 		// make other imports optional (as they are not provided through dependencies)
 		importMap['*'] = 'resolution:=optional'
 		
+		// sort the map so longer package names come first (because we use wildcards everywhere)
+		importMap = importMap.sort {
+			a, b -> -(a.key.length() <=> b.key.length())
+		}
+		
 		Closure bndClosure = {
 			// overrides any previous Import-Package configuration!
 			instruction 'Import-Package', importMap.collect {
