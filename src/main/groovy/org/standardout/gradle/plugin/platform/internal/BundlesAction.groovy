@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.osgi.framework.Version;
@@ -74,6 +75,47 @@ class BundlesAction implements Action<Task> {
 			}
 			
 			dependencyFiles.remove(it.file)
+		}
+		
+		// check if explicitly defined auxiliary dependencies are already present
+		Configuration auxConfig = project.getConfigurations().getByName(PlatformPlugin.CONF_AUX)
+		def auxAddedDeps = new HashSet<String>()
+		auxConfig.dependencies.each {
+			Dependency dep ->
+			if (dep.name) { // only external deps supported
+				String id = "${dep.group}:${dep.name}:${dep.version}"
+				
+				// check if artifact with given ID is already present
+				if (!artifacts.containsKey(id)) {
+					// if not, add the artifact
+					DependencyHelper.getArtifacts(project, dep).each {
+						if (it.extension == 'jar') {
+							// only Jars are valid artifacts (ignore poms)
+							BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
+							artifacts[artifact.id] = artifact
+							
+							auxAddedDeps << id
+							
+							// also add source bundle if possible
+							ResolvedArtifact sourceArt = DependencyHelper.getDetachedArtifacts(project, id + ':sources').find {
+								ResolvedArtifact art ->
+								art.extension == 'jar' && art.classifier == 'sources'
+							}
+							if (sourceArt) {
+								SourceBundleArtifact sourceArtifact = new SourceBundleArtifact(sourceArt, project)
+								artifacts[sourceArtifact.id] = sourceArtifact
+								// associate to parent artifact
+								sourceArtifact.parentBundle = artifact
+								artifact.sourceBundle = sourceArtifact
+							}
+						}
+					}
+				}
+			}
+		}
+		if (auxAddedDeps) {
+			project.logger.warn('Added the following explicitly defined auxiliary dependencies (platformaux) in addition to the resolved configuration (platform): '
+				+ auxAddedDeps.join(', '))
 		}
 		
 		// dependency source artifacts

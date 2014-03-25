@@ -50,6 +50,7 @@ public class PlatformPlugin implements Plugin<Project> {
 
 	public static final String TASK_BUNDLES = 'bundles'
 	public static final String CONF_PLATFORM = 'platform'
+	public static final String CONF_AUX = 'platformaux'
 	
 	private Project project
 	
@@ -81,6 +82,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		
 		// create configuration
 		project.configurations.create CONF_PLATFORM
+		project.configurations.create CONF_AUX
 		
 		project.afterEvaluate {
 			// feature version default

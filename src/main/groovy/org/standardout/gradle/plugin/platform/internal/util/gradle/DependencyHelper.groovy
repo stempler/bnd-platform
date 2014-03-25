@@ -53,7 +53,16 @@ class DependencyHelper {
 		}
 	}
 	private static final SatisfyAllSpec SATISFY_ALL = new SatisfyAllSpec()
-	
+
+	/**
+	 * Retrieve artifacts for a specific dependency.
+	 */
+	static Set<ResolvedArtifact> getDetachedArtifacts(Project project, def dependencyNotation) {
+		Dependency dep = project.dependencies.create(dependencyNotation)
+		Configuration configuration = project.configurations.detachedConfiguration(dep)
+		configuration.resolvedConfiguration.lenientConfiguration.getArtifacts(SATISFY_ALL)
+	}
+		
 	/**
 	 * Retrieve a specific dependency.
 	 */
@@ -87,7 +96,7 @@ class DependencyHelper {
 	}
 	
 	/**
-	 * Retrieve a specific dependency.
+	 * Retrieve the direct dependencies of a specific dependency.
 	 */
 	static Set<ResolvedArtifact> getDirectDependencies(Project project, def dependencyNotation) {
 		Dependency dep = project.dependencies.create(dependencyNotation)
@@ -101,6 +110,23 @@ class DependencyHelper {
 			rd.children.each {
 				result.addAll(it.moduleArtifacts)
 			}
+		}
+		
+		result
+	}
+	
+	/**
+	 * Resolve a specific dependency to artifacts, excluding transitive dependencies.
+	 */
+	static Set<ResolvedArtifact> getArtifacts(Project project, Dependency dep) {
+		Configuration configuration = project.configurations.detachedConfiguration(dep)
+		
+		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies(SATISFY_ALL)
+		
+		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
+		resolvedDependencies.each {
+			ResolvedDependency rd ->
+			result.addAll(rd.moduleArtifacts)
 		}
 		
 		result
