@@ -41,6 +41,8 @@ class StoredConfigImpl implements StoredConfig {
 	}
 	
 	final List<Closure> bndClosures = []
+	
+	final List<Closure> importsClosures = []
 
 	BndConfig evaluate(Project project, File file, Map<String, String> initialProperties) {
 		evaluate(project, null, null, null, file, initialProperties)
@@ -82,6 +84,23 @@ class StoredConfigImpl implements StoredConfig {
 			copy()
 		}
 	}
+	
+	ImportsConfig importsConfig(Project project, String group, String name, String version) {
+		ImportsConfig res = null
+		if (importsClosures) {
+			res = new ImportsConfig(project, group, name, version)
+			
+			importsClosures.each {
+				Closure closure ->
+				Closure copy = closure.clone()
+				copy.delegate = res
+				copy.resolveStrategy = Closure.DELEGATE_FIRST
+				copy()
+			}
+		}
+		
+		res
+	}
 
 	/**
 	 * Append the given configuration.	
@@ -89,6 +108,7 @@ class StoredConfigImpl implements StoredConfig {
 	void leftShift(StoredConfig other) {
 		if (other != null) {
 			bndClosures.addAll(other.bndClosures)
+			importsClosures.addAll(other.importsClosures)
 		}
 	}
 	
@@ -98,11 +118,12 @@ class StoredConfigImpl implements StoredConfig {
 	void rightShift(StoredConfig other) {
 		if (other != null) {
 			other.bndClosures.addAll(0, bndClosures)
+			other.importsClosures.addAll(0, importsClosures)
 		}
 	}
 	
 	boolean isEmpty() {
-		bndClosures.empty
+		bndClosures.empty && importsClosures.empty
 	}
 	
 }

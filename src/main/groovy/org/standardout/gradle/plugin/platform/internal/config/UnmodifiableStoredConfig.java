@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.gradle.api.Project;
 
-class UnmodifiableStoredConfig implements StoredConfig {
+public class UnmodifiableStoredConfig implements StoredConfig {
 	
 	private final StoredConfig decoratee;
 
@@ -37,6 +37,11 @@ class UnmodifiableStoredConfig implements StoredConfig {
 	@SuppressWarnings("rawtypes")
 	public List<Closure> getBndClosures() {
 		return Collections.unmodifiableList(decoratee.getBndClosures());
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public List<Closure> getImportsClosures() {
+		return Collections.unmodifiableList(decoratee.getImportsClosures());
 	}
 
 	public BndConfig evaluate(Project project, File file, Map<String, String> initialProperties) {
@@ -51,6 +56,12 @@ class UnmodifiableStoredConfig implements StoredConfig {
 	public BndConfig evaluate(Project project, String group, String name,
 			String version, File file, Map<String, String> initialProperties) {
 		return decoratee.evaluate(project, group, name, version, file, initialProperties);
+	}
+
+	@Override
+	public ImportsConfig importsConfig(Project project, String group,
+			String name, String version) {
+		return decoratee.importsConfig(project, group, name, version);
 	}
 
 	public void leftShift(StoredConfig other) {

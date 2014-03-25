@@ -32,12 +32,19 @@ import java.io.File
 interface StoredConfig {
 	
 	List<Closure> getBndClosures()
+	
+	List<Closure> getImportsClosures()
 
 	BndConfig evaluate(Project project, File file, Map<String, String> initialProperties)
 	
 	BndConfig evaluate(Project project, String group, String name, String version, Map<String, String> initialProperties)
 	
 	BndConfig evaluate(Project project, String group, String name, String version, File file, Map<String, String> initialProperties)
+
+	/**
+	 * @return the imports configuration, may be <code>null</code>
+	 */
+	ImportsConfig importsConfig(Project project, String group, String name, String version)
 	
 	/**
 	 * Append the given configuration.	
@@ -49,6 +56,9 @@ interface StoredConfig {
 	 */
 	void rightShift(StoredConfig other)
 	
+	/**
+	 * @return if the configuration is empty
+	 */
 	boolean isEmpty()
 	
 }

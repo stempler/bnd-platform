@@ -21,6 +21,7 @@ import java.util.Set;
 import groovy.lang.Closure;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
@@ -28,6 +29,7 @@ import org.standardout.gradle.plugin.platform.internal.config.Configurations;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency
 
 /**
  * Extension for the platform plugin.
@@ -187,6 +189,34 @@ class PlatformPluginExtension {
 			configClosure,
 			true // create dependency
 		)
+	}
+	
+	/**
+	 * Call to configure the behaviour for other bundles importing a given dependency.
+	 * 
+	 * @param dependencyNotation the dependency notation
+	 * @param importsClosure the imports configuration closure
+	 * @return
+	 */
+	void imports(def dependencyNotation, Closure importsClosure) {
+		StoredConfigImpl config = new StoredConfigImpl()
+		config.importsClosures << importsClosure
+		
+		// create detached dependency
+		Dependency dependency
+		if (dependencyNotation instanceof Map) {
+			dependency = new DummyDependency(dependencyNotation)
+		}
+		else {
+			dependency = project.dependencies.create(dependencyNotation)
+		}
+		
+		// save dependency configuration
+		project.platform.configurations.putConfiguration(
+			dependency.group,
+			dependency.name,
+			dependency.version,
+			config)
 	}
 	
 	/**

@@ -255,7 +255,7 @@ class Configurations {
 	StoredConfig defaultImports(Iterable<ResolvedArtifact> deps) {
 		def importMap = [:]
 		
-		Closure defaultStrategy = project.platform.importVersionStrategy
+		final Closure defaultStrategy = project.platform.importVersionStrategy
 		
 		// create a map of package names to version number and strategies
 		deps.each {
@@ -264,8 +264,19 @@ class Configurations {
 				return
 			}
 			
+			def group = dep.moduleVersion.id.group
+			def name = dep.moduleVersion.id.name
+			def version = dep.moduleVersion.id.version
+			def strategy = defaultStrategy
+			
 			// for the default behavior assuming the module version as default import version for the packages
-			def osgiVersion = VersionUtil.toOsgiVersion(dep.moduleVersion.id.version)
+			def osgiVersion = VersionUtil.toOsgiVersion(version)
+			
+			// check if there is an artifact specific configuration
+			ImportsConfig cfg = getConfiguration(group, name, version, false, null)?.importsConfig(project, group, name, version)
+			if (cfg != null) {
+				strategy = cfg.versionStrategy?:strategy // specific strategy
+			}
 			
 			// determine packages
 			Analyzer analyzer = new Analyzer()
@@ -273,23 +284,22 @@ class Configurations {
 			analyzer.analyze()
 			analyzer.getContained().each {
 				PackageRef p, Attrs attrs ->
-				String name = p.FQN
-				if (name != '.' && !project.platform.importIgnorePackages.contains(name)) {
-					if (importMap.containsKey(name)) {
+				String pkg = p.FQN
+				if (pkg != '.' && !project.platform.importIgnorePackages.contains(pkg)) {
+					if (importMap.containsKey(pkg)) {
 						// package present multiple times
-						project.logger.warn("Package $name provided by multiple dependencies, using minimal version")
-						Version otherVersion = importMap[name][0]
+						project.logger.warn("Package $pkg provided by multiple dependencies, using minimal version")
+						Version otherVersion = importMap[pkg][0]
 						if (osgiVersion.compareTo(otherVersion) < 0) {
 							// replace version
-							importMap[name][0] = osgiVersion
+							importMap[pkg][0] = osgiVersion
 						}
 						// force minimum strategy
-						importMap[name][1] = PlatformPluginExtension.MINIMUM
+						importMap[pkg][1] = PlatformPluginExtension.MINIMUM
 					}
 					else {
-						// add package w/ default strategy
-						//TODO strategy per dependency / package? 
-						importMap[name] = [osgiVersion, defaultStrategy]
+						// add package w/ artifact strategy
+						importMap[pkg] = [osgiVersion, strategy]
 					} 
 				}
 			}
