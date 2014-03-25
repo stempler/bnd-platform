@@ -16,6 +16,8 @@
 
 package org.standardout.gradle.plugin.platform
 
+import java.util.Set;
+
 import groovy.lang.Closure;
 
 import org.gradle.api.Project;
@@ -69,6 +71,11 @@ class PlatformPluginExtension {
 		
 		// update site zip default
 		updateSiteZipFile = new File(project.buildDir, 'updatesite.zip')
+		
+		importIgnorePackages = new HashSet<String>()
+		importIgnorePackages << 'javax'
+		importIgnorePackages << 'java'
+		importIgnorePackages << 'license'
 	}
 	
 	final Project project
@@ -89,6 +96,12 @@ class PlatformPluginExtension {
 	 * The strategy is a closure taking an OSGi version number and returning a version assignment for bnd as String.
 	 */
 	Closure importVersionStrategy = MINIMUM
+	
+	/**
+	 * Packages to ignore when analyzing packages of dependencies to determine
+	 * package import version numbers.
+	 */
+	final Set<String> importIgnorePackages
 	
 	/**
 	 * The ID for the platform feature.

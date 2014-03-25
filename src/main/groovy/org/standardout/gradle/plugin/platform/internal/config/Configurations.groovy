@@ -271,11 +271,10 @@ class Configurations {
 			Analyzer analyzer = new Analyzer()
 			analyzer.setJar(dep.file);
 			analyzer.analyze()
-			
 			analyzer.getContained().each {
 				PackageRef p, Attrs attrs ->
 				String name = p.FQN
-				if (name != '.') {
+				if (name != '.' && !project.platform.importIgnorePackages.contains(name)) {
 					if (importMap.containsKey(name)) {
 						// package present multiple times
 						project.logger.warn("Package $name provided by multiple dependencies, using minimal version")
