@@ -45,6 +45,8 @@ class Configurations {
 	
 	private final StoredConfig defaultConfiguration
 	
+	private final StoredConfig overrideConfiguration
+	
 	Configurations(Project project) {
 		this.project = project
 		
@@ -57,6 +59,7 @@ class Configurations {
 			properties[Analyzer.IMPORT_PACKAGE] = '*'
 		}
 		defaultConfiguration = new StoredConfigImpl(defaultBndConfig)
+		overrideConfiguration = new StoredConfigImpl()
 	}
 	
 	void addMerge(MergeConfig merge) {
@@ -69,6 +72,14 @@ class Configurations {
 	
 	StoredConfig getDefaultConfig() {
 		new UnmodifiableStoredConfig(defaultConfiguration)
+	}
+	
+	void addOverrideConfig(StoredConfig config) {
+		overrideConfiguration << config
+	}
+	
+	StoredConfig getOverrideConfig() {
+		new UnmodifiableStoredConfig(overrideConfiguration)
 	}
 	
 	/**
@@ -162,6 +173,8 @@ class Configurations {
 			result << fileConfig
 		}
 		
+		result << overrideConfig
+		
 		result
 	}
 	
@@ -190,6 +203,9 @@ class Configurations {
 		DependencyArtifact artifact) {
 		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
+		
+		// bnd override configuration
+		overrideConfig >> res
 		
 		// fully qualified
 		if (group && name && version) {

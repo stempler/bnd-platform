@@ -254,6 +254,18 @@ class PlatformPluginExtension {
 	}
 	
 	/**
+	 * Call to override the behavior for all created bundles, even existing bundles.
+	 * Use with care. 
+	 */
+	def override(Closure bndClosure) {
+		// warn as the user should be able to check if this is intended
+		project.logger.warn 'Adding custom configuration to bnd override configuration'
+		if (bndClosure != null) {
+			configurations.addOverrideConfig(new StoredConfigImpl(bndClosure))
+		}
+	}
+	
+	/**
 	 * Call merge to create bundle that is merged from different dependencies.
 	 * @param mergeClosure the merge closure, specifying a match and bnd configuration
 	 * @return

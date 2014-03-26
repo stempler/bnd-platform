@@ -144,6 +144,7 @@ class BundleHelper {
 				config << project.platform.configurations.defaultImports(directDeps)
 			}
 			config << merge.bundleConfig // merge config
+			config << project.platform.configurations.overrideConfig // override config
 			
 			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)
 			
