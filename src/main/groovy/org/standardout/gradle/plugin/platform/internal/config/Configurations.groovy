@@ -320,7 +320,12 @@ class Configurations {
 			def version = strategy(osgiVersion) as String
 			
 			// each package import with wildcard and version
-			[pkg + '.*', "version=\"$version\""]
+			if (version) {
+				[pkg + '.*', "version=\"$version\""]
+			}
+			else {
+				[pkg + '.*', null]
+			}
 		}
 				
 		// make other imports optional (as they are not provided through dependencies)

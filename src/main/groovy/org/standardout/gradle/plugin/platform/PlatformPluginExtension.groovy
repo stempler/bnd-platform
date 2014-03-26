@@ -37,7 +37,13 @@ import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependen
  * @author Simon Templer
  */
 class PlatformPluginExtension {
-	
+	/**
+	 * Version strategy that uses no version constraint for imports.
+	 */
+	public static final Closure NONE = {
+		Version v ->
+		null
+	}
 	/**
 	 * Version strategy that uses the given version as minimum version.
 	 */
