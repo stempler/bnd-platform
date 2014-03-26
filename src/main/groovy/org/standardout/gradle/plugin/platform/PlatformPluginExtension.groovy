@@ -103,7 +103,7 @@ class PlatformPluginExtension {
 	 * 
 	 * The strategy is a closure taking an OSGi version number and returning a version assignment for bnd as String.
 	 */
-	Closure importVersionStrategy = MINIMUM
+	Closure importVersionStrategy = MAJOR
 	
 	/**
 	 * Packages to ignore when analyzing packages of dependencies to determine
