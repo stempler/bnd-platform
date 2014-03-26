@@ -88,7 +88,7 @@ class FileBundleArtifact implements BundleArtifact {
 			// bnd configuration present
 			version = modifiedVersion = bndConfig.version
 			
-			symbolicName = bndConfig.symbolicName
+			symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
 			if (bndConfig.bundleName) {
 				bundleName = bndConfig.bundleName
 			}

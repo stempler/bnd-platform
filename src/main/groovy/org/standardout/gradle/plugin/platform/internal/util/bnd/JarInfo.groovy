@@ -73,7 +73,7 @@ class JarInfo {
 		instructions = properties.asImmutable() 
 	}
 	
-	private static String extractSymbolicName(String name) {
+	public static String extractSymbolicName(String name) {
 		if (name == null) {
 			return name
 		}

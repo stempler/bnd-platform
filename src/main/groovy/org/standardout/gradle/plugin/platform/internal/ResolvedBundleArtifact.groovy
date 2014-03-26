@@ -200,7 +200,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		if (bndConfig) {
 			if (!wrap && !source) {
 				wrap = true // must be wrapped to apply configuration
-				if (bundleConfig != null && !bundleConfig.empty) {
+				if (bundleConfig != null && !bundleConfig.bndClosures.empty) {
 					project.logger.warn "Bnd configuration found for existing bundle $symbolicName, so it is wrapped even though a bundle manifest seems to be already present"
 				}
 				else {
@@ -210,7 +210,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			
 			// override symbolic name or bundle name
 			if (bndConfig.symbolicName) {
-				symbolicName = bndConfig.symbolicName
+				symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
 			}
 			if (bndConfig.bundleName) {
 				bundleName = bndConfig.bundleName
