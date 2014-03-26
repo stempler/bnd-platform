@@ -18,6 +18,8 @@ package org.standardout.gradle.plugin.platform.internal.config
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
+import aQute.bnd.header.Parameters
+import aQute.bnd.header.OSGiHeader
 import org.gradle.api.artifacts.Dependency;
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
@@ -108,6 +110,32 @@ class BndConfig {
 	def optionalImport(String... packages) {
 		def list = packages as List
 		def options = list.collect { it + ';resolution:=optional' }
+		prependImport(options)
+	}
+	
+	/**
+	 * Prepend imported packages. Removes conflicting existing package declarations.
+	 */
+	def prependImport(String... instructions) {
+		prependImport(instructions as List)
+	}
+		
+	/**
+	 * Prepend imported packages. Removes conflicting existing package declarations.
+	 */
+	def prependImport(List<String> instructions) {
+		// extract packages (may contain wildcards)
+		def packages = instructions.collect {
+			String pkg ->
+			def pos = pkg.indexOf(';')
+			if (pos > 0) {
+				pkg[0..pos-1]
+			}
+			else {
+				pkg
+			}
+		}
+		
 		String imports = (properties['Import-Package']?:'*').trim()
 		
 		/*
@@ -116,10 +144,12 @@ class BndConfig {
 		 * will lead to illegal bundles - so we need to remove those
 		 * references, at least fully qualified packages.
 		 */
-		def packageMatchers = list.collect {
+		def packageMatchers = packages.collect {
 			String packageExpr ->
 			// create a regex from the package expression
-			String pRegex = packageExpr.replaceAll(/\./, '\\.') // escape dots
+			String pRegex = packageExpr
+			pRegex = pRegex.replaceAll(/\.\*/, '(\\.[^,]+)?') // dot and wildcard is optional
+			pRegex = pRegex.replaceAll(/\./, '\\.') // escape other dots
 			pRegex = pRegex.replaceAll(/\*/, '[^,]+') // wildcards match anything save comma and wildcards
 			'^' + pRegex + '$' // must match a full package
 			
@@ -127,7 +157,11 @@ class BndConfig {
 		}
 		
 		// check for each package entry if it is OK
-		def importList = imports.split(',').collect{ it.trim() }
+
+		// retrieve packages currently specified
+		Parameters pkgs = OSGiHeader.parseHeader(imports)
+		//TODO do something w/ previous attrs?
+		def importList = pkgs.keySet().collect{ it.trim() }
 		def accepted = importList.findAll {
 			String pkg ->
 			boolean match = packageMatchers.any {
@@ -137,7 +171,9 @@ class BndConfig {
 		}
 		imports = accepted.join(',') // keep all that were accepted (meaning where there was no match)
 		
-		instruction 'Import-Package', options.join(',') + ',' + imports
+		instruction 'Import-Package', instructions.join(',') + ',' + imports
 	}
 	
 }
+
+
