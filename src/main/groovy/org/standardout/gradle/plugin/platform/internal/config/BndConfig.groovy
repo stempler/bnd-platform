@@ -18,6 +18,8 @@ package org.standardout.gradle.plugin.platform.internal.config
 
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project;
+
+import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters
 import aQute.bnd.header.OSGiHeader
 import org.gradle.api.artifacts.Dependency;
@@ -124,6 +126,10 @@ class BndConfig {
 	 * Prepend imported packages. Removes conflicting existing package declarations.
 	 */
 	def prependImport(List<String> instructions) {
+		if (instructions == null || instructions.empty) {
+			return
+		}
+		
 		// extract packages (may contain wildcards)
 		def packages = instructions.collect {
 			String pkg ->
@@ -161,15 +167,20 @@ class BndConfig {
 		// retrieve packages currently specified
 		Parameters pkgs = OSGiHeader.parseHeader(imports)
 		//TODO do something w/ previous attrs?
-		def importList = pkgs.keySet().collect{ it.trim() }
-		def accepted = importList.findAll {
-			String pkg ->
+		def accepted = pkgs.findAll {
+			String pkg, Attrs attrs ->
 			boolean match = packageMatchers.any {
-				pkg ==~ it
+				pkg.trim() ==~ it
 			}
 			!match
 		}
-		imports = accepted.join(',') // keep all that were accepted (meaning where there was no match)
+		// keep all that were accepted (meaning where there was no match)
+		imports = accepted.collect{
+			String pkg, Attrs attrs ->
+			Parameters pars = new Parameters()
+			pars[pkg] = attrs
+			pars.toString()
+		}.join(',')
 		
 		instruction 'Import-Package', instructions.join(',') + ',' + imports
 	}
