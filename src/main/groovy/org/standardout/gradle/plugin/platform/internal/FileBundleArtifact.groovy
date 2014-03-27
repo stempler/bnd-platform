@@ -73,7 +73,6 @@ class FileBundleArtifact implements BundleArtifact {
 			// detect source bundle
 			if (jarInfo.instructions['Eclipse-SourceBundle']) {
 				source = true
-				println "XXXX - source bundle $file"
 			}
 		}
 		
