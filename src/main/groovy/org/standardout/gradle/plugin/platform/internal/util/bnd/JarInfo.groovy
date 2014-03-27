@@ -33,7 +33,8 @@ class JarInfo {
 		Analyzer.EXPORT_PACKAGE,
 		Analyzer.IMPORT_PACKAGE,
 		Analyzer.BUNDLE_LICENSE,
-		Analyzer.BUNDLE_VENDOR
+		Analyzer.BUNDLE_VENDOR,
+		'Eclipse-SourceBundle' // to be able to identify a source bundle
 	] as Set).asImmutable()
 
 	final Map<String, String> instructions

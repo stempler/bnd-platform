@@ -60,14 +60,20 @@ class FileBundleArtifact implements BundleArtifact {
 	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null) {
 		this.file = artifactFile
 		this.id = artifactFile as String
-		this.source = false
+		this.source = false // don't mark as source bundle so it is processed as usual
+		
+		boolean source = false
 		
 		JarInfo jarInfo = null
 		boolean includeDefaultConfig = true
-		if (!source) {
-			jarInfo = new JarInfo(file)
-			if (jarInfo.symbolicName) {
-				includeDefaultConfig = false
+		jarInfo = new JarInfo(file)
+		if (jarInfo.symbolicName) {
+			includeDefaultConfig = false
+			
+			// detect source bundle
+			if (jarInfo.instructions['Eclipse-SourceBundle']) {
+				source = true
+				println "XXXX - source bundle $file"
 			}
 		}
 		
@@ -75,13 +81,11 @@ class FileBundleArtifact implements BundleArtifact {
 			// resolve file dependency configuration
 			config = project.platform.configurations.getConfiguration(file, includeDefaultConfig)
 		}
-		if (source) {
-			wrap = false
-		}
-		else {
-			// only wrap if there is a configuration (retain existing bundles)
-			wrap = !config.isEmpty()
-		}
+		
+		// only wrap if there is a configuration (retain existing bundles)
+		// and the bundle is not a source bundle already
+		wrap = !source && !config.bndClosures.isEmpty()
+		
 		bndConfig = config?.evaluate(project, file, jarInfo?.instructions)
 		
 		if (bndConfig && bndConfig.version && bndConfig.symbolicName) {
@@ -125,6 +129,7 @@ class FileBundleArtifact implements BundleArtifact {
 		this.file = sourceBundleFile
 		this.id = sourceBundleFile as String
 		this.source = true
+		this.wrap = false // wrapping is done implicitly
 		
 		bndConfig = null
 		

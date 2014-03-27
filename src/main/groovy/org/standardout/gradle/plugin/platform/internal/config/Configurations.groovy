@@ -159,7 +159,8 @@ class Configurations {
 	/**
 	 * Get configuration for a file based dependency.
 	 */
-	StoredConfig getConfiguration(File file, boolean includeDefaultConfig) {
+	StoredConfig getConfiguration(File file, boolean includeDefaultConfig,
+			boolean includeOverrideConfig = true) {
 		StoredConfig result = new StoredConfigImpl()
 		
 		if (includeDefaultConfig) {
@@ -173,7 +174,10 @@ class Configurations {
 			result << fileConfig
 		}
 		
-		result << overrideConfig
+		if (includeOverrideConfig) {
+			// add override configuration
+			result << overrideConfig
+		}
 		
 		result
 	}
