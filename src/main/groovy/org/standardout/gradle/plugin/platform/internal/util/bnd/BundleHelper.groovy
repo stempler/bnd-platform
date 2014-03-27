@@ -29,6 +29,9 @@ import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 
 import com.sun.media.sound.JARSoundbankReader;
 
+import aQute.bnd.header.Attrs;
+import aQute.bnd.header.OSGiHeader;
+import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Builder;
 import aQute.bnd.osgi.Jar;
@@ -86,11 +89,24 @@ class BundleHelper {
 				properties.putAll(bndConfig.properties)
 			}
 			
+			// analyze existing symbolic name -> find any attributes, e.g. singleton
+			Attrs symbolicNameAttrs = new Attrs()
+			if (properties[Analyzer.BUNDLE_SYMBOLICNAME]) {
+				Parameters pars = OSGiHeader.parseHeader(properties[Analyzer.BUNDLE_SYMBOLICNAME])
+				symbolicNameAttrs = pars.findResult {
+					String symbolicName, Attrs attrs ->
+					attrs
+				}
+			}
+			// combine with artifact symbolic name
+			Parameters symbolicNamePars = new Parameters()
+			symbolicNamePars[art.symbolicName] = symbolicNameAttrs
+			
 			// properties that are fixed (if they should be changed it should happen in BundleArtifact)
 			properties.putAll(
 				(Analyzer.BUNDLE_VERSION): art.modifiedVersion,
 				(Analyzer.BUNDLE_NAME): art.bundleName,
-				(Analyzer.BUNDLE_SYMBOLICNAME): art.symbolicName
+				(Analyzer.BUNDLE_SYMBOLICNAME): symbolicNamePars.toString()
 			)
 			
 			boolean written = BndHelper.wrap(art.file, null, outputFile, properties)

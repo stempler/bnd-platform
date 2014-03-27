@@ -85,7 +85,7 @@ class FileBundleArtifact implements BundleArtifact {
 		// and the bundle is not a source bundle already
 		wrap = !source && !config.bndClosures.isEmpty()
 		
-		bndConfig = config?.evaluate(project, file, jarInfo?.instructions)
+		bndConfig = config.evaluate(project, file, jarInfo?.instructions)
 		
 		if (bndConfig && bndConfig.version && bndConfig.symbolicName) {
 			// bnd configuration present
