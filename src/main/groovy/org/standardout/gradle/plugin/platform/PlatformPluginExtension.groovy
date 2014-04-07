@@ -95,8 +95,9 @@ class PlatformPluginExtension {
 	
 	/**
 	 * States if the package import versions for automatically wrapped bundles should be determined automatically.
+	 * This also will by default make package imports optional that are not found in dependencies.
 	 */
-	boolean determineImportVersions = true
+	boolean determineImportVersions = false
 	
 	/**
 	 * Defines the global import version strategy.
