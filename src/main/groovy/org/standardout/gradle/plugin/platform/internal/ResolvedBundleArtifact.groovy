@@ -18,10 +18,12 @@ package org.standardout.gradle.plugin.platform.internal
 
 import groovy.util.slurpersupport.GPathResult;
 
+import java.nio.ByteBuffer;
 import java.util.Set;
 import java.util.jar.JarFile
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.Adler32;
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -34,6 +36,8 @@ import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStored
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
+
+import aQute.bnd.osgi.Analyzer;
 
 
 class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
@@ -158,21 +162,6 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			project.logger.warn "Replacing illegal OSGi version $version by ${it} for artifact $name"
 		}
 		
-		// an eventually modified version
-		def modifiedVersion = osgiVersion.toString()
-		if (wrap) {
-			// if the bundle is wrapped, create a modified version to mark this
-			def qualifier = osgiVersion.qualifier
-			if (qualifier) {
-				qualifier += '-autowrapped'
-			}
-			else {
-				qualifier = 'autowrapped'
-			}
-			Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
-			modifiedVersion = mv.toString()
-		}
-		
 		// resolve bundle configuration
 		StoredConfig config = new StoredConfigImpl()
 		// only include default configuration if not yet a bundle
@@ -196,6 +185,11 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			pomInfo = null
 		}
 		
+		// an eventually modified version
+		def modifiedVersion = osgiVersion.toString()
+		// a qualifier to add
+		boolean addQualifier = false
+		
 		bndConfig = config.evaluate(project, group, name, modifiedVersion, file, jarInfo?.instructions)
 		if (bndConfig) {
 			if (!wrap && !source) {
@@ -216,8 +210,24 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 				bundleName = bndConfig.bundleName
 			}
 			if (bndConfig.version && bndConfig.version != modifiedVersion) {
-				modifiedVersion = bndConfig.version
+				def bndOsgiVersion = VersionUtil.toOsgiVersion(bndConfig.version)
+				if (bndOsgiVersion) {
+					modifiedVersion = bndConfig.version
+					osgiVersion = bndOsgiVersion
+				}
 			}
+			
+			addQualifier = !source // by default don't add qualifiers for source bundles
+		}
+		else if (wrap) {
+			addQualifier = !source // by default don't add qualifiers for source bundles
+		}
+		if (bndConfig?.addQualifier) {
+			addQualifier = true // forced qualifier
+		}
+		
+		if (addQualifier) {
+			modifiedVersion = VersionUtil.addQualifier(modifiedVersion, bndConfig, project)
 		}
 		
 		this.modifiedVersion = modifiedVersion

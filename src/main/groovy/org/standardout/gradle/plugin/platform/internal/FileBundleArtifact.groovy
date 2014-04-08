@@ -24,6 +24,7 @@ import org.osgi.framework.Constants
 import org.osgi.framework.Version
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
 
 
@@ -89,7 +90,13 @@ class FileBundleArtifact implements BundleArtifact {
 		
 		if (bndConfig && bndConfig.version && bndConfig.symbolicName) {
 			// bnd configuration present
-			version = modifiedVersion = bndConfig.version
+			
+			// determine version, eventually add qualifier (only if explicitly enabled)
+			def v = bndConfig.version
+			if (bndConfig.addQualifier == true) { // addQualifier is tri-state
+				v = VersionUtil.addQualifier(v, bndConfig, project)
+			}
+			version = modifiedVersion = v 
 			
 			symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
 			if (bndConfig.bundleName) {

@@ -18,7 +18,11 @@ package org.standardout.gradle.plugin.platform.internal.util
 
 import java.util.regex.Matcher
 
+import org.gradle.api.Project
 import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig
+
+import aQute.bnd.osgi.Analyzer
 
 
 class VersionUtil {
@@ -64,6 +68,66 @@ class VersionUtil {
 		}
 		
 		osgiVersion
+	}
+	
+	/**
+	 * Add a qualifier to the bundle version.
+	 * 
+	 * @param version the current bundle version
+	 * @param bndConfig the bnd configuration, may be <code>null</code>
+	 * @param project the Gradle project
+	 * @return the modified or the given version, depending on the configuration
+	 */
+	static String addQualifier(String version, BndConfig bndConfig, Project project) {
+		// early exit if qualifier is suppressed
+		if (bndConfig?.addQualifier == false) {
+			return version
+		}
+		
+		// determine additional qualifier
+		
+		// default qualifier
+		def addQualifier = project.platform.defaultQualifier
+		
+		if (bndConfig != null && project.platform.useBndHashQualifiers) {
+			// strip down properties
+			def props = bndConfig.properties.findAll {
+				key, value ->
+				key != Analyzer.BUNDLE_SYMBOLICNAME &&
+				key != Analyzer.BUNDLE_VERSION &&
+				key != Analyzer.BUNDLE_NAME
+			}
+			
+			if (props) {
+				// there actually are relevant properties
+				
+				// calculate hash from properties
+				def propString = props.sort().toMapString()
+				byte[] bytes = project.platform.hashCalculator(propString)
+				if (bytes) {
+					addQualifier = 'bnd' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
+				}
+			}
+		}
+		
+		if (addQualifier) {
+			// append additional qualifier
+			def osgiVersion = toOsgiVersion(version)
+			if (osgiVersion != null) {
+				def qualifier = osgiVersion.qualifier
+				if (qualifier) {
+					qualifier += "-$addQualifier"
+				}
+				else {
+					qualifier = addQualifier
+				}
+				Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
+				return mv.toString()
+			}
+		}
+		
+		// fall back to original version
+		version
 	}
 	
 }

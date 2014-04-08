@@ -161,6 +161,8 @@ class BundleHelper {
 			}
 			config << merge.bundleConfig // merge config
 			config << project.platform.configurations.overrideConfig // override config
+			// enable adding qualifier by default (must be enabled as default for file bundle artifacts is false)
+			config << new StoredConfigImpl({ if (addQualifier == null) addQualifier = true })
 			
 			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)
 			

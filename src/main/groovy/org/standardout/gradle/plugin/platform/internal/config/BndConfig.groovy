@@ -61,6 +61,15 @@ class BndConfig {
 	final File file
 	
 	/**
+	 * States if a qualifier should be added. Either the default qualifier
+	 * or a qualifier based on the bnd configuration hash will be used,
+	 * depending on the project configuration.
+	 * 
+	 * Tri-state flag. A <code>null</code> value means that the default is used.
+	 */
+	Boolean addQualifier = null
+	
+	/**
 	 * Version that is either provided or can be set for file dependencies.
 	 */
 	void setVersion(String version) {

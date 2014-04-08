@@ -16,7 +16,9 @@
 
 package org.standardout.gradle.plugin.platform
 
+import java.nio.ByteBuffer;
 import java.util.Set;
+import java.util.zip.Adler32;
 
 import groovy.lang.Closure;
 
@@ -70,6 +72,23 @@ class PlatformPluginExtension {
 		"[${min},${v.major}.${v.minor + 1}.0)"
 	}
 	
+	/**
+	 * Hash calculator using the Adler32 checksum algorithm.
+	 */
+	public static final Closure ADLER32 = {
+		String config ->
+		// calculate the checksum
+		def adler = new Adler32()
+		adler.update(config.bytes)
+		// only return the last 4 bytes (as it's 32 bit only)
+		def bb = ByteBuffer.allocate(8).putLong(adler.value)
+		def bytes = new byte[4]
+		for (i in 0..3) {
+			bytes[i] = bb.get(i + 4)
+		}
+		bytes
+	}
+	
 	PlatformPluginExtension(Project project) {
 		this.project = project
 		this.configurations = new Configurations(project)
@@ -111,6 +130,35 @@ class PlatformPluginExtension {
 	 * package import version numbers.
 	 */
 	final Set<String> importIgnorePackages
+
+	/**
+	 * The default version qualifier to use for wrapped bundles. If a qualifier is already
+	 * present the default will be appended, separated by a dash.
+	 * 
+	 * Please note that this does not apply to file based dependencies automatically
+	 * (otherwise it might mess with existing source bundle associations). Set addQualifier
+	 * to <code>true</code> in the corresponding bnd configuration to enable it for a
+	 * file based dependency. 
+	 */
+	String defaultQualifier = 'autowrapped'
+		
+	/**
+	 * States if bundle version qualifiers should be tagged with hashes calculated from the
+	 * bnd configuration. Overrides the default qualifier for bundles where a bnd configuration
+	 * is present.
+	 * 
+	 * Please note that this does not apply to file based dependencies (otherwise it might
+	 * mess with existing source bundle associations).
+	 */
+	boolean useBndHashQualifiers = true
+	
+	/**
+	 * Defines the hash calculator used for calculating hash qualifiers from bnd configuration.
+	 * 
+	 * The closure takes a String and should return the hash as byte array. The qualifier will then be
+	 * the base 64 encoded hash.
+	 */
+	Closure hashCalculator = ADLER32
 	
 	/**
 	 * The ID for the platform feature.
