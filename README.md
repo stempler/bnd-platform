@@ -16,10 +16,8 @@ For a quick start, check out the [sample project on GitHub](https://github.com/s
 * Merge multiple JARs/dependencies into one bundle, e.g. where needed due to duplicate packages or classloader issues
 * Adapt the configuration for wrapping JARs or adapting existing bundles, e.g. to influence the imported packages
 * Create an Eclipse Update Site / p2 repository from the created bundles
+* Automatically associate version numbers to imported packages (experimental)
 
-**What *bnd-platform* does not (or at least not yet):**
-* Automatically associate version numbers to imported packages
-* Create bundles or update sites from source projects (though that would probably not be too complicated - contributions welcome!)
 
 Usage
 -----
@@ -32,7 +30,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:0.2'
+		classpath 'org.standardout:bnd-platform:0.3'
 	}
 }
 
@@ -131,9 +129,50 @@ platform {
         instruction <Header>, <Instruction>
         // adapt the Import-Package instruction to import the given packages optionally
         optionalImport <Package1>, <Package2>, ...
+        // adapt the Import-Package instruction to add the given package instruction
+        prependImport  <PackageInstruction1>, <PackageInstruction2>, ...
+        
+        // override the default behavior, if a (generated) qualifier should be added to
+        // the version of wrapped bundles (see plugin settings)
+        addQualifier = true | false
     }
 }
 ```
+
+### Automatic package import versioning (experimental)
+
+You can enable auto-determining versions for package imports by enabling the `determineImportVersions` plugin setting. For each bundle to be created from a JAR retrieved via Maven/Ivy, their dependencies are analysed in turn and package imports are determined by the packages present there and the version of the dependency modules. This works for most cases, but is not as good as if the information would be determined based on the packages exported by the dependencies.
+
+A default strategy defines how the versions are represented for the **Import-Package** instructions. Pre-defined strategies that can be used are:
+* **MINIMUM** - the module version is the minimum version for the package import, there is no upper boundary
+* **MAJOR** - like MINIMUM, but with the next major version (excluded) as upper boundary  (default)
+* **MINOR** - like MINIMUM, but with the next minor version (excluded) as upper boundary
+* **NONE** - no version constraint for package imports
+ 
+Set the version strategy for the whole platform like this:
+
+```groovy
+platform {
+    determineImportVersions = true
+    importVersionStrategy = MINIMUM
+}
+```
+
+You can also adapt the configuration for specific dependencies, or define a custom version strategy using a Closure. See the definitions of the pre-defined strategies in the sources for `PlatformPluginExtension` for more information on how this can be done. The following example demonstrates both:
+
+```groovy
+platform {
+    imports(group: 'com.google.inject', name: 'guice') {
+        versionStrategy = {
+            // guice uses a strange versioning scheme for its package exports
+            // e.g. version 2.0 of exports packages with version 1.2, version 3.0 with 1.3 etc. 
+            "[1.${it.major},1.${it.major + 1})"
+        }
+    }
+}
+```
+ 
+The above example influences the package imports for the packages provided by *guice* for all bundles that have *guice* as their dependency.
 
 ### Default configuration
 
@@ -153,7 +192,7 @@ platform {
 
 But be careful what you put into the default configuration - setting the *symbolicName* or *version* here will not be seen as error, but does not make any sense and may lead to unpredicatable behavior (as there can't be two bundles with the same symbolic name and version).
 
-###  Configuration priority
+### Configuration priority
 
 A bundle configuration that is more concrete will always override/extend a more general configuration. A configuration applied to a dependency group takes precedence over the default configuration, while a configuration specified for a combination of group and name in turn takes precedence over a group configuration.
 If configurations are defined on the same level, the configuration that is defined later in the script will override/extend a previous one.
@@ -169,6 +208,19 @@ platform {
     bnd(group: 'org.standardout', name: 'bnd-platform', version: '0.1') {
         // override the version
         version = '0.1.0.RELEASE'
+    }
+}
+```
+
+### Override any configuration
+
+Starting with version 0.3 it is possible to override all bundle configurations at once. This also applies to dependencies that already are an OSGi bundle. You can use any instructions you would use inside **bnd** to apply them to all dependencies in a call to **override**:
+
+```groovy
+platform {
+    override {
+        // JUnit optional everywhere - so we can exclude it from products
+        optionalImport 'junit.framework.*', 'org.junit.*'
     }
 }
 ```
@@ -322,6 +374,14 @@ Via the platform extension there are several settings you can provide:
 * **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
 * **categoryId** - the identifier of the feature's category (default: **'platform'**)
 * **categoryName** - the name of the feature's category (default: **'Target platform'**)
+* **determineImportVersions** - automatically determine package import versions (default: `false`)
+* **importVersionStrategy** = global strategy for import versions (default: `MAJOR`)
+* **importIgnorePackages** - set of packages to ignore when analyzing packages of dependencies to determine package import versions
+* **defaultQualifier** - the default version qualifier to use for wrapped bundles. If a qualifier is already
+	 * present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
+* **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
+* **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
+* **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
 
 For example:
 
