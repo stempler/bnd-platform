@@ -105,7 +105,7 @@ class VersionUtil {
 				def propString = props.sort().toMapString()
 				byte[] bytes = project.platform.hashCalculator(propString)
 				if (bytes) {
-					addQualifier = 'bnd' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
+					addQualifier = 'bnd-' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
 				}
 			}
 		}
