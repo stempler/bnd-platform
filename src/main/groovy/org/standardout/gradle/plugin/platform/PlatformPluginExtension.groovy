@@ -161,6 +161,16 @@ class PlatformPluginExtension {
 	Closure hashCalculator = ADLER32
 	
 	/**
+	 * States if the symbolic names for bundles created via the platformaux configuration should
+	 * be adapted to include the version number. This is useful when dealing with systems that have
+	 * problems when there actually are bundles with the same name but different versions.
+	 * 
+	 * An example is Eclipse RCP plugin-based products - they can include only one version of a bundle
+	 * with the same name.
+	 */
+	boolean auxVersionedSymbolicNames = false
+	
+	/**
 	 * The ID for the platform feature.
 	 */
 	String featureId = 'platform.feature'

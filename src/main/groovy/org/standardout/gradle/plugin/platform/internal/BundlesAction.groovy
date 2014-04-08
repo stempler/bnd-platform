@@ -91,7 +91,7 @@ class BundlesAction implements Action<Task> {
 					DependencyHelper.getArtifacts(project, dep).each {
 						if (it.extension == 'jar') {
 							// only Jars are valid artifacts (ignore poms)
-							BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
+							BundleArtifact artifact = new ResolvedBundleArtifact(it, project, true)
 							artifacts[artifact.id] = artifact
 							
 							auxAddedDeps << id

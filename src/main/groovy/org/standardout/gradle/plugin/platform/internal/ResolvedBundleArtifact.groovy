@@ -96,7 +96,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
-	ResolvedBundleArtifact(ResolvedArtifact artifact, Project project) {
+	ResolvedBundleArtifact(ResolvedArtifact artifact, Project project, final boolean aux = false) {
 		// extract information from artifact
 		this.file = artifact.file
 		this.classifier = artifact.classifier
@@ -228,6 +228,12 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		
 		if (addQualifier) {
 			modifiedVersion = VersionUtil.addQualifier(modifiedVersion, bndConfig, project)
+		}
+		
+		// adapt symbolic names for bundles in platformAux (if enabled)
+		if (aux && project.platform.auxVersionedSymbolicNames) {
+			symbolicName = symbolicName + '-' + version // augment with (original) version
+			wrap = true // force wrap
 		}
 		
 		this.modifiedVersion = modifiedVersion
