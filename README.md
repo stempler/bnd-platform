@@ -141,9 +141,9 @@ platform {
 
 ### Automatic package import versioning (experimental)
 
-You can enable auto-determining versions for package imports by enabling the `determineImportVersions` plugin setting. For each bundle to be created from a JAR retrieved via Maven/Ivy, their dependencies are analysed in turn and package imports are determined by the packages present there and the version of the dependency modules. This works for most cases, but is not as good as if the information would be determined based on the packages exported by the dependencies.
+You can enable auto-determining versions for package imports by enabling the `determineImportVersions` plugin setting. For each bundle to be created from a JAR retrieved via Maven/Ivy, their direct dependencies are analysed in turn and package imports are determined by the packages present there and the version of the dependency modules. This works for most cases, but is not as good as if the information would be determined based on the packages exported by the dependencies. What comes as a bonus is that for packages that are not found in the direct dependencies the imports are made optional automatically.
 
-A default strategy defines how the versions are represented for the **Import-Package** instructions. Pre-defined strategies that can be used are:
+A default strategy defines how the versions are represented for the **Import-Package** instructions, i.e. what lower and upper bounds are allowed for an imported package. Pre-defined strategies that can be used are:
 * **MINIMUM** - the module version is the minimum version for the package import, there is no upper boundary
 * **MAJOR** - like MINIMUM, but with the next major version (excluded) as upper boundary  (default)
 * **MINOR** - like MINIMUM, but with the next minor version (excluded) as upper boundary
@@ -172,7 +172,7 @@ platform {
 }
 ```
  
-The above example influences the package imports for the packages provided by *guice* for all bundles that have *guice* as their dependency.
+The above example influences the package imports for the packages provided by *guice* for all bundles that have *guice* as their dependency. This is needed in this case as *guice* already is provided as OSGi bundle with the exported package versions differing from the module version - and because *bnd-platform* currently only uses the information of the module version and applies it to all imports instead of using available package export information. This might be improved in the future if there is need.
 
 ### Default configuration
 
