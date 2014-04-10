@@ -283,6 +283,23 @@ platform {
 }
 ```
 
+### Multiple versions of a bundle/dependency
+
+When resolving the **platform** configuration with **bnd-platform**, **Gradle** will only include one version for each dependency. This is intentional as even though OSGi is designed to deal with issues such as multiple versions of a bundle, often it will lead to problems - namely package uses conflicts (please note that you can get package uses conflicts even with only one version of each bundle, as some may conflict with packages provided by the system bundle).
+
+However, if there is the need to have multiple versions of a bundle, these are your options:
+* use multiple **bnd-platform** builds, each will resolve its dependencies independent of the others
+* add dependencies to the **platformaux** configuration - they will be added in addition to the resolved platform configuration (but w/o their transitive dependencies)
+* add the additional versions as local dependencies
+ 
+Following is an example using the **platformaux** configuration:
+
+```groovy
+dependencies {
+    // need old version (pre 4) of asm for some bundles
+    platformaux 'asm:asm:3.3.1'
+}
+```
 
 ### Merged bundles
 
