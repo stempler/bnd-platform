@@ -147,9 +147,11 @@ class Configurations {
 		
 		StoredConfig current = fileConfigurations[file] 
 		if (current != null) {
+			if (config.bndClosures && current.bndClosures) {
+				project.logger.warn "Multiple bnd configurations for file $file, later definitions may override previous"
+			}
 			// append configuration
 			current << config
-			project.logger.warn "Multiple bnd configurations for file $file, later definitions may override previous"
 		}
 		else {
 			fileConfigurations[file] = config
@@ -191,9 +193,11 @@ class Configurations {
 		Map<String, StoredConfig> nameConfig = dependencyConfigurations.get(group, [:]).get(name, [:])
 		StoredConfig current = nameConfig.get(version)
 		if (current != null) {
+			if (config.bndClosures && current.bndClosures) {
+				project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, later definitions may override previous"
+			}
 			// append configuration
 			current << config
-			project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, later definitions may override previous"
 		}
 		else {
 			nameConfig.put(version, config)
