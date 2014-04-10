@@ -50,6 +50,8 @@ class BundleHelper {
 			return
 		}
 		
+		boolean removeSignatures = project.platform.removeSignaturesFromWrappedBundles
+		
 		if(art.sourceBundle != null) {
 			// wrap sources as bundle
 			BundleArtifact sourceArt = art.sourceBundle
@@ -67,7 +69,7 @@ class BundleHelper {
 				(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
 				(Analyzer.EXPORT_PACKAGE): '', // no exports
 				'Eclipse-SourceBundle': sourceBundleDef
-			])
+			], removeSignatures)
 			if (!written) {
 				project.logger.warn "Skipping creating source bundle for empty or corrupted JAR: $sourceArt.file"
 				// remove from artifact map (so it is not included in the update site feature)
@@ -109,7 +111,7 @@ class BundleHelper {
 				(Analyzer.BUNDLE_SYMBOLICNAME): symbolicNamePars.toString()
 			)
 			
-			boolean written = BndHelper.wrap(art.file, null, outputFile, properties)
+			boolean written = BndHelper.wrap(art.file, null, outputFile, properties, removeSignatures)
 			if (!written) {
 				throw new IllegalStateException("Empty or corrupted JAR cannot be wrapped: $art.file")
 			}

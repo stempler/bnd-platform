@@ -171,6 +171,11 @@ class PlatformPluginExtension {
 	boolean auxVersionedSymbolicNames = false
 	
 	/**
+	 * States if signatures should be removed from wrapped bundles.
+	 */
+	boolean removeSignaturesFromWrappedBundles = true
+	
+	/**
 	 * The ID for the platform feature.
 	 */
 	String featureId = 'platform.feature'

@@ -18,13 +18,17 @@ package org.standardout.gradle.plugin.platform.internal.util.bnd;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.Manifest;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.Builder;
+import aQute.bnd.osgi.Jar;
+import aQute.bnd.osgi.Resource;
 
 /**
  * Utilities for working with bnd.
@@ -83,7 +87,7 @@ public class BndHelper {
 	 * @throws Exception if wrapping the Jar fails
 	 */
 	public static boolean wrap(File source, Collection<File> classpath, File target,
-			Map<String, String> properties) throws Exception {
+			Map<String, String> properties, boolean removeSignature) throws Exception {
 		File file = source;
 		
 		// test file
@@ -107,6 +111,10 @@ public class BndHelper {
 			}
 
 			wrapper.setJar(file); // fails for empty JARs!
+			
+			if (removeSignature) {
+				doRemoveSignature(wrapper.getJar());
+			}
 
 			File outputFile = target;
 			outputFile.delete();
@@ -136,6 +144,22 @@ public class BndHelper {
 		}
 		
 		return true;
+	}
+	
+	private static void doRemoveSignature(Jar jar) {
+		Map<String, Resource> metaInf = jar.getDirectories().get("META-INF");
+		Set<String> toRemove = new HashSet<String>();
+		if (metaInf != null) {
+			for (String resource : metaInf.keySet()) {
+				String upper = resource.toUpperCase();
+				if (upper.endsWith(".SF") || upper.endsWith(".RSA") || upper.endsWith(".DSA")) {
+					toRemove.add(resource);
+				}
+			}
+		}
+		for (String resource : toRemove) {
+			jar.remove(resource);
+		}
 	}
 
 }
