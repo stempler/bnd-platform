@@ -399,6 +399,7 @@ Via the platform extension there are several settings you can provide:
 * **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
 * **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
 * **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
+* **removeSignaturesFromWrappedBundles** - if signatures should be removed from signed jars that are wrapped using bnd (default: `true`)
 
 For example:
 
