@@ -133,8 +133,10 @@ class BundleHelper {
 		bundles.each {
 			BundleArtifact bundle ->
 			jars << bundle.file
+			project.platform.artifacts.remove(bundle.id)
 			if (bundle.sourceBundle != null) {
 				sourceJars << bundle.sourceBundle.file
+				project.platform.artifacts.remove(bundle.sourceBundle.id)
 			}
 		}
 		
