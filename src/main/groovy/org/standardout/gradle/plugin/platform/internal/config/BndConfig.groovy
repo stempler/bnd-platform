@@ -114,6 +114,12 @@ class BndConfig {
 		properties[name] = (value as String).trim()
 		this
 	}
+	/**
+	 * Add instructions using named parameters
+	 */
+	def instructions(Map map) {
+		properties.putAll(map)
+	}
 	
 	/**
 	 * Add packages for optional import.
