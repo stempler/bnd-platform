@@ -10,7 +10,7 @@ repositories {
 }
 
 group = 'org.standardout'
-version = '0.4'
+version = '0.5-SNAPSHOT'
 
 jar {
 	// include license into jar
