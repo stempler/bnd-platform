@@ -51,7 +51,7 @@ class PlatformPluginExtension {
 	 */
 	public static final Closure MINIMUM = {
 		Version v ->
-		"${v.major}.${v.minor}.${v.micro}"
+		"${v.major}.${v.minor}"
 	}
 	/**
 	 * Version strategy that requires a minimum version and extends
@@ -60,7 +60,7 @@ class PlatformPluginExtension {
 	public static final Closure MAJOR = {
 		Version v ->
 		def min = MINIMUM.call(v)
-		"[${min},${v.major + 1}.0.0)"
+		"[${min},${v.major + 1}.0)"
 	}
 	/**
 	 * Version strategy that requires a minimum version and extends
@@ -69,7 +69,7 @@ class PlatformPluginExtension {
 	public static final Closure MINOR = {
 		Version v ->
 		def min = MINIMUM.call(v)
-		"[${min},${v.major}.${v.minor + 1}.0)"
+		"[${min},${v.major}.${v.minor + 1})"
 	}
 	
 	/**
