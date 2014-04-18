@@ -101,7 +101,13 @@ class BundleDependency {
 					project.platform.configurations.putConfiguration(files[0], config)
 				}
 				else {
-					throw new IllegalStateException('Bnd configuration only supported for single file dependencies')
+					// multiple files
+					project.logger.warn 'Bnd configuration for a multi file dependency found, applying to all - make sure you know what you are doing'
+					files.each { file ->
+						StoredConfig clone = new StoredConfigImpl()
+						clone << config
+						project.platform.configurations.putConfiguration(file, clone)
+					}
 				}
 			}
 			else {
