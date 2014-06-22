@@ -104,6 +104,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		this.group = artifact.moduleVersion.id.group
 		this.name = artifact.moduleVersion.id.name
 		this.version = artifact.moduleVersion.id.version
+		def bundleVersion = this.version
 		
 		// derived information
 		
@@ -129,7 +130,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		else {
 			// check if already a bundle
 			jarInfo = new JarInfo(file)
-			if (jarInfo.symbolicName) {
+			if (jarInfo.symbolicName && jarInfo.version) {
 				// assume it's already a bundle
 				wrap = false
 				noWrapReason = 'jar already constains OSGi manifest entries'
@@ -137,6 +138,8 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 				// determine bundle names
 				symbolicName = jarInfo.symbolicName
 				bundleName = jarInfo.bundleName
+				// ... and version
+				bundleVersion = jarInfo.version
 			}
 			else {
 				// not a bundle yet
@@ -158,8 +161,8 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		this.unifiedName = unifiedName
 		
 		// determine osgi version
-		Version osgiVersion = VersionUtil.toOsgiVersion(version) {
-			project.logger.warn "Replacing illegal OSGi version $version by ${it} for artifact $name"
+		Version osgiVersion = VersionUtil.toOsgiVersion(bundleVersion) {
+			project.logger.warn "Replacing illegal OSGi version $bundleVersion by ${it} for artifact $name"
 		}
 		
 		// resolve bundle configuration
