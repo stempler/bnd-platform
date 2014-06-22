@@ -105,8 +105,10 @@ uploadArchives {
 			// sign artifacts before upload
 			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 			
-			// upload to sonatype OSS (release)
-			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2") {
+			// upload to sonatype OSS (snapshot/release)
+			repository(url: this.version.endsWith('-SNAPSHOT') ?
+					'https://oss.sonatype.org/content/repositories/snapshots' :
+					'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
 				authentication(userName: this.hasProperty('sonatypeUsername') ? sonatypeUsername : '',
 					password: this.hasProperty('sonatypePassword') ? sonatypePassword : '')
 			}
