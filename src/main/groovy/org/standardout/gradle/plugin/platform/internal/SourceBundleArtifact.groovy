@@ -47,6 +47,18 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 			super.getSymbolicName() + ".$classifier"
 		}
 	}
+	
+	String getModifiedVersion() {
+		if (parentBundle) {
+			// return the parent bundles version to prevent issues
+			// with cached source bundles referencing outdated bundle
+			// versions, e.g. if hash qualifiers are used
+			parentBundle.modifiedVersion
+		}
+		else {
+			super.getModifiedVersion()
+		}
+	}
 
 	@Override
 	public boolean isSource() {
