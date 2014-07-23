@@ -27,17 +27,18 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedArtifact
-
 import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
-
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundlesAction;
+import org.standardout.gradle.plugin.platform.internal.DefaultFeature
+import org.standardout.gradle.plugin.platform.internal.Feature
 import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 
 /**
@@ -129,29 +130,17 @@ public class PlatformPlugin implements Plugin<Project> {
 		 */
 		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
 			featureFile.parentFile.mkdirs()
-			def artifacts = project.platform.artifacts
 			
-			featureFile.withWriter('UTF-8'){
-				w ->
-				def xml = new groovy.xml.MarkupBuilder(w)
-				xml.setDoubleQuotes(true)
-				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
-				
-				xml.feature(
-					id: project.platform.featureId, 
-					label: project.platform.featureName,
-					version: project.platform.featureVersion
-				) {
-					for (BundleArtifact artifact : artifacts.values()) {
-						// define each plug-in
-						plugin(
-							id: artifact.symbolicName,
-							'download-size': 0,
-							'install-size': 0,
-							version: artifact.modifiedVersion,
-							unpack: false)
-					}
-				}
+			// create platform feature.xml
+			Feature feature = new DefaultFeature(
+				id: project.platform.featureId,
+				label: project.platform.featureName,
+				version: project.platform.featureVersion,
+				bundles: project.platform.artifacts.values().toList()
+			)
+			
+			use(FeatureUtil) {
+				feature.createFeatureXml(featureFile)
 			}
 			
 			project.logger.info 'Generated feature.xml.'
