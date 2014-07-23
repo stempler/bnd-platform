@@ -158,7 +158,7 @@ class BundleDependency {
 			}
 			else {
 				// delegate to original delegate
-				orgDelegate."$name"(args)
+				orgDelegate."$name"(*args)
 			}
 		}
 		
