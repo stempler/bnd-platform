@@ -27,6 +27,7 @@ import java.util.zip.Adler32;
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
@@ -93,10 +94,17 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		"${getSymbolicName()}_${getModifiedVersion()}.$extension"
 	}
 	
+	private final ResolvedDependency dependency
+	ResolvedDependency getDependency() {
+		dependency
+	}
+	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
-	ResolvedBundleArtifact(ResolvedArtifact artifact, Project project, final boolean aux = false) {
+	ResolvedBundleArtifact(ResolvedArtifact artifact, ResolvedDependency dependency,
+			Project project, final boolean aux = false) {
+		this.dependency = dependency
 		// extract information from artifact
 		this.file = artifact.file
 		this.classifier = artifact.classifier
@@ -247,7 +255,21 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 	}
 	
 	@Override
+	public Iterable<ResolvedDependency> getRepresentedDependencies() {
+		dependency == null ? [] : [dependency]
+	}
+
+	@Override
 	public Set<ResolvedArtifact> getDirectDependencies(Project project) {
+		/*
+		 * XXX not sure if this approach is the right one - what about the configuration
+		 * of the platform configuration itself concerning resolution strategies etc.?
+		 * Could we use the original configuration instead?
+		 * Also, in the dependency notation, any information on for instance transitive
+		 * dependencies is lost.
+		 * 
+		 * TODO rather use associated ResolvedDependency if possible
+		 */
 		DependencyHelper.getDirectDependencies(project, id)
 	}
 

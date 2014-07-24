@@ -25,7 +25,7 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 	BundleArtifact parentBundle
 
 	public SourceBundleArtifact(ResolvedArtifact artifact, Project project) {
-		super(artifact, project);
+		super(artifact, null, project);
 	}
 
 	@Override

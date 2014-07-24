@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 
 public interface DependencyArtifact {
 	
@@ -27,5 +28,11 @@ public interface DependencyArtifact {
 	 * @return the direct dependencies of this artifact
 	 */
 	Set<ResolvedArtifact> getDirectDependencies(Project project);
+	
+	/**
+	 * @return the resolved dependencies the artifact represents
+	 *   (no transitive dependencies)
+	 */
+	Iterable<ResolvedDependency> getRepresentedDependencies();
 
 }
