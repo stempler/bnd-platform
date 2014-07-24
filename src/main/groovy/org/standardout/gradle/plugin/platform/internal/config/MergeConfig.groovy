@@ -17,13 +17,15 @@
 package org.standardout.gradle.plugin.platform.internal.config
 
 import org.gradle.api.Project;
+import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 
 /**
  * Merge configuration.
  * 
  * @author Simon Templer
  */
-class MergeConfig {
+class MergeConfig implements ArtifactsMatch {
 
 	private StoredConfig bundleConfig
 	def StoredConfig getBundleConfig() {
@@ -41,9 +43,12 @@ class MergeConfig {
 	
 	private final Project project
 	
+	final String id
+	
 	MergeConfig(Project project, Map<String, Object> properties, Closure mergeClosure) {
 		this.project = project
-		this.properties = properties 
+		this.properties = properties
+		this.id = 'merge-' + UUID.randomUUID().toString()
 		mergeClosure.delegate = this
 		mergeClosure.resolveStrategy = Closure.DELEGATE_FIRST
 		mergeClosure()
@@ -51,6 +56,12 @@ class MergeConfig {
 	
 	def bnd(Closure bndClosure) {
 		this.bundleConfig = new StoredConfigImpl(bndClosure)
+	}
+	
+	@Override
+	public boolean acceptArtifact(BundleArtifact artifact) {
+		// recognise artifact as merge artifact if ID is equal
+		return artifact.id == id;
 	}
 
 	/**

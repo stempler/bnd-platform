@@ -58,9 +58,10 @@ class FileBundleArtifact implements BundleArtifact {
 	/**
 	 * Create a bundle artifact represented by a Jar.
 	 */
-	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null) {
+	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null,
+			String customId = null) {
 		this.file = artifactFile
-		this.id = artifactFile as String
+		this.id = customId ?: (artifactFile as String)
 		this.source = false // don't mark as source bundle so it is processed as usual
 		
 		boolean source = false

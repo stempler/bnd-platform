@@ -374,6 +374,7 @@ class PlatformPluginExtension {
 	def merge(Map<String, Object> properties = [failOnDuplicate: true, collectServices: true], Closure mergeClosure) {
 		MergeConfig config = new MergeConfig(project, properties, mergeClosure)
 		configurations.addMerge(config)
+		config
 	}
 	
 	// for internal use

@@ -217,12 +217,12 @@ class ArtifactFeature implements Feature {
 			
 			// intercept result
 			if (result instanceof ArtifactsMatch) {
+				// bundle or merge
 				feature.configArtifacts << result
 			}
 			if (result instanceof Feature) {
 				feature.configFeatures << feature.id
 			}
-			//TODO support for merged bundles
 			
 			result
 		}

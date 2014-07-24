@@ -168,7 +168,7 @@ class BundleHelper {
 			// enable adding qualifier by default (must be enabled as default for file bundle artifacts is false)
 			config << new StoredConfigImpl({ if (addQualifier == null) addQualifier = true })
 			
-			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)
+			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config, merge.id)
 			
 			// merge sources & associate to bundle artifact
 			if (sourceJars) {
