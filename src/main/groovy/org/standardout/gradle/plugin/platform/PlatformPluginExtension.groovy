@@ -31,6 +31,7 @@ import org.standardout.gradle.plugin.platform.internal.config.ArtifactFeature;
 import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
 import org.standardout.gradle.plugin.platform.internal.config.Configurations;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
+import org.standardout.gradle.plugin.platform.internal.config.SourceFeature;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency
@@ -263,23 +264,20 @@ class PlatformPluginExtension {
 	 * @param featureClosure the closure configuring the feature content
 	 */
 	def feature(def featureNotation, Closure featureClosure) {
-		//XXX not a clean solution to create the feature twice (dependency is added two times, bnd config, ...)
-//		if (fetchSources) {
-//			// also create a source feature
-//			new ArtifactFeature(
-//				project,
-//				featureNotation,
-//				featureClosure,
-//				true
-//			)
-//		}
-		
 		// create the feature
-		new ArtifactFeature(
+		def feature = new ArtifactFeature(
 			project,
 			featureNotation,
 			featureClosure
 		)
+		
+		if (fetchSources) {
+			// also create a source feature
+			def sourceFeature = new SourceFeature(feature, project)
+			features[sourceFeature.id] = sourceFeature
+		}
+		
+		feature
 	}
 	
 	/**

@@ -43,8 +43,6 @@ class ArtifactFeature implements Feature {
 	final String version
 	final String providerName
 	
-	final boolean sourceFeature
-	
 	/**
 	 * List of artifact references
 	 */
@@ -56,8 +54,7 @@ class ArtifactFeature implements Feature {
 	final List<String> configFeatures = []
 	
 	ArtifactFeature(Project project, def featureNotation,
-			Closure featureClosure, boolean sourceFeature = false) {
-		this.sourceFeature = sourceFeature
+			Closure featureClosure) {
 		this.project = project
 		
 		def id
@@ -68,7 +65,7 @@ class ArtifactFeature implements Feature {
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
 			id = featureNotation.id
-			label = featureNotation.name ?: id
+			label = featureNotation.name
 			version = featureNotation.version
 			providerName = featureNotation.provider
 		}
@@ -79,7 +76,6 @@ class ArtifactFeature implements Feature {
 			//XXX support some kind of pattern?
 			// for now just assume it's the id
 			id = featureString
-			label = id
 		}
 
 		if (!id) {
@@ -89,8 +85,8 @@ class ArtifactFeature implements Feature {
 		// default values and source adaptions	
 		this.version = ((version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0'
 		this.providerName = providerName ?: project.platform.featureProvider
-		this.id = sourceFeature ? "${id}.source" : id
-		this.label = sourceFeature ? "${label} sources" : label
+		this.id = id
+		this.label = label ?: id
 		
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null
@@ -146,17 +142,10 @@ class ArtifactFeature implements Feature {
 			allArtifacts[artifact.id] = artifact
 		}
 		
-		if (sourceFeature) {
-			// source bundles
-			allArtifacts.values().collect { BundleArtifact ba ->
-				ba.isSource() ? ba : ba.sourceBundle
-			}.findAll()
-		}
-		else {
-			// artifact bundles
-			allArtifacts.values().findAll { BundleArtifact ba ->
-				!ba.isSource()
-			}
+		
+		// artifact bundles
+		allArtifacts.values().findAll { BundleArtifact ba ->
+			!ba.isSource()
 		}
 	} 
 	
@@ -180,7 +169,7 @@ class ArtifactFeature implements Feature {
 	Iterable<Feature> getIncludedFeatures() {
 		// resolve feature IDs
 		configFeatures.collect {
-			project.platform.features[sourceFeature ? "${it}.source" : it]
+			project.platform.features[it]
 		}.findAll()
 	}
 	
