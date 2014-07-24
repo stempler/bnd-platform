@@ -199,6 +199,19 @@ class ArtifactFeature implements Feature {
 		@Override
 		def invokeMethod(String name, def args) {
 			//TODO support manually adding a feature reference
+
+			/*
+			 * If there are further nested closures inside features
+			 * that have OWNER_FIRST resolve strategy, the PlatformPluginExtension
+			 * is asked first, and we cannot intercept the call.
+			 * Thus as an alternative, 'plugin' can (should) be called instead
+			 * of 'bundle' inside feature.
+			 * 
+			 *  XXX an alternative would be having some kind of feature stack in
+			 *  the extension, but this requires then the bundle method in the
+			 *  extension to add the bundle to the feature.		
+			 */
+			if (name == 'plugin') name = 'bundle'
 			
 			def result = orgDelegate."$name"(*args)
 			
