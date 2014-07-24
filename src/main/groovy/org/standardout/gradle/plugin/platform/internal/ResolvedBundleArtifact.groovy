@@ -261,16 +261,22 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 
 	@Override
 	public Set<ResolvedArtifact> getDirectDependencies(Project project) {
-		/*
-		 * XXX not sure if this approach is the right one - what about the configuration
-		 * of the platform configuration itself concerning resolution strategies etc.?
-		 * Could we use the original configuration instead?
-		 * Also, in the dependency notation, any information on for instance transitive
-		 * dependencies is lost.
-		 * 
-		 * TODO rather use associated ResolvedDependency if possible
-		 */
-		DependencyHelper.getDirectDependencies(project, id)
+		// if possible, use information from associated dependency
+		// because there the information from the platform configuration
+		// is present, e.g. resolution strategies etc.
+		if (dependency != null) {
+			Set<ResolvedArtifact> deps = new HashSet()
+			
+			dependency.children.each { ResolvedDependency child ->
+				deps.addAll(child.moduleArtifacts)
+				deps.addAll(child.getParentArtifacts(dependency))
+			}
+			
+			deps
+		}
+		else {
+			DependencyHelper.getDirectDependencies(project, id)
+		}
 	}
 
 	private static String getDefaultSymbolicName(File file, String group, String name) {
