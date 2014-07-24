@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.PlatformPlugin;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
@@ -66,17 +67,31 @@ class BundlesAction implements Action<Task> {
 
 		// create artifact representations
 		// id is mapped to artifacts
-		def artifacts = project.platform.artifacts 
-		resolved.resolvedArtifacts.each {
-			if (it.extension == 'jar') {
-				// only Jars are valid artifacts (ignore poms)
-				BundleArtifact artifact = new ResolvedBundleArtifact(it, project)
-				artifacts[artifact.id] = artifact
+		def artifacts = project.platform.artifacts
+		
+		def resolvedDeps = new LinkedList(resolved.firstLevelModuleDependencies)
+		// collect transitive resolved dependencies
+		def allDeps = new HashSet()
+		while (!resolvedDeps.empty) {
+			ResolvedDependency dep = resolvedDeps.poll()
+			if (!allDeps.contains(dep)) {
+				allDeps << dep
+				resolvedDeps.addAll(dep.children)
 			}
-			
-			dependencyFiles.remove(it.file)
 		}
 		
+		allDeps.each { ResolvedDependency dep ->
+			dep.moduleArtifacts.each {
+				if (it.extension == 'jar') {
+					// only Jars are valid artifacts (ignore poms)
+					BundleArtifact artifact = new ResolvedBundleArtifact(it, dep, project)
+					artifacts[artifact.id] = artifact
+				}
+				
+				dependencyFiles.remove(it.file)
+			}
+		}
+		 
 		// check if explicitly defined auxiliary dependencies are already present
 		Configuration auxConfig = project.getConfigurations().getByName(PlatformPlugin.CONF_AUX)
 		def auxAddedDeps = new HashSet<String>()
@@ -91,7 +106,7 @@ class BundlesAction implements Action<Task> {
 					DependencyHelper.getArtifacts(project, dep).each {
 						if (it.extension == 'jar') {
 							// only Jars are valid artifacts (ignore poms)
-							BundleArtifact artifact = new ResolvedBundleArtifact(it, project, true)
+							BundleArtifact artifact = new ResolvedBundleArtifact(it, null, project, true)
 							artifacts[artifact.id] = artifact
 							
 							auxAddedDeps << id

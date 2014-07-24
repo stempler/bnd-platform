@@ -18,10 +18,12 @@ package org.standardout.gradle.plugin.platform.internal.util.bnd
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.MergeBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
@@ -151,24 +153,31 @@ class BundleHelper {
 			// make sure to include default configuration for merged Jar
 			StoredConfig config = new StoredConfigImpl()
 			config << project.platform.configurations.defaultConfig // default config
+			
+			// collect dependencies for artifact
+			Set<ResolvedArtifact> directDeps = new HashSet<ResolvedArtifact>()
+			Set<ResolvedDependency> representedDeps = new HashSet<ResolvedDependency>()
+			// collect merged artifact dependencies
+			bundles.each {
+				if (it instanceof DependencyArtifact) {
+					directDeps.addAll(it.getDirectDependencies(project))
+					representedDeps.addAll(it.representedDependencies.toList())
+				}
+			}
+			
 			// import defaults config
 			if (project.platform.determineImportVersions) {
-				Set<ResolvedArtifact> directDeps = new HashSet<ResolvedArtifact>()
-				// collect merged artifact dependencies
-				bundles.each {
-					if (it instanceof DependencyArtifact) {
-						directDeps.addAll(it.getDirectDependencies(project))
-					}
-				}
 				// configuration
 				config << project.platform.configurations.defaultImports(directDeps)
 			}
+			
 			config << merge.bundleConfig // merge config
 			config << project.platform.configurations.overrideConfig // override config
 			// enable adding qualifier by default (must be enabled as default for file bundle artifacts is false)
 			config << new StoredConfigImpl({ if (addQualifier == null) addQualifier = true })
 			
-			FileBundleArtifact artifact = new FileBundleArtifact(tmpJar, project, config)
+			FileBundleArtifact artifact = new MergeBundleArtifact(tmpJar, project, config, merge.id,
+				directDeps, representedDeps)
 			
 			// merge sources & associate to bundle artifact
 			if (sourceJars) {

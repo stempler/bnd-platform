@@ -27,6 +27,7 @@ import java.util.zip.Adler32;
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
@@ -93,10 +94,17 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		"${getSymbolicName()}_${getModifiedVersion()}.$extension"
 	}
 	
+	private final ResolvedDependency dependency
+	ResolvedDependency getDependency() {
+		dependency
+	}
+	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
-	ResolvedBundleArtifact(ResolvedArtifact artifact, Project project, final boolean aux = false) {
+	ResolvedBundleArtifact(ResolvedArtifact artifact, ResolvedDependency dependency,
+			Project project, final boolean aux = false) {
+		this.dependency = dependency
 		// extract information from artifact
 		this.file = artifact.file
 		this.classifier = artifact.classifier
@@ -247,8 +255,28 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 	}
 	
 	@Override
+	public Iterable<ResolvedDependency> getRepresentedDependencies() {
+		dependency == null ? [] : [dependency]
+	}
+
+	@Override
 	public Set<ResolvedArtifact> getDirectDependencies(Project project) {
-		DependencyHelper.getDirectDependencies(project, id)
+		// if possible, use information from associated dependency
+		// because there the information from the platform configuration
+		// is present, e.g. resolution strategies etc.
+		if (dependency != null) {
+			Set<ResolvedArtifact> deps = new HashSet()
+			
+			dependency.children.each { ResolvedDependency child ->
+				deps.addAll(child.moduleArtifacts)
+				deps.addAll(child.getParentArtifacts(dependency))
+			}
+			
+			deps
+		}
+		else {
+			DependencyHelper.getDirectDependencies(project, id)
+		}
 	}
 
 	private static String getDefaultSymbolicName(File file, String group, String name) {

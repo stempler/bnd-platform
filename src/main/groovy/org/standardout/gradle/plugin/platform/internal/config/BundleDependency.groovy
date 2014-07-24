@@ -21,7 +21,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.standardout.gradle.plugin.platform.PlatformPlugin
+import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency;
+import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
 
 
 /**
@@ -29,7 +32,7 @@ import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependen
  * 
  * @author Simon Templer
  */
-class BundleDependency {
+class BundleDependency implements ArtifactsMatch {
 	
 	BundleDependency(Project project, def dependencyNotation,
 		Closure configClosure, boolean createDependency) {
@@ -60,6 +63,9 @@ class BundleDependency {
 			if (maskingDelegate) {
 				bndClosure = maskingDelegate.bndClosure
 			}
+			
+			// references artifacts that may belong to a feature
+			configOnly = false
 		}
 		else {
 			// create detached dependency
@@ -70,6 +76,9 @@ class BundleDependency {
 				dependency = project.dependencies.create(dependencyNotation)
 			}
 			bndClosure = configClosure
+			
+			// does not represent an artifact
+			configOnly = true
 		}
 		
 		// determine matchClosure
@@ -130,6 +139,17 @@ class BundleDependency {
 	 * A closure that matches this dependency against a given {@link BundleArtifact}.
 	 */
 	final Closure matchClosure
+	
+	final boolean configOnly
+	
+	boolean acceptArtifact(BundleArtifact artifact) {
+		if (configOnly) {
+			false
+		}
+		else {
+			matchClosure(new LaxPropertyDecorator(artifact))
+		}
+	}
 	
 	/**
 	 * Delegate for the configuration closure to intercept calls

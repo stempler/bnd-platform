@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
+
 package org.standardout.gradle.plugin.platform.internal;
 
-import java.util.Set;
-
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-
-public interface DependencyArtifact {
+/**
+ * Interface marking objects that match specific bundle artifacts.
+ * Used to determine which artifacts to add to a feature.
+ * 
+ * @author Simon Templer
+ */
+public interface ArtifactsMatch {
 	
 	/**
-	 * @return the direct dependencies of this artifact
+	 * @return if the given artifact is a match
 	 */
-	Set<ResolvedArtifact> getDirectDependencies(Project project);
-	
-	/**
-	 * @return the resolved dependencies the artifact represents
-	 *   (no transitive dependencies)
-	 */
-	Iterable<ResolvedDependency> getRepresentedDependencies();
+	public boolean acceptArtifact(BundleArtifact artifact);
 
 }
