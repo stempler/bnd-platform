@@ -26,6 +26,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.Feature
+import org.standardout.gradle.plugin.platform.internal.config.ArtifactFeature;
 import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
 import org.standardout.gradle.plugin.platform.internal.config.Configurations;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
@@ -186,6 +188,11 @@ class PlatformPluginExtension {
 	String featureName = 'Generated platform feature'
 	
 	/**
+	 * Feature provider name.
+	 */
+	String featureProvider = 'Generated with bnd-platform'
+	
+	/**
 	 * The platform feature version, defaults to the project version if possible, otherwise to 1.0.0.
 	 */
 	String featureVersion
@@ -244,6 +251,24 @@ class PlatformPluginExtension {
 			]
 		]
 	]
+	
+	/**
+	 * Call feature to create a feature configuration.
+	 * 
+	 * @param featureNotation feature notation is either a feature ID (String) or a map
+	 *   containing with at least the <code>id</code> key set to the desired feature ID.
+	 *   Optional additional keys are <code>name</code> (the human readable feature name),
+	 *   <code>version</code> (the feature version, default is the main feature version)
+	 *   and <code>provider</code> (the feature provider name)
+	 * @param featureClosure the closure configuring the feature content
+	 */
+	def feature(def featureNotation, Closure featureClosure) {
+		new ArtifactFeature(
+			project,
+			featureNotation,
+			featureClosure
+		)
+	}
 	
 	/**
 	 * Call bundle to add a dependency.
@@ -350,4 +375,9 @@ class PlatformPluginExtension {
 	 * Maps artifact IDs to {@link BundleArtifact}s
 	 */
 	final Map<String, BundleArtifact> artifacts = [:]
+	
+	/**
+	 * Maps feature IDs to Features
+	 */
+	final Map<String, Feature> features = [:]
 }

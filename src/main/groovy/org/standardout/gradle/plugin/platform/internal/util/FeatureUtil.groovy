@@ -33,7 +33,7 @@ class FeatureUtil {
 	}
 	
 	static void createFeatureXml(Feature feature, OutputStream target) {
-		Writer w = target.newWriter('UTF-8')
+		Writer w = new OutputStreamWriter(target, 'UTF-8') //target.newWriter('UTF-8')
 		createFeatureXml(feature, w)
 	}
 	

@@ -136,6 +136,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				id: project.platform.featureId,
 				label: project.platform.featureName,
 				version: project.platform.featureVersion,
+				providerName: project.platform.featureProvider,
 				bundles: project.platform.artifacts.values().toList()
 			)
 			
@@ -164,9 +165,22 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 		
 		/*
+		 * Create JARs for additional defined features. 
+		 */
+		Task additionalFeaturesTask = project.task('additionalFeatures', dependsOn: bundlesTask).doFirst {
+			project.platform.features.values().each { Feature feature ->
+				File featureJar = new File(featuresDir, "${feature.id}_${feature.version}.jar")
+				
+				use(FeatureUtil) {
+					feature.createJar(featureJar)
+				}
+			}
+		}
+		
+		/*
 		 * Generate category.xml.
 		 */
-		Task generateCategoryTask = project.task('generateCategory').doFirst {
+		Task generateCategoryTask = project.task('generateCategory', dependsOn: additionalFeaturesTask).doFirst {
 			categoryFile.parentFile.mkdirs()
 			
 			categoryFile.withWriter('UTF-8'){
@@ -176,13 +190,24 @@ public class PlatformPlugin implements Plugin<Project> {
 				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
 				
 				xml.site{
-					// the feature
+					// the main platform feature
 					feature(url: "features/${project.platform.featureId}_${project.platform.featureVersion}.jar",
 							id: project.platform.featureId,
 							version: project.platform.featureVersion) {
 						// associate the feature to the category
 						category(name: project.platform.categoryId)
 					}
+							
+					// additional features
+					project.platform.features.values().each { Feature f ->
+						feature(url: "features/${f.id}_${f.version}.jar",
+								id: f.id,
+								version: f.version) {
+							// associate the feature to the category
+							category(name: project.platform.categoryId)
+						}
+					}
+							
 					// define the category
 					'category-def'(name: project.platform.categoryId, label: project.platform.categoryName)
 				}
