@@ -16,10 +16,17 @@
 
 package org.standardout.gradle.plugin.platform.internal.config
 
+import java.util.Set;
+
+import org.eclipse.jdt.core.dom.ThisExpression;
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.Feature
+import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 
 
 /**
@@ -36,6 +43,8 @@ class ArtifactFeature implements Feature {
 	final String version
 	final String providerName
 	
+	final boolean sourceFeature
+	
 	/**
 	 * List of artifact references
 	 */
@@ -47,15 +56,21 @@ class ArtifactFeature implements Feature {
 	final List<String> configFeatures = []
 	
 	ArtifactFeature(Project project, def featureNotation,
-		Closure featureClosure) {
+			Closure featureClosure, boolean sourceFeature = false) {
+		this.sourceFeature = sourceFeature
 		this.project = project
+		
+		def id
+		def label
+		def version
+		def providerName
 		
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
 			id = featureNotation.id
 			label = featureNotation.name ?: id
-			version = ((featureNotation.version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0'
-			providerName = featureNotation.provider ?: project.platform.featureProvider
+			version = featureNotation.version
+			providerName = featureNotation.provider
 		}
 		else {
 			// assume String id and default values
@@ -65,30 +80,34 @@ class ArtifactFeature implements Feature {
 			// for now just assume it's the id
 			id = featureString
 			label = id
-			// default to global platform feature version
-			version = (project.platform.featureVersion ?: project.version) ?: '1.0.0'
-			providerName = project.platform.featureProvider
 		}
-		
+
 		if (!id) {
 			throw new IllegalStateException('A feature ID must be provided when defining a feature')
 		}
+			
+		// default values and source adaptions	
+		this.version = ((version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0'
+		this.providerName = providerName ?: project.platform.featureProvider
+		this.id = sourceFeature ? "${id}.source" : id
+		this.label = sourceFeature ? "${label} sources" : label
 		
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null
 		CustomConfigDelegate maskingDelegate = null
 		maskedConfig = {
 			maskingDelegate = new CustomConfigDelegate(delegate, this)
-			featureClosure.delegate = maskingDelegate
-			featureClosure.resolveStrategy = Closure.DELEGATE_FIRST
-			featureClosure()
+			Closure configClone = featureClosure.clone()
+			configClone.delegate = maskingDelegate
+			configClone.resolveStrategy = Closure.DELEGATE_FIRST
+			configClone()
 		}
 	
 		maskedConfig.delegate = project.platform // delegate is the platform extension
 		maskedConfig()
 		
 		// save feature configuration
-		project.platform.features[id] = this
+		project.platform.features[this.id] = this
 	}
 		
 	Iterable<BundleArtifact> getBundles() {
@@ -99,19 +118,65 @@ class ArtifactFeature implements Feature {
 		 */
 		
 		// collect all artifacts that match the respective condition
-		project.platform.artifacts.values().findAll { BundleArtifact artifact ->
+		def artifacts = project.platform.artifacts.values().findAll { BundleArtifact artifact ->
 			configArtifacts.any { ArtifactsMatch match ->
 				match.acceptArtifact(artifact)
 			}
 		}
 		
-		//TODO also collect transitive dependencies?!
+		// collect transitive dependencies
+		transitiveArtifacts(artifacts)
+	}
+	
+	private Iterable<BundleArtifact> transitiveArtifacts(Collection<BundleArtifact> artifacts) {
+		Map<String, BundleArtifact> allArtifacts = [:]
+		
+		artifacts.each { BundleArtifact artifact ->
+				
+			if (artifact instanceof DependencyArtifact) {
+				artifact.representedDependencies.each { ResolvedDependency dep ->
+					// find bundle artifacts for resolved artifacts
+					def bundleArts = findArtifacts(dep.allModuleArtifacts)
+					bundleArts.each {
+						allArtifacts[it.id] = it
+					}
+				}
+			}
+		}
+		
+		if (sourceFeature) {
+			// source bundles
+			allArtifacts.values().collect { BundleArtifact ba ->
+				ba.sourceBundle
+			}.findAll()
+		}
+		else {
+			// artifact bundles
+			allArtifacts.values()
+		}
+	} 
+	
+	/**
+	 * Find bundle artifact representations for resolved artifacts.
+	 */
+	private Collection<BundleArtifact> findArtifacts(Iterable<ResolvedArtifact> arts) {
+		def result = []
+		
+		arts.each { ResolvedArtifact ra ->
+			def id = "${ra.moduleVersion.id.group}:${ra.moduleVersion.id.name}:${ra.moduleVersion.id.version}"
+			def ba = project.platform.artifacts[id]
+			if (ba != null) {
+				result << ba
+			}
+		}
+		
+		result
 	}
 	
 	Iterable<Feature> getIncludedFeatures() {
 		// resolve feature IDs
 		configFeatures.collect {
-			project.platform.features[it]
+			project.platform.features[sourceFeature ? "${it}.source" : it]
 		}.findAll()
 	}
 	

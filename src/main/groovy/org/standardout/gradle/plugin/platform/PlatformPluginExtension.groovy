@@ -263,6 +263,17 @@ class PlatformPluginExtension {
 	 * @param featureClosure the closure configuring the feature content
 	 */
 	def feature(def featureNotation, Closure featureClosure) {
+		if (fetchSources) {
+			// also create a source feature
+			new ArtifactFeature(
+				project,
+				featureNotation,
+				featureClosure,
+				true
+			)
+		}
+		
+		// create the feature
 		new ArtifactFeature(
 			project,
 			featureNotation,
