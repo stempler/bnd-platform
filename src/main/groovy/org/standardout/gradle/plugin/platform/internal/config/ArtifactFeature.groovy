@@ -149,12 +149,14 @@ class ArtifactFeature implements Feature {
 		if (sourceFeature) {
 			// source bundles
 			allArtifacts.values().collect { BundleArtifact ba ->
-				ba.sourceBundle
+				ba.isSource() ? ba : ba.sourceBundle
 			}.findAll()
 		}
 		else {
 			// artifact bundles
-			allArtifacts.values()
+			allArtifacts.values().findAll { BundleArtifact ba ->
+				!ba.isSource()
+			}
 		}
 	} 
 	
