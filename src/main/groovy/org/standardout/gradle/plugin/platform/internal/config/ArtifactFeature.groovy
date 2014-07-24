@@ -132,7 +132,6 @@ class ArtifactFeature implements Feature {
 		Map<String, BundleArtifact> allArtifacts = [:]
 		
 		artifacts.each { BundleArtifact artifact ->
-				
 			if (artifact instanceof DependencyArtifact) {
 				artifact.representedDependencies.each { ResolvedDependency dep ->
 					// find bundle artifacts for resolved artifacts
@@ -142,6 +141,9 @@ class ArtifactFeature implements Feature {
 					}
 				}
 			}
+			
+			// in any case, add the bundle itself
+			allArtifacts[artifact.id] = artifact
 		}
 		
 		if (sourceFeature) {
