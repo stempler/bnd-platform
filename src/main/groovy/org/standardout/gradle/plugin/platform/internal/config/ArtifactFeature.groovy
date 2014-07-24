@@ -218,7 +218,13 @@ class ArtifactFeature implements Feature {
 		
 		@Override
 		def getProperty(String name) {
-			orgDelegate."$name"
+			if (name == 'includes') {
+				// expose feature list to allow adding feature IDs manually
+				feature.configFeatures
+			}
+			else {
+				orgDelegate."$name"
+			}
 		}
 		
 		@Override
