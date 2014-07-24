@@ -263,15 +263,16 @@ class PlatformPluginExtension {
 	 * @param featureClosure the closure configuring the feature content
 	 */
 	def feature(def featureNotation, Closure featureClosure) {
-		if (fetchSources) {
-			// also create a source feature
-			new ArtifactFeature(
-				project,
-				featureNotation,
-				featureClosure,
-				true
-			)
-		}
+		//XXX not a clean solution to create the feature twice (dependency is added two times, bnd config, ...)
+//		if (fetchSources) {
+//			// also create a source feature
+//			new ArtifactFeature(
+//				project,
+//				featureNotation,
+//				featureClosure,
+//				true
+//			)
+//		}
 		
 		// create the feature
 		new ArtifactFeature(
