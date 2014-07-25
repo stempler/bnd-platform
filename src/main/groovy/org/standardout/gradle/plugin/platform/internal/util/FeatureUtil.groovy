@@ -50,13 +50,13 @@ class FeatureUtil {
 			// plugin: branding_plugin_id
 		) {
 			// included features
-			for (Feature included : feature.includedFeatures) {
+			for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
 				def version = included.version?:'0.0.0'
 				includes(id: included.id, version: version)
 			}
 		
 			// included bundles
-			for (BundleArtifact artifact : feature.bundles) {
+			for (BundleArtifact artifact : feature.bundles.sort(true, { it.symbolicName })) {
 				// define each plug-in
 				plugin(
 					id: artifact.symbolicName,
