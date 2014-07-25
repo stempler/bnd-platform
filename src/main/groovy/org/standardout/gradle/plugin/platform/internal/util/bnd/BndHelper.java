@@ -103,6 +103,7 @@ public class BndHelper {
 		}
 
 		Analyzer wrapper = new Analyzer();
+		wrapper.setProperty(Analyzer.NOEXTRAHEADERS, "true"); // prevent adding e.g. last modified header
 		try {
 			if (classpath != null) {
 				for (File f : classpath) {
