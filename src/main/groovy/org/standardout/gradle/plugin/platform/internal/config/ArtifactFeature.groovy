@@ -27,6 +27,7 @@ import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.Feature
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 
 /**
@@ -83,7 +84,7 @@ class ArtifactFeature implements Feature {
 		}
 			
 		// default values and source adaptions	
-		this.version = ((version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0'
+		this.version = VersionUtil.toOsgiVersion(((version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0').toString()
 		this.providerName = providerName ?: project.platform.featureProvider
 		this.id = id
 		this.label = label ?: id

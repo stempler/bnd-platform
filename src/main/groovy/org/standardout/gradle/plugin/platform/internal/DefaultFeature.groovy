@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
- package org.standardout.gradle.plugin.platform.internal
+package org.standardout.gradle.plugin.platform.internal
+
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 
 class DefaultFeature implements Feature {
@@ -29,6 +31,10 @@ class DefaultFeature implements Feature {
 	@Override
 	public String getVersion() {
 		version?:'0.0.0'
+	}
+	
+	void setVersion(String version) {
+		this.version = VersionUtil.toOsgiVersion(version).toString()
 	}
 
 	String getProviderName() {

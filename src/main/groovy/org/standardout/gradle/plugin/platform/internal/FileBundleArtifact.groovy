@@ -97,7 +97,7 @@ class FileBundleArtifact implements BundleArtifact {
 			if (bndConfig.addQualifier == true) { // addQualifier is tri-state
 				v = VersionUtil.addQualifier(v, bndConfig, project)
 			}
-			version = modifiedVersion = v 
+			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString() 
 			
 			symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
 			if (bndConfig.bundleName) {
@@ -109,7 +109,7 @@ class FileBundleArtifact implements BundleArtifact {
 		}
 		else if (jarInfo && jarInfo.symbolicName && jarInfo.version) {
 			// only jar info present (and jar is bundle)
-			version = modifiedVersion = jarInfo.version
+			version = modifiedVersion = VersionUtil.toOsgiVersion(jarInfo.version).toString()
 			
 			symbolicName = jarInfo.symbolicName
 			if (jarInfo.bundleName) {
