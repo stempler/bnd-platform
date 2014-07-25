@@ -261,22 +261,12 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 
 	@Override
 	public Set<ResolvedArtifact> getDirectDependencies(Project project) {
-		// if possible, use information from associated dependency
-		// because there the information from the platform configuration
-		// is present, e.g. resolution strategies etc.
-		if (dependency != null) {
-			Set<ResolvedArtifact> deps = new HashSet()
-			
-			dependency.children.each { ResolvedDependency child ->
-				deps.addAll(child.moduleArtifacts)
-				deps.addAll(child.getParentArtifacts(dependency))
-			}
-			
-			deps
-		}
-		else {
-			DependencyHelper.getDirectDependencies(project, id)
-		}
+		/*
+		 * Get the direct dependencies that represent the original dependencies,
+		 * not the resolved platform, as we want package imports to be based on
+		 * the original versions.
+		 */
+		DependencyHelper.getDirectDependencies(project, id)
 	}
 
 	private static String getDefaultSymbolicName(File file, String group, String name) {
