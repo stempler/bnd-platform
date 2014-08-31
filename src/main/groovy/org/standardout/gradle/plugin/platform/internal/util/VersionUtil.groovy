@@ -20,6 +20,8 @@ import java.util.regex.Matcher
 
 import org.gradle.api.Project
 import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
+import org.standardout.gradle.plugin.platform.internal.Feature
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig
 
 import aQute.bnd.osgi.Analyzer
@@ -108,6 +110,58 @@ class VersionUtil {
 					addQualifier = 'bnd-' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
 				}
 			}
+		}
+		
+		if (addQualifier) {
+			// append additional qualifier
+			def osgiVersion = toOsgiVersion(version)
+			if (osgiVersion != null) {
+				def qualifier = osgiVersion.qualifier
+				if (qualifier) {
+					qualifier += "-$addQualifier"
+				}
+				else {
+					qualifier = addQualifier
+				}
+				Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
+				return mv.toString()
+			}
+		}
+		
+		// fall back to original version
+		version
+	}
+	
+	/**
+	 * Add a qualifier to a feature version, based on the feature content.
+	 *
+	 * @param version the current bundle version
+	 * @param feature the feature to calculate the qualifier for
+	 * @param project the Gradle project
+	 * @return the modified or the given version, depending on the configuration
+	 */
+	static String addQualifier(String version, Feature feature, Project project) {
+		// early exit if qualifiers are not enabled
+		if (!project.platform.useFeatureHashQualifiers) {
+			return version
+		}
+		
+		// determine qualifier
+		def addQualifier
+		
+		// collect bundle IDs and versions
+		def bundles = feature.bundles.collect { BundleArtifact bundle ->
+			"${bundle.symbolicName}:${bundle.modifiedVersion}"
+		}.sort()
+		// collect feature IDs and versions
+		def features = feature.includedFeatures.collect { Feature include ->
+			"${include.id}:${include.version}"
+		}.sort()
+		
+		def propString = [bundles: bundles, features: features].toMapString()
+		byte[] bytes = project.platform.hashCalculator(propString)
+		if (bytes) {
+			addQualifier = 'bnd-' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
 		}
 		
 		if (addQualifier) {

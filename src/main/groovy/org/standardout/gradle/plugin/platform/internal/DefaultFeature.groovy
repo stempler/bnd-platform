@@ -16,6 +16,7 @@
 
 package org.standardout.gradle.plugin.platform.internal
 
+import org.gradle.api.Project
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 
@@ -27,10 +28,16 @@ class DefaultFeature implements Feature {
 	String providerName
 	List<BundleArtifact> bundles = []
 	List<Feature> includedFeatures = []
+	Project project
+	
+	private String finalVersion
 
 	@Override
 	public String getVersion() {
-		version?:'0.0.0'
+		if (!finalVersion) {
+			finalVersion = VersionUtil.addQualifier(version?:'0.0.0', this, project)
+		}
+		finalVersion
 	}
 	
 	void setVersion(String version) {

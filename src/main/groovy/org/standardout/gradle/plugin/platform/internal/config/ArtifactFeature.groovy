@@ -54,6 +54,8 @@ class ArtifactFeature implements Feature {
 	 */
 	final List<String> configFeatures = []
 	
+	private String finalVersion
+	
 	ArtifactFeature(Project project, def featureNotation,
 			Closure featureClosure) {
 		this.project = project
@@ -105,6 +107,14 @@ class ArtifactFeature implements Feature {
 		
 		// save feature configuration
 		project.platform.features[this.id] = this
+	}
+		
+	@Override	
+	public String getVersion() {
+		if (!finalVersion) {
+			finalVersion = VersionUtil.addQualifier(version, this, project)
+		}
+		finalVersion
 	}
 		
 	Iterable<BundleArtifact> getBundles() {

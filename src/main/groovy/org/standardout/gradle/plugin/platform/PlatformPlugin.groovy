@@ -138,7 +138,8 @@ public class PlatformPlugin implements Plugin<Project> {
 				version: project.platform.featureVersion,
 				providerName: project.platform.featureProvider,
 				bundles: project.platform.artifacts.values().toList(),
-				includedFeatures: project.platform.features.values().toList()
+				includedFeatures: project.platform.features.values().toList(),
+				project: project
 			)
 			
 			use(FeatureUtil) {

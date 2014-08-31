@@ -18,6 +18,9 @@ package org.standardout.gradle.plugin.platform.internal;
 
 /**
  * Represents an Eclipse Update Site Feature.
+ * 
+ * The version, bundles and includedFeatures properties may only be accessed
+ * after the feature configuration is complete.
  */
 public interface Feature {
 	

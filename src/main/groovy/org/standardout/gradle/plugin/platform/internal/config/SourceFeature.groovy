@@ -19,12 +19,15 @@ package org.standardout.gradle.plugin.platform.internal.config
 import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact
 import org.standardout.gradle.plugin.platform.internal.Feature;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 class SourceFeature implements Feature {
 	
 	private final @Delegate Feature feature
 	
 	private final Project project
+	
+	private String finalVersion
 
 	public SourceFeature(Feature feature, Project project) {
 		super();
@@ -41,7 +44,7 @@ class SourceFeature implements Feature {
 	public String getLabel() {
 		feature.label + ' sources'
 	}
-
+	
 	@Override
 	public Iterable<BundleArtifact> getBundles() {
 		// source bundles

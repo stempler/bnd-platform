@@ -156,6 +156,13 @@ class PlatformPluginExtension {
 	boolean useBndHashQualifiers = true
 	
 	/**
+	 * States if for features a qualifier should be added based on the included plugins
+	 * and features. This serves to prevent caching issues when there are minor changes
+	 * to a feature. 
+	 */
+	boolean useFeatureHashQualifiers = true
+	
+	/**
 	 * Defines the hash calculator used for calculating hash qualifiers from bnd configuration.
 	 * 
 	 * The closure takes a String and should return the hash as byte array. The qualifier will then be
