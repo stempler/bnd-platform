@@ -56,7 +56,6 @@ public class PlatformPlugin implements Plugin<Project> {
 	private Project project
 	
 	private File bundlesDir
-	private File featureFile
 	private File categoryFile
 	private File featuresDir
 	private File downloadsDir
@@ -76,7 +75,6 @@ public class PlatformPlugin implements Plugin<Project> {
 		// initialize file/directory members
 		// names are fixed because of update site conventions
 		bundlesDir = new File(project.buildDir, 'plugins')
-		featureFile = new File(project.buildDir, 'feature.xml')
 		categoryFile = new File(project.buildDir, 'category.xml')
 		featuresDir = new File(project.buildDir, 'features')
 		downloadsDir = new File(project.buildDir, 'eclipse-downloads')
@@ -115,7 +113,6 @@ public class PlatformPlugin implements Plugin<Project> {
 		 * Clean task.
 		 */
 		project.task('clean').doLast {
-			featureFile.delete()
 			categoryFile.delete()
 			featuresDir.deleteDir()
 			bundlesDir.deleteDir()
@@ -126,11 +123,9 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 		
 		/*
-		 * Generate a feature.xml and create Feature JAR.
+		 * Generate a feature definition for the platform feature.
 		 */
-		Task bundleFeatureTask = project.task('bundleFeature', dependsOn: bundlesTask).doFirst {
-			featureFile.parentFile.mkdirs()
-			
+		Task platformFeatureTask = project.task('platformFeature', dependsOn: bundlesTask).doFirst {
 			// create platform feature.xml
 			Feature feature = new DefaultFeature(
 				id: project.platform.featureId,
@@ -142,29 +137,15 @@ public class PlatformPlugin implements Plugin<Project> {
 				project: project
 			)
 			
-			use(FeatureUtil) {
-				feature.createFeatureXml(featureFile)
-			}
-			
-			project.logger.info 'Generated feature.xml.'
-			
-			featuresDir.mkdirs()
-			// create feature jar
-			def target = new File(featuresDir,
-				"${feature.id}_${feature.version}.jar")
-			project.ant.zip(destfile: target) {
-				fileset(dir: project.buildDir) {
-					include(name: 'feature.xml')
-				}
-			}
-			
-			project.logger.info 'Packaged feature.'
+			project.platform.features[feature.id] = feature
 		}
 		
 		/*
-		 * Create JARs for additional defined features. 
+		 * Create JARs for all features. 
 		 */
-		Task additionalFeaturesTask = project.task('additionalFeatures', dependsOn: bundlesTask).doFirst {
+		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: platformFeatureTask).doFirst {
+			featuresDir.mkdirs()
+			
 			project.platform.features.values().each { Feature feature ->
 				File featureJar = new File(featuresDir, "${feature.id}_${feature.version}.jar")
 				
@@ -177,7 +158,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		/*
 		 * Generate category.xml.
 		 */
-		Task generateCategoryTask = project.task('generateCategory', dependsOn: additionalFeaturesTask).doFirst {
+		Task generateCategoryTask = project.task('generateCategory', dependsOn: bundleFeaturesTask).doFirst {
 			categoryFile.parentFile.mkdirs()
 			
 			categoryFile.withWriter('UTF-8'){
@@ -187,15 +168,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
 				
 				xml.site{
-					// the main platform feature
-					feature(url: "features/${project.platform.featureId}_${project.platform.featureVersion}.jar",
-							id: project.platform.featureId,
-							version: project.platform.featureVersion) {
-						// associate the feature to the category
-						category(name: project.platform.categoryId)
-					}
-							
-					// additional features
+					// all features
 					project.platform.features.values().each { Feature f ->
 						feature(url: "features/${f.id}_${f.version}.jar",
 								id: f.id,
@@ -281,7 +254,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		/*
 		 * Build a p2 repository with all the bundles
 		 */
-		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeatureTask, generateCategoryTask, checkEclipseTask]).doFirst {
+		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeaturesTask, generateCategoryTask, checkEclipseTask]).doFirst {
 			project.platform.updateSiteDir.mkdirs()
 			
 			assert project.platform.eclipseHome
