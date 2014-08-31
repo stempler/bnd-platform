@@ -126,9 +126,9 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 		
 		/*
-		 * Generate a feature.xml from the target file.
+		 * Generate a feature.xml and create Feature JAR.
 		 */
-		Task generateFeatureTask = project.task('generateFeature', dependsOn: bundlesTask).doFirst {
+		Task bundleFeatureTask = project.task('bundleFeature', dependsOn: bundlesTask).doFirst {
 			featureFile.parentFile.mkdirs()
 			
 			// create platform feature.xml
@@ -147,16 +147,11 @@ public class PlatformPlugin implements Plugin<Project> {
 			}
 			
 			project.logger.info 'Generated feature.xml.'
-		}
-		
-		/*
-		 * Create Feature JAR.
-		 */
-		Task bundleFeatureTask = project.task('bundleFeature', dependsOn: generateFeatureTask).doFirst {
+			
 			featuresDir.mkdirs()
 			// create feature jar
 			def target = new File(featuresDir,
-				"${project.platform.featureId}_${project.platform.featureVersion}.jar")
+				"${feature.id}_${feature.version}.jar")
 			project.ant.zip(destfile: target) {
 				fileset(dir: project.buildDir) {
 					include(name: 'feature.xml')
