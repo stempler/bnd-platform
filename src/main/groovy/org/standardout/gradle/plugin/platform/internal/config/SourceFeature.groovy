@@ -49,7 +49,10 @@ class SourceFeature implements Feature {
 	public Iterable<BundleArtifact> getBundles() {
 		// source bundles
 		feature.bundles.collect { BundleArtifact ba ->
-			ba.isSource() ? ba : ba.sourceBundle
+			def bundle = ba.isSource() ? ba : ba.sourceBundle
+			// only accept bundle if it still exists in the artifact map
+			// if it has been removed from there, it was an empty source bundle
+			(bundle && project.platform.artifacts[bundle.id]) ? bundle : null
 		}.findAll()
 	}
 
