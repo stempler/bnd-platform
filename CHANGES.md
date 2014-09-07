@@ -1,4 +1,4 @@
-### 1.1.0
+### 1.2.0
 
  - Qualified plugin ID (`org.standardout.bnd-platform`) for use with new Gradle plugin repository
  - Allow including additional features in a defined feature (using `includes << '<featureId>'` inside a feature)
