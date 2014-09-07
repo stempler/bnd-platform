@@ -31,6 +31,8 @@ buildscript {
 	}
 	dependencies {
 		classpath 'org.standardout:bnd-platform:1.2.0'
+		// if using Gradle 1.x uncomment the following line
+//		classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3+'
 	}
 }
 
@@ -39,7 +41,7 @@ apply plugin: 'org.standardout.bnd-platform'
 
 Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
 
-*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0.
+*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0. However in Gradle 2.0 resolving dependencies takes very long compared to previous versions (let's hope this will be fixed in future Gradle versions).
 
 ### Tasks
 
