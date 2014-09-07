@@ -41,7 +41,7 @@ apply plugin: 'org.standardout.bnd-platform'
 
 Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
 
-*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0. However in Gradle 2.0 resolving dependencies takes very long compared to previous versions (let's hope this will be fixed in future Gradle versions).
+*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0. In Gradle 2.0 I observed resolving dependencies may take very long compared to previous versions (more than 20 min for a build that previously took roughly 3 min). Let's hope this will be fixed in future Gradle versions - for now I recommend using an earlier version of Gradle.
 
 ### Tasks
 
