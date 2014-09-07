@@ -30,16 +30,16 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:1.0'
+		classpath 'org.standardout:bnd-platform:1.1.0'
 	}
 }
 
-apply plugin: 'platform'
+apply plugin: 'org.standardout.bnd-platform'
 ```
 
 Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
 
-*bnd-platform* has been tested with Gradle 1.11.
+*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0.
 
 ### Tasks
 

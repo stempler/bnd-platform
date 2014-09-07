@@ -1,16 +1,25 @@
 
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
+	}
+}
+
 apply plugin: 'groovy'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'eclipse'
+apply plugin: 'com.jfrog.bintray'
 
 repositories {
-	mavenLocal()
 	mavenCentral()
 }
 
 group = 'org.standardout'
-version = '1.1-SNAPSHOT'
+version = '1.2.0'
 
 jar {
 	// include license into jar
@@ -129,3 +138,34 @@ groovydoc {
 dependencies {
 	jansi 'org.fusesource.jansi:jansi:1.11'
 }
+
+// bintray
+
+bintray { // task bintrayUpload
+	user = project.getProperty('bintrayUser')
+	key = project.getProperty('bintrayApiKey')
+
+	configurations = ['archives']
+	
+	dryRun = false
+	publish = !project.version.endsWith('-SNAPSHOT')
+	pkg {
+		def githubUrl = 'https://github.com/stempler/bnd-platform'
+		repo = 'gradle-plugins'
+		name = 'bnd-platform'
+		desc = 'Build OSGi bundles and p2 repositories / Eclipse Update Sites from existing libraries and their dependencies, e.g. from Maven repositories. Useful for instance for creating a target platform for Eclipse/Equinox or Maven Tycho build from third party dependencies.'
+		websiteUrl = githubUrl
+		issueTrackerUrl = "$githubUrl/issues"
+		vcsUrl = "${githubUrl}.git"
+		licenses = ['Apache-2.0']
+		labels = ['gradle', 'bnd', 'osgi', 'p2', 'eclipse', 'tycho']
+		publicDownloadNumbers = true
+		// version descriptor
+		version {
+			name = project.version
+			attributes = ['gradle-plugin': "org.standardout.bnd-platform:${project.group}:bnd-platform"]
+		}
+	}
+
+}
+
