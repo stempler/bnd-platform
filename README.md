@@ -247,6 +247,32 @@ include {
 
 We have created a repository on GitHub to collect the platform modules and configurations we use for our projects and you are welcome to fork and contribute: [shared-platform](https://github.com/igd-geo/shared-platform). The repository is designed to be used with the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) and to enable the sharing of configurations without imposing them on you - just include the configuration that makes sense for you and augment it with your own.
 
+### Defining features *(since 1.1)*
+
+You can combine dependencies to an Eclipse feature. The feature will contain the dependencies, as well as their transitive dependencies. You can use the features for more fine-grained control in you target platform or in a feature based Eclipse product. The platform feature contains all features you define. If fetching sources is enabled, a matching source feature will be created for each feature.
+
+A feature includes all plugins (bundles) defined in its context, here an example:
+
+```
+platform {
+	// define a feature
+	feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
+		// define what's in the feature
+	
+		plugin 'org.codehaus.groovy.modules.http-builder:http-builder:0.6', {
+			// exclude this transitive dependency
+			exclude group: 'net.sourceforge.nekohtml', module: 'nekohtml'
+		}
+		plugin 'commons-io:commons-io:2.4'
+		
+		// include a feature that is defined elsewhere given its ID
+		includes << 'platform.geotools'
+	}
+}
+```
+
+Providing  a feature ID is mandatory, but *name* and *version* may be omitted (the version defaults to the platform feature version). `plugin` and `bundle` can be used synonymously inside the `feature` block, but when using `bundle` you may experience problems when used in inner closures.
+
 ### Local dependencies
 
 You can easily add local JARs to the platform. **If the JAR is not an OSGi bundle yet**, you have add it on its own and at least provide **symbolicName** and **version**:
@@ -389,6 +415,7 @@ Via the platform extension there are several settings you can provide:
 * **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
 * **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
 * **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
+* **featureProvider** - the provider name to be used for features (default: **'Generated with bnd-platform'**)
 * **categoryId** - the identifier of the feature's category (default: **'platform'**)
 * **categoryName** - the name of the feature's category (default: **'Target platform'**)
 * **determineImportVersions** - automatically determine package import versions (default: `false`)
@@ -397,6 +424,7 @@ Via the platform extension there are several settings you can provide:
 * **defaultQualifier** - the default version qualifier to use for wrapped bundles. If a qualifier is already
 	 * present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
 * **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
+* **useFeatureHashQualifiers** - if a hash based on the feature content should be appended as qualifier to feature versions (default: `true`)
 * **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
 * **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
 * **removeSignaturesFromWrappedBundles** - if signatures should be removed from signed jars that are wrapped using bnd (default: `true`)
