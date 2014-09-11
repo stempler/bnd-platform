@@ -27,7 +27,7 @@ The simplest way to apply the plugin to your Gradle build is using the latest re
 ```groovy
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 	}
 	dependencies {
 		classpath 'org.standardout:bnd-platform:1.2.0'
