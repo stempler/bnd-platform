@@ -7,7 +7,7 @@ Even worse, sometimes you need to adapt bundles due to class loading issues or m
 *bnd-platform* can help you solve that problem - it builds OSGi bundles and even Eclipse Update Sites from existing JARs, for instance retrieved from Maven repositories together with transitive dependencies. If needed you can adapt the creation of bundles via general or individual configuration options.
 *bnd-platform* is a [Gradle](http://www.gradle.org/) plugin and uses [bnd](http://www.aqute.biz/Bnd/Bnd) to create bundles and [Eclipse](http://www.eclipse.org/) for the creation of p2 repositories.
 
-For a quick start, check out the [sample project on GitHub](https://github.com/stempler/bnd-platform-sample).
+For a quick start, check out the [sample project on GitHub](https://github.com/stempler/bnd-platform-sample) or use [this minimal example](https://github.com/stempler/bnd-platform-minimal) as a template for your build.
 
 **What *bnd-platform* can do:**
 * Create bundles for any JARs that can be defined as dependencies using Gradle (e.g. local JARs, JARs from Maven repositories) and their transitive dependencies
