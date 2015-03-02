@@ -112,7 +112,12 @@ public class PlatformPlugin implements Plugin<Project> {
 		/*
 		 * Clean task.
 		 */
-		project.task('clean').doLast {
+		Task cleanTask = project.tasks.findByPath('clean')
+		if (!cleanTask) {
+			// only create tas if it does not exist yet
+			cleanTask = project.task('clean'); 
+		}
+		cleanTask.doLast {
 			categoryFile.delete()
 			featuresDir.deleteDir()
 			bundlesDir.deleteDir()
