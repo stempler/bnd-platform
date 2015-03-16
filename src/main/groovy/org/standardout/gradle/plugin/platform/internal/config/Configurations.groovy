@@ -303,29 +303,33 @@ class Configurations {
 			}
 			
 			// determine packages
-			Analyzer analyzer = new Analyzer()
-			analyzer.setJar(dep.file);
-			analyzer.analyze()
-			analyzer.getContained().each {
-				PackageRef p, Attrs attrs ->
-				String pkg = p.FQN
-				if (pkg != '.' && !project.platform.importIgnorePackages.contains(pkg)) {
-					if (importMap.containsKey(pkg)) {
-						// package present multiple times
-						project.logger.warn("Package $pkg provided by multiple dependencies, using minimal version")
-						Version otherVersion = importMap[pkg][0]
-						if (osgiVersion.compareTo(otherVersion) < 0) {
-							// replace version
-							importMap[pkg][0] = osgiVersion
+			try {
+				Analyzer analyzer = new Analyzer()
+				analyzer.setJar(dep.file);
+				analyzer.analyze()
+				analyzer.getContained().each {
+					PackageRef p, Attrs attrs ->
+					String pkg = p.FQN
+					if (pkg != '.' && !project.platform.importIgnorePackages.contains(pkg)) {
+						if (importMap.containsKey(pkg)) {
+							// package present multiple times
+							project.logger.warn("Package $pkg provided by multiple dependencies, using minimal version")
+							Version otherVersion = importMap[pkg][0]
+							if (osgiVersion.compareTo(otherVersion) < 0) {
+								// replace version
+								importMap[pkg][0] = osgiVersion
+							}
+							// force minimum strategy
+							importMap[pkg][1] = PlatformPluginExtension.MINIMUM
 						}
-						// force minimum strategy
-						importMap[pkg][1] = PlatformPluginExtension.MINIMUM
+						else {
+							// add package w/ artifact strategy
+							importMap[pkg] = [osgiVersion, strategy]
+						} 
 					}
-					else {
-						// add package w/ artifact strategy
-						importMap[pkg] = [osgiVersion, strategy]
-					} 
 				}
+			} catch (Exception e) {
+				project.logger.error("Could not determine imports from dependency $dep", e)
 			}
 		}
 		
