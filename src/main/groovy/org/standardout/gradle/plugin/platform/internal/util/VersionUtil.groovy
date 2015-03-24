@@ -42,7 +42,7 @@ class VersionUtil {
 		Version osgiVersion
 		try {
 			osgiVersion = Version.parseVersion(version)
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			// try again with adapted versions
 			Matcher matcher = version =~/^(\d+)(\.(\d+))?(\.(\d+))?(\.|-)?(.*)$/
 			if (matcher.count > 0) {
