@@ -92,13 +92,6 @@ class FileBundleArtifact implements BundleArtifact {
 		if (bndConfig && bndConfig.version && bndConfig.symbolicName) {
 			// bnd configuration present
 			
-			// determine version, eventually add qualifier (only if explicitly enabled)
-			def v = bndConfig.version
-			if (bndConfig.addQualifier == true) { // addQualifier is tri-state
-				v = VersionUtil.addQualifier(v, bndConfig, project)
-			}
-			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString() 
-			
 			symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
 			if (bndConfig.bundleName) {
 				bundleName = bndConfig.bundleName
@@ -106,6 +99,13 @@ class FileBundleArtifact implements BundleArtifact {
 			else {
 				bundleName = symbolicName
 			}
+			
+			// determine version, eventually add qualifier (only if explicitly enabled)
+			def v = bndConfig.version
+			if (bndConfig.addQualifier == true) { // addQualifier is tri-state
+				v = VersionUtil.addQualifier(v, symbolicName, bndConfig, project)
+			}
+			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString()
 		}
 		else if (jarInfo && jarInfo.symbolicName && jarInfo.version) {
 			// only jar info present (and jar is bundle)

@@ -163,6 +163,18 @@ class PlatformPluginExtension {
 	boolean useFeatureHashQualifiers = true
 	
 	/**
+	 * Map that is used to have reproducable increasing version numbers for bundles and features
+	 * when using hash qualifiers. The hash qualifiers are mapped to a date and time based qualifier
+	 * to ensure that changes to bundles and features that have the same version number are not
+	 * only reflected in the qualifier but also produce versions that are interpreted as newer
+	 * than the previous versions in the OSGi sense.
+	 * 
+	 * The map needs to be persisted, thus it may be specified as
+	 * - as String or File specifying the file location the map is persisted to / from    
+	 */
+	def hashQualifierMap
+	
+	/**
 	 * Defines the hash calculator used for calculating hash qualifiers from bnd configuration.
 	 * 
 	 * The closure takes a String and should return the hash as byte array. The qualifier will then be

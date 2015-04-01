@@ -72,15 +72,36 @@ class VersionUtil {
 		osgiVersion
 	}
 	
+	static VersionQualifierMap getQualifierMap(Project project) {
+		def map = project.platform.hashQualifierMap
+		if (map instanceof VersionQualifierMap) {
+			map
+		}
+		else if (map instanceof File) {
+			map = new DefaultQualifierMap(map)
+			project.platform.hashQualifierMap = map
+			map
+		}
+		else if (map instanceof String) {
+			map = new DefaultQualifierMap(new File(map))
+			project.platform.hashQualifierMap = map
+			map
+		}
+		else {
+			null
+		}
+	}
+	
 	/**
 	 * Add a qualifier to the bundle version.
 	 * 
 	 * @param version the current bundle version
+	 * @param symbolicName the bundle symbolic name
 	 * @param bndConfig the bnd configuration, may be <code>null</code>
 	 * @param project the Gradle project
 	 * @return the modified or the given version, depending on the configuration
 	 */
-	static String addQualifier(String version, BndConfig bndConfig, Project project) {
+	static String addQualifier(String version, String symbolicName, BndConfig bndConfig, Project project) {
 		// early exit if qualifier is suppressed
 		if (bndConfig?.addQualifier == false) {
 			return version
@@ -107,7 +128,18 @@ class VersionUtil {
 				def propString = props.sort().toMapString()
 				byte[] bytes = project.platform.hashCalculator(propString)
 				if (bytes) {
-					addQualifier = 'bnd-' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
+					String hash = bytes.encodeBase64().toString().replaceAll(/\W/, '')
+					def qualifierMap = getQualifierMap(project)
+					if (qualifierMap) {
+						// use qualifier map
+						def osgiVersion = toOsgiVersion(version)
+						addQualifier = qualifierMap.getQualifier('bundle',
+							symbolicName, osgiVersion, hash)	
+					}
+					else {
+						// just use hash
+						addQualifier = 'bnd-' + hash
+					}
 				}
 			}
 		}
@@ -135,7 +167,7 @@ class VersionUtil {
 	/**
 	 * Add a qualifier to a feature version, based on the feature content.
 	 *
-	 * @param version the current bundle version
+	 * @param version the current feature version
 	 * @param feature the feature to calculate the qualifier for
 	 * @param project the Gradle project
 	 * @return the modified or the given version, depending on the configuration
@@ -161,7 +193,17 @@ class VersionUtil {
 		def propString = [bundles: bundles, features: features].toMapString()
 		byte[] bytes = project.platform.hashCalculator(propString)
 		if (bytes) {
-			addQualifier = 'bnd-' + bytes.encodeBase64().toString().replaceAll(/\W/, '')
+			String hash = bytes.encodeBase64().toString().replaceAll(/\W/, '')
+			def qualifierMap = getQualifierMap(project)
+			if (qualifierMap) {
+				// use qualifier map
+				def osgiVersion = toOsgiVersion(version)
+				addQualifier = qualifierMap.getQualifier('feature', feature.id, osgiVersion, hash)	
+			}
+			else {
+				// just use hash
+				addQualifier = 'bnd-' + hash
+			}
 		}
 		
 		if (addQualifier) {

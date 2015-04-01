@@ -238,7 +238,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		}
 		
 		if (addQualifier) {
-			modifiedVersion = VersionUtil.addQualifier(modifiedVersion, bndConfig, project)
+			modifiedVersion = VersionUtil.addQualifier(modifiedVersion, symbolicName, bndConfig, project)
 		}
 		
 		// adapt symbolic names for bundles in platformAux (if enabled)
