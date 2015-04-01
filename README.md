@@ -49,7 +49,7 @@ The **platform** plugin comes with several Gradle tasks - the following are the 
 
 * ***bundles*** - create bundles and write them to **build/plugins**
 * ***updateSite*** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
-* ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default) 
+* ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default)
 
 In addition, the ***clean*** task deletes all previously created bundles or update site artifacts. Usually you will want to clean the created bundles when building an update site, e.g. `gradle clean updateSite`.
 
@@ -124,7 +124,7 @@ platform {
         // override/set the symbolic name
         symbolicName = <SymbolicNameString>
         // override/set the bundle name
-        bundleName = <BundleNameString> 
+        bundleName = <BundleNameString>
         // override/set bundle version
         version = <VersionString>
         // generic bnd header instruction
@@ -133,7 +133,7 @@ platform {
         optionalImport <Package1>, <Package2>, ...
         // adapt the Import-Package instruction to add the given package instruction
         prependImport  <PackageInstruction1>, <PackageInstruction2>, ...
-        
+
         // override the default behavior, if a (generated) qualifier should be added to
         // the version of wrapped bundles (see plugin settings)
         addQualifier = true | false
@@ -150,7 +150,7 @@ A default strategy defines how the versions are represented for the **Import-Pac
 * **MAJOR** - like MINIMUM, but with the next major version (excluded) as upper boundary  (default)
 * **MINOR** - like MINIMUM, but with the next minor version (excluded) as upper boundary
 * **NONE** - no version constraint for package imports
- 
+
 Set the version strategy for the whole platform like this:
 
 ```groovy
@@ -167,13 +167,13 @@ platform {
     imports(group: 'com.google.inject', name: 'guice') {
         versionStrategy = {
             // guice uses a strange versioning scheme for its package exports
-            // e.g. version 2.0 of exports packages with version 1.2, version 3.0 with 1.3 etc. 
+            // e.g. version 2.0 of exports packages with version 1.2, version 3.0 with 1.3 etc.
             "[1.${it.major},1.${it.major + 1})"
         }
     }
 }
 ```
- 
+
 The above example influences the package imports for the packages provided by *guice* for all bundles that have *guice* as their dependency. This is needed in this case as *guice* already is provided as OSGi bundle with the exported package versions differing from the module version - and because *bnd-platform* currently only uses the information of the module version and applies it to all imports instead of using available package export information. This might be improved in the future if there is need.
 
 ### Default configuration
@@ -260,13 +260,13 @@ platform {
 	// define a feature
 	feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
 		// define what's in the feature
-	
+
 		plugin 'org.codehaus.groovy.modules.http-builder:http-builder:0.6', {
 			// exclude this transitive dependency
 			exclude group: 'net.sourceforge.nekohtml', module: 'nekohtml'
 		}
 		plugin 'commons-io:commons-io:2.4'
-		
+
 		// include a feature that is defined elsewhere given its ID
 		includes << 'platform.geotools'
 	}
@@ -292,7 +292,7 @@ platform {
 
 	// depends on groovy
 	bundle 'org.codehaus.groovy:groovy:1.8.5'
-} 
+}
 ```
 
 As in the example above, you should make sure to add additional dependencies that might be needed by the JAR. Please note that for a JAR `filename.jar` sources provided in a `filename-sources.jar` will be wrapped automatically in a corresponding source bundle.
@@ -305,7 +305,7 @@ platform {
 	bundle fileTree(dir: 'lib') {
 		include '*.jar'
 	}
-	
+
 	// specific bundles
 	bundle files('someBundle.jar', 'someOtherBundle.jar')
 }
@@ -319,7 +319,7 @@ However, if there is the need to have multiple versions of a bundle, these are y
 * use multiple **bnd-platform** builds, each will resolve its dependencies independent of the others
 * add dependencies to the **platformaux** configuration - they will be added in addition to the resolved platform configuration (but w/o their transitive dependencies)
 * add the additional versions as local dependencies
- 
+
 Following is an example using the **platformaux** configuration:
 
 ```groovy
@@ -354,7 +354,7 @@ platform {
 			instruction 'Private-Package', '*'
 		}
 	}
-	
+
 	// add geotools modules as dependencies
 	bundle "org.geotools:gt-shapefile:$geotoolsVersion"
 	// etc.
@@ -370,7 +370,7 @@ If you use `match { ... }` to merge bundles, it is called for each artifact. The
 * **name** - the name (artifact ID) of the artifact, e.g. *'gt-shapefile'*
 * **version** - the version of the artifact
 * **file** - the local or downloaded file of the artifact, as File object
- 
+
 As alternative to **match** or in combination with it you can add bundles to merge via **bundle** or **include**. The syntax is the same as when adding dependencies. However, using **include** you just specify an artifact to be included if it is a dependency defined somewhere else, it does not add it as dependency.
 
 ```groovy
@@ -378,7 +378,7 @@ platform {
 	merge {
 		bundle 'someGroup:someArtifact:1.0.0' // also added as dependency
 		include group: 'someGroup', name: 'someOtherArtifact' // not added as dependency
-		
+
 		bnd {
 			...
 		}
@@ -428,6 +428,9 @@ Via the platform extension there are several settings you can provide:
 * **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
 * **useFeatureHashQualifiers** - if a hash based on the feature content should be appended as qualifier to feature versions (default: `true`)
 * **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
+* **hashQualifierMap** - for bundles/features that would have hash based qualifiers, map those to qualifiers that ensure a specific behavior. The default qualifier map is based on version history persisted to a file and date based qualifiers to ensure increasing version qualifiers (can be important for update mechanisms). To use the default qualifier map, simply provide a file or file path for the version history to be stored in (will be stored as Json).
+* **defaultQualifierMapPrefix** - the prefix to use for version qualifiers provided via the default qualifier map (default: `'i'`)
+* **defaultQualifierMapFixedDatePattern** - a fixed pattern for formatting the current date for use as part of the qualifier. Provide the pattern in a form suitable for SimpleDataFormat that ensures that the order of those dates as String is the same as the date order (e.g. 'yyyyMMddHHmm')
 * **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
 * **removeSignaturesFromWrappedBundles** - if signatures should be removed from signed jars that are wrapped using bnd (default: `true`)
 

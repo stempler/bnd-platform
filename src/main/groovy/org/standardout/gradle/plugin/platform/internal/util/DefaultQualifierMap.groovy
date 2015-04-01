@@ -14,18 +14,16 @@ import org.osgi.framework.Version
  */
 class DefaultQualifierMap implements VersionQualifierMap {
 	
-	/**
-	 * Qualifier prefix that ensures versions are regarded a newer as versions
-	 * with pure bnd-hash qualifier.
-	 */
-	private static final String PREFIX = 'i'
-
 	private final File file
+	private final String prefix
+	private final String fixedDateFormat
 	
 	private def map
 	
-	DefaultQualifierMap(File file) {
+	DefaultQualifierMap(File file, String prefix, String fixedDateFormat) {
 		this.file = file
+		this.prefix = prefix
+		this.fixedDateFormat = fixedDateFormat
 		
 		// load from file
 		if (file.exists()) {
@@ -81,17 +79,27 @@ class DefaultQualifierMap implements VersionQualifierMap {
 			// create qualifier based on current time (to ensure version is increased)
 			def now = new Date()
 			// try different candidates (we try to keep the qualifier short)
-			String candidate = PREFIX + now.format('yyyyMM') // month
-			if (qualifiers.containsKey(candidate)) {
-				candidate = PREFIX + now.format('yyyyMMdd') // day
+			String candidate
+			if (fixedDateFormat) {
+				candidate = prefix + now.format(fixedDateFormat)
 				if (qualifiers.containsKey(candidate)) {
-					candidate = PREFIX + now.format('yyyyMMddHHmm') // time
+					throw new IllegalStateException('Could not create unique qualifier based on fixed data format')
+				}
+			}
+			else {
+				// try to generate a short date based qualifier
+				candidate = prefix + now.format('yyyyMM') // month
+				if (qualifiers.containsKey(candidate)) {
+					candidate = prefix + now.format('yyyyMMdd') // day
 					if (qualifiers.containsKey(candidate)) {
-						candidate = PREFIX + now.format('yyyyMMddHHmmss') // second
+						candidate = prefix + now.format('yyyyMMddHHmm') // time
 						if (qualifiers.containsKey(candidate)) {
-							candidate = PREFIX + now.format('yyyyMMddHHmmssSSS') // millisecond
+							candidate = prefix + now.format('yyyyMMddHHmmss') // second
 							if (qualifiers.containsKey(candidate)) {
-								throw new IllegalStateException('Could not create unique qualifier based on timestamp')
+								candidate = prefix + now.format('yyyyMMddHHmmssSSS') // millisecond
+								if (qualifiers.containsKey(candidate)) {
+									throw new IllegalStateException('Could not create unique qualifier based on timestamp')
+								}
 							}
 						}
 					}
