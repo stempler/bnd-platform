@@ -17,13 +17,31 @@ class DefaultQualifierMap implements VersionQualifierMap {
 	private final File file
 	private final String prefix
 	private final String fixedDateFormat
+	private final int startLevel
 	
-	private def map
+	private final def dateLevels = [
+		'yyyy', // year
+		'yyyyMM', // month
+		'yyyyMMdd', // day
+		'yyyyMMddHHmm', // minute
+		'yyyyMMddHHmmss', // second
+		'yyyyMMddHHmmssSSS'] // millisecond
 	
-	DefaultQualifierMap(File file, String prefix, String fixedDateFormat) {
+	private final def map
+	
+	DefaultQualifierMap(File file, String prefix, int startLevel, String fixedDateFormat) {
 		this.file = file
 		this.prefix = prefix
 		this.fixedDateFormat = fixedDateFormat
+		if (startLevel >= dateLevels.size()) {
+			this.startLevel = dateLevels.size() - 1
+		}
+		else if (startLevel < 0) {
+			this.startLevel = 0
+		}
+		else {
+			this.startLevel = startLevel
+		}
 		
 		// load from file
 		if (file.exists()) {
@@ -88,21 +106,11 @@ class DefaultQualifierMap implements VersionQualifierMap {
 			}
 			else {
 				// try to generate a short date based qualifier
-				candidate = prefix + now.format('yyyyMM') // month
+				for (int i = startLevel; i < dateLevels.size() && (!candidate || qualifiers.containsKey(candidate)); i++) {
+					candidate = prefix + now.format(dateLevels[i])
+				}
 				if (qualifiers.containsKey(candidate)) {
-					candidate = prefix + now.format('yyyyMMdd') // day
-					if (qualifiers.containsKey(candidate)) {
-						candidate = prefix + now.format('yyyyMMddHHmm') // time
-						if (qualifiers.containsKey(candidate)) {
-							candidate = prefix + now.format('yyyyMMddHHmmss') // second
-							if (qualifiers.containsKey(candidate)) {
-								candidate = prefix + now.format('yyyyMMddHHmmssSSS') // millisecond
-								if (qualifiers.containsKey(candidate)) {
-									throw new IllegalStateException('Could not create unique qualifier based on timestamp')
-								}
-							}
-						}
-					}
+					throw new IllegalStateException('Could not create unique qualifier based on current timestamp')
 				}
 			}
 			

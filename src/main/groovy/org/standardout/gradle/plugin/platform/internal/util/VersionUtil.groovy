@@ -79,15 +79,17 @@ class VersionUtil {
 		}
 		else if (map instanceof File) {
 			map = new DefaultQualifierMap(map,
-				project.platform.defaultQualifierMapPrefix,
-				project.platform.defaultQualifierMapFixedDatePattern)
+				project.platform.defaultQualifierMap.prefix,
+				project.platform.defaultQualifierMap.baseDate,
+				project.platform.defaultQualifierMap.fixedDatePattern)
 			project.platform.hashQualifierMap = map
 			map
 		}
 		else if (map instanceof String) {
 			map = new DefaultQualifierMap(new File(map),
-				project.platform.defaultQualifierMapPrefix,
-				project.platform.defaultQualifierMapFixedDatePattern)
+				project.platform.defaultQualifierMap.prefix,
+				project.platform.defaultQualifierMap.baseDate,
+				project.platform.defaultQualifierMap.fixedDatePattern)
 			project.platform.hashQualifierMap = map
 			map
 		}
