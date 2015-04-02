@@ -27,7 +27,7 @@ class DefaultQualifierMap implements VersionQualifierMap {
 		'yyyyMMddHHmmss', // second
 		'yyyyMMddHHmmssSSS'] // millisecond
 	
-	private final def map
+	private def map
 	
 	DefaultQualifierMap(File file, String prefix, int startLevel, String fixedDateFormat) {
 		this.file = file
@@ -45,7 +45,9 @@ class DefaultQualifierMap implements VersionQualifierMap {
 		
 		// load from file
 		if (file.exists()) {
-			map = new TreeMap(new JsonSlurper().parse(file))
+			file.withReader {
+				map = new TreeMap(new JsonSlurper().parse(it))
+			}
 		}
 		else {
 			map = new TreeMap()
