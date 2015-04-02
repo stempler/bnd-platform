@@ -105,9 +105,11 @@ class VersionUtil {
 	 * @param symbolicName the bundle symbolic name
 	 * @param bndConfig the bnd configuration, may be <code>null</code>
 	 * @param project the Gradle project
+	 * @param bundleType the type classification of the bundle, defaults to <code>'bundle'</code>
 	 * @return the modified or the given version, depending on the configuration
 	 */
-	static String addQualifier(String version, String symbolicName, BndConfig bndConfig, Project project) {
+	static String addQualifier(String version, String symbolicName, BndConfig bndConfig,
+		Project project, String bundleType = 'bundle') {
 		// early exit if qualifier is suppressed
 		if (bndConfig?.addQualifier == false) {
 			return version
@@ -139,7 +141,7 @@ class VersionUtil {
 					if (qualifierMap) {
 						// use qualifier map
 						def osgiVersion = toOsgiVersion(version)
-						addQualifier = qualifierMap.getQualifier('bundle',
+						addQualifier = qualifierMap.getQualifier(bundleType,
 							symbolicName, osgiVersion, hash)	
 					}
 					else {

@@ -37,7 +37,7 @@ class MergeBundleArtifact extends FileBundleArtifact implements DependencyArtifa
 	MergeBundleArtifact(File artifactFile, Project project, StoredConfig config,
 			String customId, Set<ResolvedArtifact> directDependencies,
 			Iterable<ResolvedDependency> representedDependencies) {
-		super(artifactFile, project, config, customId)
+		super(artifactFile, project, config, customId, 'mergedBundle')
 		this.directDependencies = directDependencies.asImmutable()
 		this.representedDependencies = representedDependencies
 	}

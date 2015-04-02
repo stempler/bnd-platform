@@ -59,7 +59,7 @@ class FileBundleArtifact implements BundleArtifact {
 	 * Create a bundle artifact represented by a Jar.
 	 */
 	FileBundleArtifact(File artifactFile, Project project, StoredConfig config = null,
-			String customId = null) {
+			String customId = null, String customType = 'bundle') {
 		this.file = artifactFile
 		this.id = customId ?: (artifactFile as String)
 		this.source = false // don't mark as source bundle so it is processed as usual
@@ -103,7 +103,7 @@ class FileBundleArtifact implements BundleArtifact {
 			// determine version, eventually add qualifier (only if explicitly enabled)
 			def v = bndConfig.version
 			if (bndConfig.addQualifier == true) { // addQualifier is tri-state
-				v = VersionUtil.addQualifier(v, symbolicName, bndConfig, project)
+				v = VersionUtil.addQualifier(v, symbolicName, bndConfig, project, customType)
 			}
 			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString()
 		}
