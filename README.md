@@ -331,7 +331,7 @@ dependencies {
 
 ### Merged bundles
 
-Sometimes it is necessary to create a bundle out of multiple JARs, most often due to class loading issues. The [Geotools](http://www.geotools.org/) library is a famous example of that. It uses [Java SPI](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html) as extension mechanism, which does only recognize extensions from the same class loader. One way [suggested to cope with this](http://docs.geotools.org/stable/userguide/welcome/integration.html#osgi) is creating a monolithic bundle that includes all the needed geotools modules (which I prefer because with Geotools otherwise you have different bundles partly exporting the same packages). Doing this with *bnd-platform* is quite easy:
+Sometimes it is necessary to create a bundle out of multiple JARs, most often due to class loading issues. The [Geotools](http://www.geotools.org/) library is a famous example of that. It uses [Java SPI](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html) as extension mechanism, which does only recognize extensions from the same class loader. One way [suggested to cope with this](http://docs.geotools.org/stable/userguide/welcome/application.html#osgi) is creating a monolithic bundle that includes all the needed geotools modules (which I prefer because with Geotools otherwise you have different bundles partly exporting the same packages). Doing this with *bnd-platform* is quite easy:
 
 ```groovy
 platform {
