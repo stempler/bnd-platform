@@ -67,7 +67,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		configureEnvironment(project)
 		
 		// ensure download-task plugin is applied
-		project.apply(plugin: 'download-task')
+		project.apply(plugin: 'de.undercouch.download')
 
 		// register extension
 		project.extensions.create('platform', PlatformPluginExtension, project)
