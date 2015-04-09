@@ -104,7 +104,10 @@ install {
 
 // sign all artifacts
 signing {
-	required { gradle.taskGraph.hasTask(uploadArchives) }
+	required {
+		// NOTE: skipping does only work if no gradle properties specifying the key are present
+		gradle.taskGraph.hasTask('uploadArchives')
+	}
 	sign configurations.archives
 }
 
