@@ -80,8 +80,8 @@ public class PlatformPlugin implements Plugin<Project> {
 		downloadsDir = new File(project.buildDir, 'eclipse-downloads')
 		
 		// create configuration
-		project.configurations.create CONF_PLATFORM
-		project.configurations.create CONF_AUX
+		project.configurations.maybeCreate CONF_PLATFORM
+		project.configurations.maybeCreate CONF_AUX
 		
 		project.afterEvaluate {
 			// feature version default
