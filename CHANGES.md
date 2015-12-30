@@ -1,3 +1,10 @@
+### 1.3.0
+
+ - Fixed compatibility with current Gradle versions (Gradle 2.6-2.10)
+ - The platform and platformaux configurations can now be created elsewhere to allow bnd-platform to be applied lazily to a project (contribution by @nedtwigg)
+ - Support for generated qualifiers representing increasing version numbers instead of hashes (see `hashQualifierMap` configuration setting)
+ - Don't fail the build if determining imports fails for a dependency
+
 ### 1.2.0
 
  - Qualified plugin ID (`org.standardout.bnd-platform`) for use with new Gradle plugin repository

@@ -30,7 +30,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:1.2.0'
+		classpath 'org.standardout:bnd-platform:1.3.0'
 		// if using Gradle 1.x uncomment the following line
 //		classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3+'
 	}
