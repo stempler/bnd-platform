@@ -21,6 +21,9 @@ repositories {
 group = 'org.standardout'
 version = '1.4.0-SNAPSHOT'
 
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
 jar {
 	// include license into jar
 	into 'META-INF', {
