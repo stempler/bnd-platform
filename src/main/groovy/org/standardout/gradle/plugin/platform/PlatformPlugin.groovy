@@ -18,6 +18,7 @@ package org.standardout.gradle.plugin.platform
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.Map;
 import java.util.jar.*
 
 import org.gradle.api.Action
@@ -39,7 +40,9 @@ import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
-import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
+
+import groovy.json.JsonOutput;;
 
 /**
  * OSGi platform plugin for Gradle.
@@ -316,9 +319,29 @@ public class PlatformPlugin implements Plugin<Project> {
 				}
 			}
 		}
+		
+		/*
+		 * Task that creates a Json file with a mapping of bundle name to  
+		 */
+		Task artifactMapTask = project.task('artifactMap', dependsOn: bundlesTask).doFirst {
+			Map<String, BundleArtifact> artifacts = project.platform.artifacts
+			
+			def report = [:]
+			artifacts.values().each { BundleArtifact artifact ->
+				if (!artifact.isSource() && artifact instanceof ResolvedBundleArtifact) {
+					// artifact that has a Maven dependency as it's direct source
+					def info = [:]
+					info.group = artifact.group
+					info.name = artifact.name
+					
+					report[artifact.symbolicName] = info
+				}
+			}
+			
+			File reportFile = new File(project.buildDir, 'bundleArtifactMap.json')
+			reportFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(report))
+		}
 	}
-	
-	
 	
 	/**
 	 * Guess current environment and store information in project.ext.
