@@ -330,11 +330,19 @@ public class PlatformPlugin implements Plugin<Project> {
 			artifacts.values().each { BundleArtifact artifact ->
 				if (!artifact.isSource() && artifact instanceof ResolvedBundleArtifact) {
 					// artifact that has a Maven dependency as it's direct source
-					def info = [:]
-					info.group = artifact.group
-					info.name = artifact.name
 					
-					report[artifact.symbolicName] = info
+					def info = report[artifact.symbolicName]
+					if (!info) {
+						info = [:]
+						info.group = artifact.group
+						info.name = artifact.name
+						report[artifact.symbolicName] = info
+					}
+					
+					if (!info.versions) {
+						info.versions = [:]
+					}
+					info.versions[artifact.modifiedVersion] = artifact.version
 				}
 			}
 			
