@@ -255,7 +255,7 @@ You can combine dependencies to an Eclipse feature. The feature will contain the
 
 A feature includes all plugins (bundles) defined in its context, here an example:
 
-```
+```groovy
 platform {
 	// define a feature
 	feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
