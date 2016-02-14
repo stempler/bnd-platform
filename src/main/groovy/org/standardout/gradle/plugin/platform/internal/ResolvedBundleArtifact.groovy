@@ -99,12 +99,18 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		dependency
 	}
 	
+	private final ResolvedArtifact artifact
+	ResolvedArtifact getArtifact() {
+		artifact
+	}
+	
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
 	ResolvedBundleArtifact(ResolvedArtifact artifact, ResolvedDependency dependency,
 			Project project, final boolean aux = false) {
 		this.dependency = dependency
+		this.artifact = artifact
 		// extract information from artifact
 		this.file = artifact.file
 		this.classifier = artifact.classifier

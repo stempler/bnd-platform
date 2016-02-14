@@ -122,6 +122,15 @@ class PlatformPluginExtension {
 	boolean determineImportVersions = false
 	
 	/**
+	 * States if bnd-platform specific manifest headers should be added.
+	 * Currently those headers serve the following purposes:
+	 * <ul>
+	 *   <li>Reconstruct the original maven artifact group, name and version</li>
+	 * </ul>
+	 */
+	boolean addBndPlatformManifestHeaders = false
+	
+	/**
 	 * Defines the global import version strategy.
 	 * 
 	 * The strategy is a closure taking an OSGi version number and returning a version assignment for bnd as String.

@@ -1,3 +1,8 @@
+### 1.4.0
+
+ - Compile for Java 7
+ - Added option to include manifest headers that allow reconstructing the orginal Maven artifact identifier
+
 ### 1.3.0
 
  - Fixed compatibility with current Gradle versions (Gradle 2.6-2.10)

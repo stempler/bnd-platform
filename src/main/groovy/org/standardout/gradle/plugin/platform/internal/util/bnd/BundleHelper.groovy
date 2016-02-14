@@ -23,7 +23,8 @@ import org.osgi.framework.Version;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.MergeBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.MergeBundleArtifact
+import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
@@ -46,7 +47,7 @@ class BundleHelper {
 	/**
 	 * Bundle an artifact, also create the source bundle if applicable.
 	 */
-	static void bundle(Project project, BundleArtifact art, File targetDir) {
+	static void bundle(Project project, BundleArtifact art, File targetDir, List<BundleArtifact> mergedArtifacts = null) {
 		if (art.source) {
 			// ignore - source bundles must be handled together with their parents
 			return
@@ -113,6 +114,14 @@ class BundleHelper {
 				(Analyzer.BUNDLE_SYMBOLICNAME): symbolicNamePars.toString()
 			)
 			
+			// add BndPlatform specific manifest headers
+			if (mergedArtifacts) {
+				addBndPlatformHeaders(project, properties, mergedArtifacts)
+			}
+			else {
+				addBndPlatformHeaders(project, properties, [art])
+			}
+			
 			boolean written = BndHelper.wrap(art.file, null, outputFile, properties, removeSignatures)
 			if (!written) {
 				throw new IllegalStateException("Empty or corrupted JAR cannot be wrapped: $art.file")
@@ -121,6 +130,54 @@ class BundleHelper {
 		else {
 			project.logger.info "-> Copying artifact $art.id; ${art.noWrapReason}..."
 			project.ant.copy ( file : art.file , tofile : outputFile )
+		}
+	}
+	
+	private static void addBndPlatformHeaders(Project project, Map<String, String> headers, List<BundleArtifact> artifacts) {
+		if (project.platform.addBndPlatformManifestHeaders && artifacts) {
+			if (artifacts.size() == 1) {
+				// single artifact
+				if (artifacts[0] instanceof ResolvedBundleArtifact) {
+					ResolvedArtifact dep = artifacts[0].artifact
+					if (dep) {
+						headers.put('BndPlatform-ArtifactGroup', dep.moduleVersion.id.group)
+						headers.put('BndPlatform-ArtifactName', dep.moduleVersion.id.name)
+						headers.put('BndPlatform-ArtifactVersion', dep.moduleVersion.id.version)
+						if (dep.classifier) {
+							headers.put('BndPlatform-ArtifactClassifier', dep.classifier)
+						}
+					}
+				}
+			}
+			else {
+				// multiple artifacts
+				def resolvedArtifacts = artifacts.findAll {
+					(it instanceof ResolvedBundleArtifact) && it.artifact
+				}
+				
+				if (resolvedArtifacts.size() != artifacts.size()) {
+					project.logger.warn('Unable to create complete BndPlatform manifest headers for merged bundle')
+				}
+				
+				if (resolvedArtifacts) {
+					// sort by symbolic name to have a reproducable order
+					resolvedArtifacts = resolvedArtifacts.sort(false) {
+						it.symbolicName
+					}
+					
+					headers.put('BndPlatform-MergedArtifacts', resolvedArtifacts.size())
+					
+					resolvedArtifacts.eachWithIndex { ResolvedBundleArtifact art, index ->
+						ResolvedArtifact dep = art.artifact
+						headers.put("BndPlatform-MergedArtifact-${index + 1}-Group", dep.moduleVersion.id.group)
+						headers.put("BndPlatform-MergedArtifact-${index + 1}-Name", dep.moduleVersion.id.name)
+						headers.put("BndPlatform-MergedArtifact-${index + 1}-Version", dep.moduleVersion.id.version)
+						if (dep.classifier) {
+							headers.put("BndPlatform-MergedArtifact-${index + 1}-Classifier", dep.classifier)
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -192,7 +249,7 @@ class BundleHelper {
 			}
 			
 			// create bundle (and source bundle)
-			bundle(project, artifact, targetDir)
+			bundle(project, artifact, targetDir, bundles)
 			
 			// register artifact so it is included in the platform feature
 			project.platform.artifacts[artifact.id] = artifact
