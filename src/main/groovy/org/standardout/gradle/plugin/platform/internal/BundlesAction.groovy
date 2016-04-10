@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency
@@ -86,6 +86,27 @@ class BundlesAction implements Action<Task> {
 					// only Jars are valid artifacts (ignore poms)
 					BundleArtifact artifact = new ResolvedBundleArtifact(it, dep, project)
 					artifacts[artifact.id] = artifact
+					
+					// check if there is a source Jar that can be found via file name
+					// this is added here specifically for project dependencies
+					// source artifact may be overridden later 
+					if (project.platform.fetchSources) {
+						// try to find associated source jar by name
+						String filename = artifact.file.name
+						File sourceJar = ['-sources', '-source'].collect {
+							String extension = (filename =~ /\.\w+$/)[0]
+							String candidateName = filename[0..-(extension.length()+1)] + it + filename[-extension.length()..-1]
+							new File(artifact.file.parentFile, candidateName)
+						}.find {
+							it.exists()
+						}
+						if (sourceJar) {
+							FileBundleArtifact source = new FileBundleArtifact(artifact, sourceJar)
+							
+							// register artifact so it is included in the platform feature
+							project.platform.artifacts[source.id] = source
+						}
+					}
 				}
 				
 				dependencyFiles.remove(it.file)
