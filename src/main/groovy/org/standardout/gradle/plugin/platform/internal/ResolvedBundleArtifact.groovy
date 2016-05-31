@@ -128,6 +128,11 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		// bundle and symbolic name
 		def bundleName = group + '.' + name
 		def symbolicName = getDefaultSymbolicName(file, group, name)
+		if (!source && classifier) {
+			// avoid collision for artifacts with same name, group and version,
+			// but different classifier
+			symbolicName += '.' + classifier
+		}
 				
 		// reason why a bundle is not wrapped
 		JarInfo jarInfo = null
