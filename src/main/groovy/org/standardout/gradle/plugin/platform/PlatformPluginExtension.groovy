@@ -33,7 +33,8 @@ import org.standardout.gradle.plugin.platform.internal.config.Configurations;
 import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
 import org.standardout.gradle.plugin.platform.internal.config.SourceFeature;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
-import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency
 
 /**
@@ -395,6 +396,7 @@ class PlatformPluginExtension {
 			dependency.group,
 			dependency.name,
 			dependency.version,
+			DependencyHelper.getClassifier(dependency),
 			config)
 	}
 	

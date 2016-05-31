@@ -39,7 +39,7 @@ class Configurations {
 	
 	private final Map<File, StoredConfig> fileConfigurations = [:]
 	
-	private final Map<String, Map<String, Map<String, StoredConfig>>> dependencyConfigurations = [:]
+	private final Map<String, Map<String, Map<String, Map<String, StoredConfig>>>> dependencyConfigurations = [:]
 	
 	private final List<MergeConfig> merges = []
 	
@@ -187,28 +187,30 @@ class Configurations {
 	/**
 	 * Add configuration for a dependency.
 	 */
-	void putConfiguration(String group = null, String name = null, String version = null, StoredConfig config) {
+	void putConfiguration(String group = null, String name = null, String version = null,
+		String classifier = null, StoredConfig config) {
+		
 		assert group || name: 'At least group or name must be specified for bnd configuration'
 		
-		Map<String, StoredConfig> nameConfig = dependencyConfigurations.get(group, [:]).get(name, [:])
-		StoredConfig current = nameConfig.get(version)
+		Map<String, StoredConfig> versionConfig = dependencyConfigurations.get(group, [:]).get(name, [:]).get(version, [:])
+		StoredConfig current = versionConfig.get(classifier)
 		if (current != null) {
 			if (config.bndClosures && current.bndClosures) {
-				project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, later definitions may override previous"
+				project.logger.warn "Multiple bnd configurations for group:$group, name:$name, version:$version, classifier: $classifier, later definitions may override previous"
 			}
 			// append configuration
 			current << config
 		}
 		else {
-			nameConfig.put(version, config)
+			versionConfig.put(classifier, config)
 		}
 	}
 	
 	/**
 	 * Get the (combined) configuration for the given parameters defining a dependency.
 	 */
-	StoredConfig getConfiguration(String group, String name, String version, boolean includeDefaultConfig,
-		DependencyArtifact artifact) {
+	StoredConfig getConfiguration(String group, String name, String version, String classifier,
+		boolean includeDefaultConfig, DependencyArtifact artifact) {
 		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
 		
@@ -217,7 +219,7 @@ class Configurations {
 		
 		// fully qualified
 		if (group && name && version) {
-			tmp = dependencyConfigurations.get(group)?.get(name)?.get(version)
+			tmp = dependencyConfigurations.get(group)?.get(name)?.get(version)?.get(classifier)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -225,7 +227,7 @@ class Configurations {
 		
 		// w/o version
 		if (group && name) {
-			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)
+			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)?.get(null)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -233,7 +235,7 @@ class Configurations {
 			
 		// w/o group
 		if (name && version) {
-			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)?.get(null)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -241,7 +243,7 @@ class Configurations {
 		
 		// w/o name
 		if (group && version) {
-			tmp = dependencyConfigurations.get(group)?.get(null)?.get(version)
+			tmp = dependencyConfigurations.get(group)?.get(null)?.get(version)?.get(null)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -249,7 +251,7 @@ class Configurations {
 		
 		// only name
 		if (name) {
-			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)?.get(null)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -257,7 +259,7 @@ class Configurations {
 		
 		// only group
 		if (group) {
-			tmp = dependencyConfigurations.get(group)?.get(null)?.get(null)
+			tmp = dependencyConfigurations.get(group)?.get(null)?.get(null)?.get(null)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -284,7 +286,7 @@ class Configurations {
 		// create a map of package names to version number and strategies
 		deps.each {
 			ResolvedArtifact dep ->
-			if (dep.extension != 'jar' || dep.classifier) {
+			if (dep.extension != 'jar') {
 				return
 			}
 			
@@ -297,7 +299,7 @@ class Configurations {
 			def osgiVersion = VersionUtil.toOsgiVersion(version)
 			
 			// check if there is an artifact specific configuration
-			ImportsConfig cfg = getConfiguration(group, name, version, false, null)?.importsConfig(project, group, name, version)
+			ImportsConfig cfg = getConfiguration(group, name, version, dep.classifier, false, null)?.importsConfig(project, group, name, version)
 			if (cfg != null) {
 				strategy = cfg.versionStrategy?:strategy // specific strategy
 			}

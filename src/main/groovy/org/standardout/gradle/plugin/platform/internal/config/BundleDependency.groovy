@@ -19,10 +19,12 @@ package org.standardout.gradle.plugin.platform.internal.config
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.FileCollection;
 import org.standardout.gradle.plugin.platform.PlatformPlugin
 import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency;
 import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
 
@@ -124,7 +126,8 @@ class BundleDependency implements ArtifactsMatch {
 				project.platform.configurations.putConfiguration(
 					dependency.group, 
 					dependency.name, 
-					dependency.version, 
+					dependency.version,
+					DependencyHelper.getClassifier(dependency),
 					config)
 			}
 		}

@@ -28,12 +28,37 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency
 
 /**
  * Implementation based on several classes from the gradle ide subproject, mainly
  * <code>DefaultIdeDependencyResolver</code>.
  */
 class DependencyHelper {
+	
+	/**
+	 * Determine the classifier for a dependency.
+	 * 
+	 * @param dependency the dependency
+	 * @return the classifier or <code>null</code> for the default classifier
+	 */
+	public static String getClassifier(Dependency dependency) {
+		String result
+		if (dependency instanceof ModuleDependency) {
+			def artifacts = dependency.artifacts
+			if (artifacts.size() > 0) {
+				result = artifacts[0].classifier
+			}
+			else {
+				// default artifact -> no classifier
+			}
+		}
+		else if (dependency instanceof DummyDependency) {
+			result = dependency.classifier
+		}
+		
+		result
+	}
 	
 	/**
 	 * Spec that accepts only external dependencies.

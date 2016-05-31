@@ -32,16 +32,18 @@ class DummyDependency implements Dependency {
 	private final String group
 	private final String name
 	private final String version
+	private final String classifier
 
-	DummyDependency(String group, String name, String version) {
+	DummyDependency(String group, String name, String version, String classifier = null) {
 		super();
 		this.group = group;
 		this.name = name;
 		this.version = version;
+		this.classifier = classifier
 	}
 	
 	DummyDependency(Map properties) {
-		this(properties.group, properties.name, properties.version)
+		this(properties.group, properties.name, properties.version, properties.classifier)
 	}
 
 	@Override
@@ -57,6 +59,10 @@ class DummyDependency implements Dependency {
 	@Override
 	public String getVersion() {
 		return version;
+	}
+	
+	public String getClassifier() {
+		return classifier;
 	}
 
 	@Override
