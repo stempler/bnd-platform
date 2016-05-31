@@ -227,7 +227,7 @@ class Configurations {
 		
 		// w/o version
 		if (group && name) {
-			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)?.get(null)
+			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)?.get(classifier)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -235,7 +235,7 @@ class Configurations {
 			
 		// w/o group
 		if (name && version) {
-			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)?.get(null)
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)?.get(classifier)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
@@ -251,7 +251,7 @@ class Configurations {
 		
 		// only name
 		if (name) {
-			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)?.get(null)
+			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)?.get(classifier)
 			if (tmp != null) {
 				tmp >> res // prepend configuration
 			}
