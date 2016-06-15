@@ -21,7 +21,6 @@ import java.util.regex.Pattern
 import java.util.Map;
 import java.util.jar.*
 
-import com.diffplug.common.swt.os.SwtPlatform
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -39,6 +38,7 @@ import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.osdetect.OS;
 import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
 

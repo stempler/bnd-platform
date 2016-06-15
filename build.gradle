@@ -37,7 +37,6 @@ dependencies {
 //	compile 'org.osgi:org.osgi.core:4.3.0'
 	compile 'commons-io:commons-io:2.4'
 	compile 'org.eclipse.tycho:org.eclipse.jdt.core:3.11.1.v20150902-1521'
-	compile 'com.diffplug.durian:durian-swt:1.5.1'
 	compile 'de.undercouch:gradle-download-task:2.1.0'
 	compile localGroovy()
 }
@@ -123,12 +122,15 @@ uploadArchives {
 			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 			
 			// upload to sonatype OSS (snapshot/release)
+			/*
 			repository(url: this.version.endsWith('-SNAPSHOT') ?
 					'https://oss.sonatype.org/content/repositories/snapshots' :
 					'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
 				authentication(userName: this.hasProperty('sonatypeUsername') ? sonatypeUsername : '',
 					password: this.hasProperty('sonatypePassword') ? sonatypePassword : '')
 			}
+			*/
+			repository(url: mavenLocal().url)
 			
 			configurePom(pom)
 		}
