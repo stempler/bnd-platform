@@ -17,13 +17,12 @@
  */
 package org.standardout.gradle.plugin.platform.internal.osdetect;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /** Models the platforms that SWT binaries are built for, useful for build tools that interact with SWT jars. */
 public class SwtPlatform {
@@ -136,8 +135,10 @@ public class SwtPlatform {
 
 	/** Returns all of the platforms. */
 	public static List<SwtPlatform> getAll() {
-		return Arrays.asList(OS.values()).stream()
-				.map(SwtPlatform::fromOS)
-				.collect(Collectors.toList());
+		List<SwtPlatform> platforms = new ArrayList<SwtPlatform>();
+		for (OS os : OS.values()) {
+			platforms.add(SwtPlatform.fromOS(os));
+		}
+		return platforms;
 	}
 }

@@ -17,7 +17,6 @@
  */
 package org.standardout.gradle.plugin.platform.internal.osdetect;
 
-import java.util.Arrays;
 import java.util.Locale;
 
 /** Enum representing an OS and its underlying CPU architecture. */
@@ -85,7 +84,10 @@ public enum OS {
 		String os_name = System.getProperty("os.name").toLowerCase(Locale.getDefault());
 		boolean isWin = os_name.contains("win");
 		boolean isMac = os_name.contains("mac");
-		boolean isLinux = Arrays.asList("nix", "nux", "aix").stream().anyMatch(os_name::contains);
+		boolean isLinux =
+				os_name.contains("nix") ||
+				os_name.contains("nux") ||
+				os_name.contains("aix");
 
 		if (isMac) {
 			return MAC_x64;
