@@ -21,6 +21,7 @@ import java.util.regex.Pattern
 import java.util.Map;
 import java.util.jar.*
 
+import com.diffplug.common.swt.os.SwtPlatform
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -28,7 +29,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.eclipse.core.runtime.internal.adaptor.EclipseEnvironmentInfo
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
@@ -356,15 +356,15 @@ public class PlatformPlugin implements Plugin<Project> {
 	 */
 	def configureEnvironment(Project project) {
 		project.with {
-			def eei = EclipseEnvironmentInfo.getDefault()
+			SwtPlatform swt = SwtPlatform.getRunning();
 			if (!ext.properties.containsKey('osgiOS')) {
-				ext.osgiOS = eei.getOS()
+				ext.osgiOS = swt.getOs()
 			}
 			if (!ext.properties.containsKey('osgiWS')) {
-				ext.osgiWS = eei.getWS()
+				ext.osgiWS = swt.getWs()
 			}
 			if (!ext.properties.containsKey('osgiArch')) {
-				ext.osgiArch = eei.getOSArch()
+				ext.osgiArch = swt.getArch()
 			}
 		}
 	}
