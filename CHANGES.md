@@ -2,6 +2,7 @@
 
  - Compile for Java 7
  - Added option to include manifest headers that allow reconstructing the orginal Maven artifact identifier
+ - Gradle and dependencies updates and fixes by @nedtwigg
 
 ### 1.3.0
 
