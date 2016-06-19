@@ -1,4 +1,4 @@
-bnd-platform
+bnd-platform [![CircleCI](https://circleci.com/gh/stempler/bnd-platform.svg?style=svg)](https://circleci.com/gh/stempler/bnd-platform)
 ============
 
 Using OSGi and having trouble to get all the dependencies as proper OSGi bundles?
