@@ -30,8 +30,6 @@ import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
 
-import com.sun.media.sound.JARSoundbankReader;
-
 import aQute.bnd.header.Attrs;
 import aQute.bnd.header.OSGiHeader;
 import aQute.bnd.header.Parameters;

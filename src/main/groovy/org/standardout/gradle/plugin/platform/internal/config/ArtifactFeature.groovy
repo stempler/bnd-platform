@@ -18,7 +18,6 @@ package org.standardout.gradle.plugin.platform.internal.config
 
 import java.util.Set;
 
-import org.eclipse.jdt.core.dom.ThisExpression;
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
