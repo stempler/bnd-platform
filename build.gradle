@@ -15,7 +15,7 @@ apply plugin: 'eclipse'
 apply plugin: 'com.jfrog.bintray'
 
 repositories {
-	mavenCentral()
+	jcenter()
 }
 
 group = 'org.standardout'
@@ -36,7 +36,7 @@ dependencies {
 	compile 'biz.aQute.bnd:bndlib:2.2.0'
 //	compile 'org.osgi:org.osgi.core:4.3.0'
 	compile 'commons-io:commons-io:2.4'
-	compile 'de.undercouch:gradle-download-task:2.1.0'
+	compile 'de.undercouch:gradle-download-task:3.0.0'
 	compile localGroovy()
 }
 
