@@ -36,7 +36,6 @@ dependencies {
 	compile 'biz.aQute.bnd:bndlib:2.2.0'
 //	compile 'org.osgi:org.osgi.core:4.3.0'
 	compile 'commons-io:commons-io:2.4'
-	compile 'org.eclipse.tycho:org.eclipse.jdt.core:3.11.1.v20150902-1521'
 	compile 'de.undercouch:gradle-download-task:2.1.0'
 	compile localGroovy()
 }
