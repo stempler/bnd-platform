@@ -39,10 +39,11 @@ import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
 import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
 import org.standardout.gradle.plugin.platform.internal.osdetect.OS;
+import org.standardout.gradle.plugin.platform.internal.osdetect.SwtPlatform
 import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
 
-import groovy.json.JsonOutput;;
+import groovy.json.JsonOutput
 
 /**
  * OSGi platform plugin for Gradle.
