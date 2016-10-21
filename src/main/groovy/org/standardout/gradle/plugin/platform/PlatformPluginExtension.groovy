@@ -299,7 +299,14 @@ class PlatformPluginExtension {
 	 * well it is tried to download Eclipse based on the URLs defined in {@link #eclipseMirror}
 	 */
 	File eclipseHome
-	
+
+	/**
+	 * The direct to store the downloaded Eclipse installation on local, 
+	 * this works if <code>eclipseHome</code> is not specified.
+	 * Default to <code>project.buildDir</code>.
+	 */
+	File downloadsDir
+
 	/**
 	 * Nested map that is checked for Eclipse download URLs, keys are
 	 * osgiOS (win32, linux, macosx), osgiWS (win32, gtk, cocoa) and

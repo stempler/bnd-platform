@@ -62,8 +62,7 @@ public class PlatformPlugin implements Plugin<Project> {
 	private File bundlesDir
 	private File categoryFile
 	private File featuresDir
-	private File downloadsDir
-	
+
 	@Override
 	public void apply(Project project) {
 		this.project = project
@@ -81,8 +80,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		bundlesDir = new File(project.buildDir, 'plugins')
 		categoryFile = new File(project.buildDir, 'category.xml')
 		featuresDir = new File(project.buildDir, 'features')
-		downloadsDir = new File(project.buildDir, 'eclipse-downloads')
-		
+
 		// create configuration
 		project.configurations.maybeCreate CONF_PLATFORM
 		project.configurations.maybeCreate CONF_AUX
@@ -100,6 +98,13 @@ public class PlatformPlugin implements Plugin<Project> {
 			}
 			if (project.platform.featureVersion == null) {
 				project.platform.featureVersion = '1.0.0'
+			}
+
+			if (project.platform.downloadsDir == null) {
+				project.platform.downloadsDir = new File(project.buildDir, 'eclipse-downloads')
+			}
+			if (!project.platform.downloadsDir.exists()) {
+				project.platform.downloadsDir.mkdirs()
 			}
 		}
 
@@ -208,7 +213,7 @@ public class PlatformPlugin implements Plugin<Project> {
 			def eclipseHome = System.properties['ECLIPSE_HOME']
 			
 			if (!eclipseHome) {
-				File downloadedEclipse = new File(downloadsDir, 'eclipse')
+				File downloadedEclipse = new File(project.platform.downloadsDir, 'eclipse')
 				if (downloadedEclipse.exists()) {
 					// downloaded Eclipse already exists
 					eclipseHome = downloadedEclipse
@@ -222,8 +227,8 @@ public class PlatformPlugin implements Plugin<Project> {
 						// Download artifact
 						String artifactDownloadUrl = artifacts[project.ext.osgiOS][project.ext.osgiWS][project.ext.osgiArch]
 						def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
-						def artifactZipPath = new File(downloadsDir, filename)
-						def artifactZipPathPart = new File(downloadsDir, filename + '.part')
+						def artifactZipPath = new File(project.platform.downloadsDir, filename)
+						def artifactZipPathPart = new File(project.platform.downloadsDir, filename + '.part')
 						if (!artifactZipPath.exists()) {
 							project.download {
 								src artifactDownloadUrl
@@ -235,7 +240,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				
 						// Unzip artifact
 						println('Copying ' + name + ' ...')
-						def artifactInstallPath = downloadsDir
+						def artifactInstallPath = project.platform.downloadsDir
 						if (artifactZipPath.name.endsWith('.zip')) {
 							project.ant.unzip(src: artifactZipPath, dest: artifactInstallPath)
 						} else {
