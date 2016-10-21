@@ -301,9 +301,9 @@ class PlatformPluginExtension {
 	File eclipseHome
 
 	/**
-	 * The direct to store the downloaded Eclipse installation on local, 
+	 * The directory to store the downloaded Eclipse installation on local, 
 	 * this works if <code>eclipseHome</code> is not specified.
-	 * Default to <code>project.buildDir</code>.
+	 * Default to <code>project.buildDir/eclipse-downloads</code>.
 	 */
 	File downloadsDir
 
