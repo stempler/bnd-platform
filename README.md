@@ -414,6 +414,7 @@ Via the platform extension there are several settings you can provide:
 * **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
 * **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
 * **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*, the URLs are identified per osgiOS (win32, linux, macosx), osgiWS (win32, gtk, cocoa) and arch (x86, x86_64), e.g. `eclipseMirror.win32.win32.x86_64 = ...` (defaults to official Eclipse mirrors with Eclipse Indigo)
+* **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
 * **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
 * **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
 * **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
