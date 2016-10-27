@@ -1,3 +1,9 @@
+### 1.5.0
+
+ - Folder where Eclipse is downloaded to is now configurable - @missedone
+ - Support new folder structure for downloaded Eclipse for Mac OS X - @missedone
+ - Update dependency to Gradle download plugin
+
 ### 1.4.0
 
  - Compile for Java 7

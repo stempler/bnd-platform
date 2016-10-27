@@ -19,7 +19,7 @@ repositories {
 }
 
 group = 'org.standardout'
-version = '1.5.0-SNAPSHOT'
+version = '1.5.0'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
