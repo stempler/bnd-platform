@@ -28,6 +28,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.GradleException
 import org.osgi.framework.Version
 import org.osgi.framework.Constants
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
@@ -208,60 +209,23 @@ public class PlatformPlugin implements Plugin<Project> {
 			if (project.platform.eclipseHome != null) {
 				return
 			}
-			
+
 			// from system property
 			def eclipseHome = System.properties['ECLIPSE_HOME']
-			
+
 			if (!eclipseHome) {
-				File downloadedEclipse = new File(project.platform.downloadsDir, 'eclipse')
-				if (downloadedEclipse.exists()) {
-					// downloaded Eclipse already exists
-					eclipseHome = downloadedEclipse
-				}
-				else {
-					// download and extract Eclipse
-					def artifacts = project.platform.eclipseMirror
-					if (artifacts.containsKey(project.ext.osgiOS) && artifacts[project.ext.osgiOS].containsKey(project.ext.osgiWS) &&
-						artifacts[project.ext.osgiOS][project.ext.osgiWS].containsKey(project.ext.osgiArch)) {
-						
-						// Download artifact
-						String artifactDownloadUrl = artifacts[project.ext.osgiOS][project.ext.osgiWS][project.ext.osgiArch]
-						def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
-						def artifactZipPath = new File(project.platform.downloadsDir, filename)
-						def artifactZipPathPart = new File(project.platform.downloadsDir, filename + '.part')
-						if (!artifactZipPath.exists()) {
-							project.download {
-								src artifactDownloadUrl
-								dest artifactZipPathPart
-								overwrite true
-							}
-							artifactZipPathPart.renameTo(artifactZipPath)
-						}
-				
-						// Unzip artifact
-						println('Copying ' + name + ' ...')
-						def artifactInstallPath = project.platform.downloadsDir
-						if (artifactZipPath.name.endsWith('.zip')) {
-							project.ant.unzip(src: artifactZipPath, dest: artifactInstallPath)
-						} else {
-							project.ant.untar(src: artifactZipPath, dest: artifactInstallPath, compression: 'gzip')
-						}
-						if (downloadedEclipse.exists()) {
-							eclipseHome = downloadedEclipse
-						}
-						else {
-							project.logger.error 'Could not find "eclipse" directory in extracted artifact'
-						}
-					}
-					else {
-						project.logger.error 'Unable to download eclipse artifact'
-					}
-					
+				eclipseHome = checkDownloadedEclipse(project.platform.downloadsDir)
+				if (!eclipseHome) {
+					downloadAndExtractEclipse(project.platform.downloadsDir)
+					eclipseHome = checkDownloadedEclipse(project.platform.downloadsDir)
 				}
 			}
-			
+
 			if (eclipseHome) {
 				project.platform.eclipseHome = eclipseHome as File
+			}
+			else {
+				throw new GradleException('no eclipseHome found.')
 			}
 		}
 		
@@ -375,4 +339,48 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 	}
 
+	private void downloadAndExtractEclipse(File downloadsDir) {
+		// download and extract Eclipse
+		def artifacts = project.platform.eclipseMirror
+		if (artifacts.containsKey(project.ext.osgiOS) && artifacts[project.ext.osgiOS].containsKey(project.ext.osgiWS) &&
+			artifacts[project.ext.osgiOS][project.ext.osgiWS].containsKey(project.ext.osgiArch)) {
+
+			// Download artifact
+			String artifactDownloadUrl = artifacts[project.ext.osgiOS][project.ext.osgiWS][project.ext.osgiArch]
+			def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
+			def artifactZipPath = new File(downloadsDir, filename)
+			def artifactZipPathPart = new File(downloadsDir, filename + '.part')
+			if (!artifactZipPath.exists()) {
+				project.download {
+					src artifactDownloadUrl
+					dest artifactZipPathPart
+					overwrite true
+				}
+				artifactZipPathPart.renameTo(artifactZipPath)
+			}
+
+			// Unzip artifact
+			println('Copying ' + artifactZipPath + ' ...')
+			def artifactInstallPath = downloadsDir
+			if (artifactZipPath.name.endsWith('.zip')) {
+				project.ant.unzip(src: artifactZipPath, dest: artifactInstallPath)
+			} else {
+				project.ant.untar(src: artifactZipPath, dest: artifactInstallPath, compression: 'gzip')
+			}
+		}
+		else {
+			project.logger.error 'Unable to download eclipse artifact'
+		}
+	}
+
+	private File checkDownloadedEclipse(File downloadsDir) {
+		for (String subDir in ['eclipse', 'Eclipse.app/Contents/Eclipse']) {
+			File downloadedEclipse = new File(downloadsDir, subDir)
+			if (downloadedEclipse.exists()) {
+				return downloadedEclipse
+			}
+		}
+
+		return null;
+	}
 }
