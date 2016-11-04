@@ -19,7 +19,7 @@ package org.standardout.gradle.plugin.platform.internal;
 /**
  * Represents an Eclipse Update Site Feature.
  * 
- * The version, bundles and includedFeatures properties may only be accessed
+ * The version, bundles and features properties may only be accessed
  * after the feature configuration is complete.
  */
 public interface Feature {
@@ -32,8 +32,12 @@ public interface Feature {
 	
 	public String getProviderName();
 	
-	public Iterable<BundleArtifact> getBundles();
+	public Iterable<BundleArtifact> getIncludedBundles();
 	
-	public Iterable<Feature> getIncludedFeatures();
+	public Iterable<Feature> getIncludedFeatures();	
+	
+	public Iterable<BundleArtifact> getRequiredBundles();
+	
+	public Iterable<Feature> getRequiredFeatures();
 	
 }

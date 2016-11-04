@@ -56,7 +56,7 @@ class FeatureUtil {
 			}
 		
 			// included bundles
-			for (BundleArtifact artifact : feature.bundles.sort(true, { it.symbolicName })) {
+			for (BundleArtifact artifact : feature.includedBundles.sort(true, { it.symbolicName })) {
 				// define each plug-in
 				plugin(
 					id: artifact.symbolicName,
@@ -64,6 +64,19 @@ class FeatureUtil {
 					'install-size': 0,
 					version: artifact.modifiedVersion,
 					unpack: false)
+			}
+			
+			// required features and bundles
+			requires{
+				for (Feature required : feature.requiredFeatures.sort(true, { it.id })) {
+					if(required.version)
+						'import'(feature: required.id, version: required.version)
+					else
+						'import'(feature: required.id)
+				}
+				for (BundleArtifact artifact : feature.requiredBundles.sort(true, { it.symbolicName })) {
+					'import'(plugin: artifact.symbolicName, version: artifact.modifiedVersion)
+				}
 			}
 		}
 	}

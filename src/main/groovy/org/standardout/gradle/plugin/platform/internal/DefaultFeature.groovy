@@ -49,7 +49,7 @@ class DefaultFeature implements Feature {
 	}
 	
 	@Override
-	public Iterable<BundleArtifact> getBundles() {
+	public Iterable<BundleArtifact> getIncludedBundles() {
 		bundles == null ? [] : bundles
 	}
 
@@ -58,4 +58,13 @@ class DefaultFeature implements Feature {
 		includedFeatures == null ? [] : includedFeatures
 	}
 
+	@Override
+	Iterable<BundleArtifact> getRequiredBundles() {
+		[]
+	}
+
+	@Override
+	Iterable<Feature> getRequiredFeatures() {
+		[]
+	}
 }
