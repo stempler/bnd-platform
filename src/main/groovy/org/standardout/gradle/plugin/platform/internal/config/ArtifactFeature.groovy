@@ -143,6 +143,9 @@ class ArtifactFeature implements Feature {
 			artifacts.removeAll(transitiveArtifacts(includedBundles.toList()))
 		}
 
+		// Remove self included bundles
+		artifacts.removeAll(getIncludedBundles())
+
 		artifacts
 	}
 
