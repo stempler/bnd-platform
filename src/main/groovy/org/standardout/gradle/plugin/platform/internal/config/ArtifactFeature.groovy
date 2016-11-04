@@ -135,7 +135,15 @@ class ArtifactFeature implements Feature {
 
 	@Override
 	Iterable<BundleArtifact> getRequiredBundles() {
-		transitiveArtifacts(getIncludedBundles())
+		def artifacts = transitiveArtifacts(getIncludedBundles()).toSet()
+
+		// Remove artifacts that are already in required features
+		for (Feature feature : getRequiredFeatures()) {
+			def includedBundles = feature.getIncludedBundles()
+			artifacts.removeAll(transitiveArtifacts(includedBundles.toList()))
+		}
+
+		artifacts
 	}
 
 	private Iterable<BundleArtifact> transitiveArtifacts(Collection<BundleArtifact> artifacts) {
