@@ -140,7 +140,7 @@ class FileBundleArtifact implements BundleArtifact {
 		
 		bndConfig = null
 		
-		version = modifiedVersion = VersionUtil.toOsgiVersion(bundle.version).toString()
+		version = modifiedVersion = bundle.modifiedVersion
 		
 		symbolicName = bundle.symbolicName + '.source'
 		bundleName = bundle.bundleName + ' Sources'
