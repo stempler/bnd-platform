@@ -134,13 +134,13 @@ class FileBundleArtifact implements BundleArtifact {
 	 */
 	FileBundleArtifact(BundleArtifact bundle, File sourceBundleFile) {
 		this.file = sourceBundleFile
-		this.id = sourceBundleFile as String
+		this.id = bundle.id + ':sources'
 		this.source = true
 		this.wrap = false // wrapping is done implicitly
 		
 		bndConfig = null
 		
-		version = modifiedVersion = bundle.version
+		version = modifiedVersion = VersionUtil.toOsgiVersion(bundle.version).toString()
 		
 		symbolicName = bundle.symbolicName + '.source'
 		bundleName = bundle.bundleName + ' Sources'
