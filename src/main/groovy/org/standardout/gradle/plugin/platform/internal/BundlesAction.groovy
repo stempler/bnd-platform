@@ -100,6 +100,12 @@ class BundlesAction implements Action<Task> {
 						}.find {
 							it.exists()
 						}
+						if (sourceJar) {
+							FileBundleArtifact source = new FileBundleArtifact(artifact, sourceJar)
+							
+							// register artifact so it is included in the platform feature
+							project.platform.artifacts[source.id] = source
+						}
 					}
 				}
 				
