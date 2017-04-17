@@ -67,8 +67,7 @@ class BundleHelper {
 				(Analyzer.BUNDLE_NAME): sourceArt.bundleName,
 				(Analyzer.BUNDLE_VERSION): sourceArt.modifiedVersion,
 				(Analyzer.BUNDLE_SYMBOLICNAME): sourceArt.symbolicName,
-//				(Analyzer.PRIVATE_PACKAGE): '*', // sources as private packages
-				(Analyzer.EXPORT_PACKAGE): '!', // no exports
+				(Analyzer.REMOVEHEADERS): '*-Package',	// no 'Export-Package', 'Import-Package', 'Private-Package' for source bundle
 				'Eclipse-SourceBundle': sourceBundleDef
 			], removeSignatures)
 			if (!written) {
