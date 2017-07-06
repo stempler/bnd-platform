@@ -449,6 +449,30 @@ platform {
 }
 ```
 
+
+
+Using the current SNAPSHOT
+--------------------------
+
+If you want to test the latest version with changes that have not been released yet, you can configure your project to use the latest SNAPSHOT:
+
+```groovy
+buildscript {
+  repositories {
+    maven {
+      url 'http://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    jcenter()
+  }
+  dependencies {
+    classpath 'org.standardout:bnd-platform:1.6.0-SNAPSHOT'
+  }
+}
+
+apply plugin: 'org.standardout.bnd-platform'
+```
+
+
 License
 -------
 
