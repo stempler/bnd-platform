@@ -33,8 +33,8 @@ jar {
 
 dependencies {
 	compile gradleApi()
-	compile 'biz.aQute.bnd:bndlib:2.2.0'
-//	compile 'org.osgi:org.osgi.core:4.3.0'
+	compile 'biz.aQute.bnd:biz.aQute.bndlib:3.3.0'
+	compile 'org.osgi:osgi.core:6.0.0'
 	compile 'commons-io:commons-io:2.4'
 	compile 'de.undercouch:gradle-download-task:3.1.1'
 	compile localGroovy()
