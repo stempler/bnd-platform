@@ -277,7 +277,9 @@ class BundleHelper {
 		}
 		
 		// remove the manifest (we don't want to retain any information)
-		jar.remove(MANIFEST_PATH)
+		if (jar.exists(MANIFEST_PATH)) {
+			jar.remove(MANIFEST_PATH)
+		}
 		
 		jar.write(targetFile)
 	}
