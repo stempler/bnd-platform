@@ -1,3 +1,9 @@
+### Unreleased
+
+ - Don't fail when merging Jars w/o manifest file - @qqilihq
+ - remove 'Export-Package', 'Import-Package', 'Private-Package' for source bundle - @missedone
+ - Prevent duplication of SNAPSHOT source bundles - @florianesser
+
 ### 1.5.0
 
  - Folder where Eclipse is downloaded to is now configurable - @missedone
