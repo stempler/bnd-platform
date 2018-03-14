@@ -104,6 +104,11 @@ public class BndHelper {
 
 		Analyzer wrapper = new Analyzer();
 		wrapper.setProperty(Analyzer.NOEXTRAHEADERS, "true"); // prevent adding e.g. last modified header
+		/*
+		 * FIXME Current bndlib versions (at least 3.3-3.5) seem create wrong errors
+		 * mentioning that the default package is referred to.
+		 */
+		wrapper.setProperty(Analyzer.FAIL_OK, "true");
 		try {
 			if (classpath != null) {
 				for (File f : classpath) {
@@ -130,14 +135,24 @@ public class BndHelper {
 			Manifest m = wrapper.calcManifest();
 
 			if (wrapper.isOk()) {
+				if (wrapper.getErrors() != null && !wrapper.getErrors().isEmpty()) {
+					String name = wrapper.getBundleSymbolicName().getKey();
+					for (String error : wrapper.getErrors()) {
+						
+						System.out.println("Error reported by bundle wrapper for bundle "
+								+ name + " is ignored:\n" + error);
+					}
+				}
+				
 				wrapper.getJar().setManifest(m);
 				wrapper.save(outputFile, true);
-				if (!wrapper.isOk()) {
+				if (!wrapper.isOk() || !outputFile.exists()) {
 					throw new IllegalStateException("Failed creating a wrapped bundle");
 				}
 			}
 			else {
-				throw new IllegalStateException("Failed calculating the manifest for a wrapped bundle");
+				throw new IllegalStateException("Failed calculating the manifest for a wrapped bundle: "
+						+ wrapper.getErrors());
 			}
 		}
 		finally {
