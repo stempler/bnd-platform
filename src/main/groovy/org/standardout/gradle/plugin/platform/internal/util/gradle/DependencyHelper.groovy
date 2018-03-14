@@ -47,7 +47,7 @@ class DependencyHelper {
 		if (dependency instanceof ModuleDependency) {
 			def artifacts = dependency.artifacts
 			if (artifacts.size() > 0) {
-				result = artifacts[0].classifier
+				result = artifacts.iterator().next().classifier
 			}
 			else {
 				// default artifact -> no classifier
