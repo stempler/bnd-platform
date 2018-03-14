@@ -16,8 +16,10 @@
 
 package org.standardout.gradle.plugin.platform.internal.util.bnd
 
+import java.io.IOException
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer
 
 import org.apache.commons.io.IOUtils;
 
@@ -28,6 +30,7 @@ class ByteArrayResource implements Resource {
 	final byte[] data
 	final long lastMod
 	String extra
+	ByteBuffer buffer
 	
 	ByteArrayResource(Resource resource) {
 		data = resource.openInputStream().withStream {
@@ -62,6 +65,19 @@ class ByteArrayResource implements Resource {
 	@Override
 	public long size() throws Exception {
 		return data.length;
+	}
+
+	@Override
+	public void close() throws IOException {
+		
+	}
+
+	@Override
+	public ByteBuffer buffer() throws Exception {
+		if (buffer != null) {
+			return buffer;
+		}
+		return buffer = ByteBuffer.wrap(data);
 	}
 
 }
