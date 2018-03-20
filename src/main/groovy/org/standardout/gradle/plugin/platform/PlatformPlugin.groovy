@@ -340,37 +340,24 @@ public class PlatformPlugin implements Plugin<Project> {
 	}
 
 	private void downloadAndExtractEclipse(File downloadsDir) {
-		// download and extract Eclipse
-		def artifacts = project.platform.eclipseMirror
-		if (artifacts.containsKey(project.ext.osgiOS) && artifacts[project.ext.osgiOS].containsKey(project.ext.osgiWS) &&
-			artifacts[project.ext.osgiOS][project.ext.osgiWS].containsKey(project.ext.osgiArch)) {
-
-			// Download artifact
-			String artifactDownloadUrl = artifacts[project.ext.osgiOS][project.ext.osgiWS][project.ext.osgiArch]
-			def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
-			def artifactZipPath = new File(downloadsDir, filename)
-			def artifactZipPathPart = new File(downloadsDir, filename + '.part')
-			if (!artifactZipPath.exists()) {
-				project.download {
-					src artifactDownloadUrl
-					dest artifactZipPathPart
-					overwrite true
-				}
-				artifactZipPathPart.renameTo(artifactZipPath)
+		// Download artifact
+		def artifactDownloadUrl = project.platform.eclipseMirror
+		def filename = artifactDownloadUrl.substring(artifactDownloadUrl.lastIndexOf('/') + 1)
+		def artifactZipPath = new File(downloadsDir, filename)
+		def artifactZipPathPart = new File(downloadsDir, filename + '.part')
+		if (!artifactZipPath.exists()) {
+			project.download {
+				src artifactDownloadUrl
+				dest artifactZipPathPart
+				overwrite true
 			}
+			artifactZipPathPart.renameTo(artifactZipPath)
+		}
 
-			// Unzip artifact
-			println('Copying ' + artifactZipPath + ' ...')
-			def artifactInstallPath = downloadsDir
-			if (artifactZipPath.name.endsWith('.zip')) {
-				project.ant.unzip(src: artifactZipPath, dest: artifactInstallPath)
-			} else {
-				project.ant.untar(src: artifactZipPath, dest: artifactInstallPath, compression: 'gzip')
-			}
-		}
-		else {
-			project.logger.error 'Unable to download eclipse artifact'
-		}
+		// Unzip artifact
+		println('Copying ' + artifactZipPath + ' ...')
+		def artifactInstallPath = downloadsDir
+		project.ant.untar(src: artifactZipPath, dest: artifactInstallPath, compression: 'gzip')
 	}
 
 	private File checkDownloadedEclipse(File downloadsDir) {
