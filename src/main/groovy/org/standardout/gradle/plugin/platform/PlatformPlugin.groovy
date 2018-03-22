@@ -16,34 +16,24 @@
 
 package org.standardout.gradle.plugin.platform
 
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-import java.util.Map;
 import java.util.jar.*
 
-import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.GradleException
 import org.osgi.framework.Version
-import org.osgi.framework.Constants
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundlesAction;
 import org.standardout.gradle.plugin.platform.internal.DefaultFeature
 import org.standardout.gradle.plugin.platform.internal.Feature
-import org.standardout.gradle.plugin.platform.internal.FileBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.SourceBundleArtifact
-import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
-import org.standardout.gradle.plugin.platform.internal.osdetect.OS;
 import org.standardout.gradle.plugin.platform.internal.osdetect.SwtPlatform
 import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
-import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
+import org.standardout.gradle.plugin.platform.internal.util.bnd.BndHelper
 
+import aQute.libg.tuple.Pair
+import groovy.io.FileType
 import groovy.json.JsonOutput
 
 /**
@@ -57,9 +47,9 @@ public class PlatformPlugin implements Plugin<Project> {
 	public static final String TASK_BUNDLES = 'bundles'
 	public static final String CONF_PLATFORM = 'platform'
 	public static final String CONF_AUX = 'platformaux'
-	
+
 	private Project project
-	
+
 	private File bundlesDir
 	private File categoryFile
 	private File featuresDir
@@ -67,15 +57,15 @@ public class PlatformPlugin implements Plugin<Project> {
 	@Override
 	public void apply(Project project) {
 		this.project = project
-		
+
 		configureEnvironment(project)
-		
+
 		// ensure download-task plugin is applied
 		project.apply(plugin: 'de.undercouch.download')
 
 		// register extension
 		project.extensions.create('platform', PlatformPluginExtension, project)
-		
+
 		// initialize file/directory members
 		// names are fixed because of update site conventions
 		bundlesDir = new File(project.buildDir, 'plugins')
@@ -85,7 +75,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		// create configuration
 		project.configurations.maybeCreate CONF_PLATFORM
 		project.configurations.maybeCreate CONF_AUX
-		
+
 		project.afterEvaluate {
 			// feature version default
 			if (project.platform.featureVersion == null) {
@@ -111,96 +101,93 @@ public class PlatformPlugin implements Plugin<Project> {
 
 		// create bundles task
 		Task bundlesTask = project.task(TASK_BUNDLES)
-		
+
 		// depend on the artifacts (rather than a task)
 		//XXX not sure if this really has any effect
 		bundlesTask.dependsOn(project.configurations.getByName(CONF_PLATFORM).allArtifacts.buildDependencies)
-		
+
 		// define bundles task
 		bundlesTask.doFirst(new BundlesAction(project, bundlesDir))
-		
+
 		/*
 		 * Clean task.
 		 */
 		Task cleanTask = project.tasks.findByPath('clean')
 		if (!cleanTask) {
 			// only create tas if it does not exist yet
-			cleanTask = project.task('clean'); 
+			cleanTask = project.task('clean');
 		}
 		cleanTask.doLast {
 			categoryFile.delete()
 			featuresDir.deleteDir()
 			bundlesDir.deleteDir()
 			// don't delete download in default clean
-//			downloadsDir.deleteDir()
+			//			downloadsDir.deleteDir()
 			project.platform.updateSiteDir.deleteDir()
 			project.platform.updateSiteZipFile.delete()
 		}
-		
+
 		/*
 		 * Generate a feature definition for the platform feature.
 		 */
 		Task platformFeatureTask = project.task('platformFeature', dependsOn: bundlesTask).doFirst {
 			// create platform feature.xml
 			Feature feature = new DefaultFeature(
-				id: project.platform.featureId,
-				label: project.platform.featureName,
-				version: project.platform.featureVersion,
-				providerName: project.platform.featureProvider,
-				bundles: project.platform.artifacts.values().toList(),
-				includedFeatures: project.platform.features.values().toList(),
-				project: project
-			)
-			
+					id: project.platform.featureId,
+					label: project.platform.featureName,
+					version: project.platform.featureVersion,
+					providerName: project.platform.featureProvider,
+					bundles: project.platform.artifacts.values().toList(),
+					includedFeatures: project.platform.features.values().toList(),
+					project: project
+					)
+
 			project.platform.features[feature.id] = feature
 		}
-		
+
 		/*
 		 * Create JARs for all features. 
 		 */
 		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: platformFeatureTask).doFirst {
 			featuresDir.mkdirs()
-			
+
 			project.platform.features.values().each { Feature feature ->
 				File featureJar = new File(featuresDir, "${feature.id}_${feature.version}.jar")
-				
-				use(FeatureUtil) {
-					feature.createJar(featureJar)
-				}
+
+				use(FeatureUtil) { feature.createJar(featureJar) }
 			}
 		}
-		
+
 		/*
 		 * Generate category.xml.
 		 */
 		Task generateCategoryTask = project.task('generateCategory', dependsOn: bundleFeaturesTask).doFirst {
 			categoryFile.parentFile.mkdirs()
-			
-			categoryFile.withWriter('UTF-8'){
-				w ->
+
+			categoryFile.withWriter('UTF-8'){ w ->
 				def xml = new groovy.xml.MarkupBuilder(w)
 				xml.setDoubleQuotes(true)
 				xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
-				
+
 				xml.site{
 					// all features
 					project.platform.features.values().each { Feature f ->
 						feature(url: "features/${f.id}_${f.version}.jar",
-								id: f.id,
-								version: f.version) {
+						id: f.id,
+						version: f.version) {
 							// associate the feature to the category
 							category(name: project.platform.categoryId)
 						}
 					}
-							
+
 					// define the category
 					'category-def'(name: project.platform.categoryId, label: project.platform.categoryName)
 				}
 			}
-			
+
 			project.logger.info 'Generated category.xml.'
 		}
-		
+
 		/*
 		 * Task that checks if Eclipse is there / Eclipse home is specified.
 		 */
@@ -228,79 +215,79 @@ public class PlatformPlugin implements Plugin<Project> {
 				throw new GradleException('no eclipseHome found.')
 			}
 		}
-		
+
 		/*
 		 * Build a p2 repository with all the bundles
 		 */
-		Task updateSiteTask = project.task('updateSite', dependsOn: [bundleFeaturesTask, generateCategoryTask, checkEclipseTask]).doFirst {
+		Task updateSiteTask = project.task('updateSite', dependsOn: [
+			bundleFeaturesTask,
+			generateCategoryTask,
+			checkEclipseTask
+		]).doFirst {
 			project.platform.updateSiteDir.mkdirs()
-			
+
 			assert project.platform.eclipseHome
 			def eclipseHome = project.platform.eclipseHome.absolutePath
-			
+
 			// find launcher jar
 			def launcherFiles = project.ant.fileScanner {
-				fileset(dir: eclipseHome) {
-					include(name: 'plugins/org.eclipse.equinox.launcher_*.jar')
-				}
+				fileset(dir: eclipseHome) { include(name: 'plugins/org.eclipse.equinox.launcher_*.jar') }
 			}
 			def launcherJar = launcherFiles.iterator().next()
 			assert launcherJar
-			
+
 			project.logger.info "Using Eclipse at $eclipseHome for p2 repository generation."
-			
+
 			/*
 			 * Documentation on Publisher:
 			 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
 			 * http://wiki.eclipse.org/Equinox/p2/Publisher
 			 */
-			
+
 			// launch Publisher for Features and Bundles
 			def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 			def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
 			project.exec {
 				commandLine 'java', '-jar', launcherJar,
-					'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
-					'-metadataRepository', repoDirUri,
-					'-artifactRepository', repoDirUri,
-					'-source', project.buildDir,
-					'-configs', 'ANY', '-publishArtifacts', '-compress'
+						'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
+						'-metadataRepository', repoDirUri,
+						'-artifactRepository', repoDirUri,
+						'-source', project.buildDir,
+						'-configs', 'ANY', '-publishArtifacts', '-compress'
 			}
-			
+
 			// launch Publisher for category / site.xml
 			project.exec {
 				commandLine 'java', '-jar', launcherJar,
-					'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
-					'-metadataRepository', repoDirUri,
-					'-categoryDefinition', categoryFileUri,
-					'-compress'
+						'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
+						'-metadataRepository', repoDirUri,
+						'-categoryDefinition', categoryFileUri,
+						'-compress'
 			}
-			
+
 			project.logger.info 'Built p2 repository.'
 		}
-		
+
 		/*
 		 * Archive update site.
 		 */
 		Task siteArchiveTask = project.task('updateSiteZip', dependsOn: [updateSiteTask]).doFirst {
 			project.ant.zip(destfile: project.platform.updateSiteZipFile) {
-				fileset(dir: project.platform.updateSiteDir) {
-					include(name: '**')
-				}
+				fileset(dir: project.platform.updateSiteDir) { include(name: '**') }
 			}
 		}
-		
+
 		/*
 		 * Task that creates a Json file with a mapping of bundle name to  
 		 */
 		Task artifactMapTask = project.task('artifactMap', dependsOn: bundlesTask).doFirst {
 			Map<String, BundleArtifact> artifacts = project.platform.artifacts
-			
+
 			def report = [:]
 			artifacts.values().each { BundleArtifact artifact ->
 				if (!artifact.isSource() && artifact instanceof ResolvedBundleArtifact) {
 					// artifact that has a Maven dependency as it's direct source
-					
+
 					def info = report[artifact.symbolicName]
 					if (!info) {
 						info = [:]
@@ -308,19 +295,69 @@ public class PlatformPlugin implements Plugin<Project> {
 						info.name = artifact.name
 						report[artifact.symbolicName] = info
 					}
-					
+
 					if (!info.versions) {
 						info.versions = [:]
 					}
 					info.versions[artifact.modifiedVersion] = artifact.version
 				}
 			}
-			
+
 			File reportFile = new File(project.buildDir, 'bundleArtifactMap.json')
 			reportFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(report))
 		}
+
+		/**
+		 * Creates a potentialOptionalImports.txt file in the build directory of potential optional imports.
+		 * 
+		 * Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
+		 * therefore optionalImport instructions for the bnd configuration are used quite frequently.
+		 * This task should help to generate the optional import statements, 
+		 * but please be careful since this task simply creates the optionalImport statements for each and every imported package.
+		 * This means that YOU have to check yourself if the dependency is really optional.
+		 * 
+		 * See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
+		 */
+		Task potentialOptionalImports = project.task('potentialOptionalImports', dependsOn: bundlesTask) {
+			group 'bnd-platform'
+			description 'Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction'
+
+			doFirst {
+				def reportFile = new File(project.buildDir, 'potentialOptionalImports.txt').newWriter()
+				reportFile << '''Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
+therefore optionalImport instructions for the bnd configuration are used quite frequently.
+This task should help to generate the optional import statements, 
+but please be careful since this task simply creates the optionalImport statements for each and every imported package.
+This means that YOU have to check yourself if the dependency is really optional.
+
+See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
+
+'''
+				def bundlesWithoutImports = []
+
+				bundlesDir.eachFileRecurse (FileType.FILES) { bundle ->
+					def symbolicNameAndPackageImports = BndHelper.getSymbolicNameAndPackageImports(bundle);
+
+					if(!symbolicNameAndPackageImports.second.empty) {
+						reportFile << "\n# ${symbolicNameAndPackageImports.first} \n\n"
+						symbolicNameAndPackageImports.second.each { reportFile << "optionalImport '${it}'\n" }
+					} else if(!symbolicNameAndPackageImports.first.endsWith('source')){
+						bundlesWithoutImports << symbolicNameAndPackageImports.first
+					}
+				}
+
+				if(!bundlesWithoutImports.empty) {
+					reportFile << "\n----------------------------------------------------"
+					reportFile << "\nBundles without imported packages \n\n"
+					bundlesWithoutImports.each { reportFile << "   ${it}\n" }
+				}
+
+				reportFile.close()
+			}
+		}
+
 	}
-	
+
 	/**
 	 * Guess current environment and store information in project.ext.
 	 */
@@ -361,7 +398,10 @@ public class PlatformPlugin implements Plugin<Project> {
 	}
 
 	private File checkDownloadedEclipse(File downloadsDir) {
-		for (String subDir in ['eclipse', 'Eclipse.app/Contents/Eclipse']) {
+		for (String subDir in [
+			'eclipse',
+			'Eclipse.app/Contents/Eclipse'
+		]) {
 			File downloadedEclipse = new File(downloadsDir, subDir)
 			if (downloadedEclipse.exists()) {
 				return downloadedEclipse
