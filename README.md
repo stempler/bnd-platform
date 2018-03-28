@@ -227,6 +227,36 @@ platform {
 }
 ```
 
+### Optional Dependencies
+
+Many third party libraries have optional dependencies being specified by using `<optional>true</optional>` in a pom.xml file.
+
+For example the [Retrofit](https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit/2.4.0 "Retrofit 2.4.0 on Maven Central") library has android as optional dependency:
+
+```xml
+<dependency>
+  <groupId>com.google.android</groupId>
+  <artifactId>android</artifactId>
+  <optional>true</optional>
+</dependency>
+```
+Since it is unlikely to happen that you want an android dependency in your OSGi application it can be marked as optional:
+
+```groovy
+plugin('com.squareup.retrofit2:retrofit:2.4.0'){
+	bnd {
+		optionalImport 'android.os'
+		optionalImport 'android.net'
+    	}
+}
+```
+Unfortunately the information about the `<optional>true</optional>` instruction is lost during a Gradle build because Gradle's dependency management does not support it yet. (FYI https://docs.gradle.org/4.6/release-notes.html#support-for-optional-dependencies-in-pom-consumption)
+So the bnd-platform plug-in cannot add the optionalImport instructions automatically, yet.
+
+For the [Retrofit](https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit/2.4.0 "Retrofit 2.4.0 on Maven Central") library it is fairly easy to write the optionalImport instructions like above, but there are other libraries, which have plenty of these `<optional>true</optional>` instruction.
+
+In order to generate the list of potential optional imports a _potentialOptionalImports_ task has been created. This task  creates a _potentialOptionalImports.txt_ file, which lists potential optional imports of each and every bundle, which is created during a build.
+
 ### Sharing configurations
 
 Even though setting up an extensive platform of OSGi bundles can be done quite fast using *bnd-platform*, in many cases additional configuration is necessary. It comes naturally that it should be possible to reuse and share those configurations.
@@ -413,7 +443,7 @@ Via the platform extension there are several settings you can provide:
 * **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
 * **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
 * **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
-* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*, the URLs are identified per osgiOS (win32, linux, macosx), osgiWS (win32, gtk, cocoa) and arch (x86, x86_64), e.g. `eclipseMirror.win32.win32.x86_64 = ...` (defaults to official Eclipse mirrors with Eclipse Indigo)
+* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Uses https://dl.bintray.com/simon-scholz/eclipse-apps/eclipse-p2-minimal.tar.gz by default.
 * **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
 * **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
 * **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
@@ -445,7 +475,7 @@ platform {
 	fetchSources = false
 	featureVersion = '3.1.0'
 	eclipseHome = new File('/opt/eclipse')
-	eclipseMirror.linux.gtk.x86_64 = 'http://myeclipsedownload.com/eclipse.tar.gz'
+	eclipseMirror = 'http://myeclipsedownload.com/eclipse.tar.gz'
 }
 ```
 

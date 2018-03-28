@@ -13,6 +13,8 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'eclipse'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
 
 repositories {
 	jcenter()
@@ -173,5 +175,16 @@ bintray { // task bintrayUpload
 		}
 	}
 
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            from components.java
+            groupId "${group}"
+            artifactId 'bnd-platform'
+            version "${version}"
+        }
+    }
 }
 

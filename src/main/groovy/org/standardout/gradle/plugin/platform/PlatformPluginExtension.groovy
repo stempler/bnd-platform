@@ -308,32 +308,10 @@ class PlatformPluginExtension {
 	File downloadsDir
 
 	/**
-	 * Nested map that is checked for Eclipse download URLs, keys are
-	 * osgiOS (win32, linux, macosx), osgiWS (win32, gtk, cocoa) and
-	 * arch (x86, x86_64) in that order.
-	 * Specify an alternate Eclipse mirror like this:
-	 * <code>eclipseMirror.win32.win32.x86 = 'http://...'</code>   
+	 * 4.8 MB *.tar.gz file, which contains the minimal setup of eclipse plug-ins,
+	 * which are necessary to build an eclipse p2 update site.
 	 */
-	def eclipseMirror = [
-		win32: [
-			win32: [
-				x86: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-win32.zip',
-				x86_64: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-win32-x86_64.zip'
-			]
-		],
-		linux: [
-			gtk: [
-				x86: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-linux-gtk.tar.gz',
-				x86_64: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-linux-gtk-x86_64.tar.gz'
-			]
-		],
-		macosx: [
-			cocoa: [
-				x86: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-macosx-cocoa.tar.gz',
-				x86_64: 'http://ftp.fau.de/eclipse/technology/epp/downloads/release/indigo/SR2/eclipse-rcp-indigo-SR2-macosx-cocoa-x86_64.tar.gz'
-			]
-		]
-	]
+	def eclipseMirror = 'https://dl.bintray.com/simon-scholz/eclipse-apps/eclipse-p2-minimal.tar.gz'
 	
 	/**
 	 * Call feature to create a feature configuration.
