@@ -100,7 +100,10 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 
 		// create bundles task
-		Task bundlesTask = project.task(TASK_BUNDLES)
+		Task bundlesTask = project.task(TASK_BUNDLES) {
+			group 'bnd-platform'
+			description 'Create specified bundles and write them to build/plugins'
+		}
 
 		// depend on the artifacts (rather than a task)
 		//XXX not sure if this really has any effect
@@ -223,57 +226,65 @@ public class PlatformPlugin implements Plugin<Project> {
 			bundleFeaturesTask,
 			generateCategoryTask,
 			checkEclipseTask
-		]).doFirst {
-			project.platform.updateSiteDir.mkdirs()
-
-			assert project.platform.eclipseHome
-			def eclipseHome = project.platform.eclipseHome.absolutePath
-
-			// find launcher jar
-			def launcherFiles = project.ant.fileScanner {
-				fileset(dir: eclipseHome) { include(name: 'plugins/org.eclipse.equinox.launcher_*.jar') }
+		]) {
+			group 'bnd-platform'
+			description 'Create a p2 repository from the bundles and write it to build/updatesite'
+			doFirst {
+				project.platform.updateSiteDir.mkdirs()
+	
+				assert project.platform.eclipseHome
+				def eclipseHome = project.platform.eclipseHome.absolutePath
+	
+				// find launcher jar
+				def launcherFiles = project.ant.fileScanner {
+					fileset(dir: eclipseHome) { include(name: 'plugins/org.eclipse.equinox.launcher_*.jar') }
+				}
+				def launcherJar = launcherFiles.iterator().next()
+				assert launcherJar
+	
+				project.logger.info "Using Eclipse at $eclipseHome for p2 repository generation."
+	
+				/*
+				 * Documentation on Publisher:
+				 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
+				 * http://wiki.eclipse.org/Equinox/p2/Publisher
+				 */
+	
+				// launch Publisher for Features and Bundles
+				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
+				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
+				project.exec {
+					commandLine 'java', '-jar', launcherJar,
+							'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
+							'-metadataRepository', repoDirUri,
+							'-artifactRepository', repoDirUri,
+							'-source', project.buildDir,
+							'-configs', 'ANY', '-publishArtifacts', '-compress'
+				}
+	
+				// launch Publisher for category / site.xml
+				project.exec {
+					commandLine 'java', '-jar', launcherJar,
+							'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
+							'-metadataRepository', repoDirUri,
+							'-categoryDefinition', categoryFileUri,
+							'-compress'
+				}
+	
+				project.logger.info 'Built p2 repository.'
 			}
-			def launcherJar = launcherFiles.iterator().next()
-			assert launcherJar
-
-			project.logger.info "Using Eclipse at $eclipseHome for p2 repository generation."
-
-			/*
-			 * Documentation on Publisher:
-			 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
-			 * http://wiki.eclipse.org/Equinox/p2/Publisher
-			 */
-
-			// launch Publisher for Features and Bundles
-			def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
-			def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
-			project.exec {
-				commandLine 'java', '-jar', launcherJar,
-						'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
-						'-metadataRepository', repoDirUri,
-						'-artifactRepository', repoDirUri,
-						'-source', project.buildDir,
-						'-configs', 'ANY', '-publishArtifacts', '-compress'
-			}
-
-			// launch Publisher for category / site.xml
-			project.exec {
-				commandLine 'java', '-jar', launcherJar,
-						'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
-						'-metadataRepository', repoDirUri,
-						'-categoryDefinition', categoryFileUri,
-						'-compress'
-			}
-
-			project.logger.info 'Built p2 repository.'
 		}
 
 		/*
 		 * Archive update site.
 		 */
-		Task siteArchiveTask = project.task('updateSiteZip', dependsOn: [updateSiteTask]).doFirst {
-			project.ant.zip(destfile: project.platform.updateSiteZipFile) {
-				fileset(dir: project.platform.updateSiteDir) { include(name: '**') }
+		Task siteArchiveTask = project.task('updateSiteZip', dependsOn: [updateSiteTask]) {
+			group 'bnd-platform'
+			description 'Create a ZIP archive from the p2 repository and write it to build/updatesite.zip'
+			doFirst {
+				project.ant.zip(destfile: project.platform.updateSiteZipFile) {
+					fileset(dir: project.platform.updateSiteDir) { include(name: '**') }
+				}
 			}
 		}
 
