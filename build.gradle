@@ -43,7 +43,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
+	gradleVersion = '4.6'
 }
 
 // package groovydoc into a jar file

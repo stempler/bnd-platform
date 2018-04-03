@@ -16,10 +16,10 @@
 
 package org.standardout.gradle.plugin.platform.internal.util.gradle
 
-import groovy.transform.EqualsAndHashCode;
+import groovy.transform.EqualsAndHashCode
 
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.artifacts.Dependency
+import org.gradle.internal.HasInternalProtocol
 
 /**
  * Dummy dependency class (that may have a <code>null</code> name).
@@ -33,12 +33,13 @@ class DummyDependency implements Dependency {
 	private final String name
 	private final String version
 	private final String classifier
+	private String because
 
 	DummyDependency(String group, String name, String version, String classifier = null) {
-		super();
-		this.group = group;
-		this.name = name;
-		this.version = version;
+		super()
+		this.group = group
+		this.name = name
+		this.version = version
 		this.classifier = classifier
 	}
 	
@@ -48,21 +49,21 @@ class DummyDependency implements Dependency {
 
 	@Override
 	public String getGroup() {
-		return group;
+		group
 	}
 
 	@Override
 	public String getName() {
-		return name;
+		name
 	}
 
 	@Override
 	public String getVersion() {
-		return version;
+		version
 	}
 	
 	public String getClassifier() {
-		return classifier;
+		classifier
 	}
 
 	@Override
@@ -72,7 +73,16 @@ class DummyDependency implements Dependency {
 
 	@Override
 	public Dependency copy() {
-		return this;
+		this
 	}
 
+	@Override
+	public void because(String because) {
+		this.because = because
+	}
+
+	@Override
+	public String getReason() {
+		because
+	}
 }
