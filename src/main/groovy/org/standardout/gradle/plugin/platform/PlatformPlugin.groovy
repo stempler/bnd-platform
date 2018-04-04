@@ -97,7 +97,7 @@ public class PlatformPlugin implements Plugin<Project> {
 			if (project.platform.downloadsDir == null) {
 				// use gradleUserHomeDir to store the minimal p2 eclipse distribution for generating p2 update sites
 				// See https://docs.gradle.org/current/dsl/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:gradleUserHomeDir
-				project.platform.downloadsDir = new File(project.gradle.gradleUserHomeDir, 'eclipse-downloads')
+				project.platform.downloadsDir = new File(project.gradle.gradleUserHomeDir, 'bnd-platform')
 			}
 			if (!project.platform.downloadsDir.exists()) {
 				project.platform.downloadsDir.mkdirs()
