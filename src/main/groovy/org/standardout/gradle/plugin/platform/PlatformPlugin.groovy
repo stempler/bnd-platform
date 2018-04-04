@@ -22,6 +22,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.BasePlugin
 import org.osgi.framework.Version
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.BundlesAction;
@@ -32,7 +33,6 @@ import org.standardout.gradle.plugin.platform.internal.osdetect.SwtPlatform
 import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
 import org.standardout.gradle.plugin.platform.internal.util.bnd.BndHelper
 
-import aQute.libg.tuple.Pair
 import groovy.io.FileType
 import groovy.json.JsonOutput
 
@@ -57,6 +57,9 @@ public class PlatformPlugin implements Plugin<Project> {
 	@Override
 	public void apply(Project project) {
 		this.project = project
+
+		// use BasePlugin to derive the clean task from it
+		project.getPluginManager().apply(BasePlugin.class);
 
 		configureEnvironment(project)
 
@@ -92,7 +95,9 @@ public class PlatformPlugin implements Plugin<Project> {
 			}
 
 			if (project.platform.downloadsDir == null) {
-				project.platform.downloadsDir = new File(project.buildDir, 'eclipse-downloads')
+				// use gradleUserHomeDir to store the minimal p2 eclipse distribution for generating p2 update sites
+				// See https://docs.gradle.org/current/dsl/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:gradleUserHomeDir
+				project.platform.downloadsDir = new File(project.gradle.gradleUserHomeDir, 'bnd-platform')
 			}
 			if (!project.platform.downloadsDir.exists()) {
 				project.platform.downloadsDir.mkdirs()
@@ -111,24 +116,6 @@ public class PlatformPlugin implements Plugin<Project> {
 
 		// define bundles task
 		bundlesTask.doFirst(new BundlesAction(project, bundlesDir))
-
-		/*
-		 * Clean task.
-		 */
-		Task cleanTask = project.tasks.findByPath('clean')
-		if (!cleanTask) {
-			// only create tas if it does not exist yet
-			cleanTask = project.task('clean');
-		}
-		cleanTask.doLast {
-			categoryFile.delete()
-			featuresDir.deleteDir()
-			bundlesDir.deleteDir()
-			// don't delete download in default clean
-			//			downloadsDir.deleteDir()
-			project.platform.updateSiteDir.deleteDir()
-			project.platform.updateSiteZipFile.delete()
-		}
 
 		/*
 		 * Generate a feature definition for the platform feature.
