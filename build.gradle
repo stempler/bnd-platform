@@ -21,7 +21,7 @@ repositories {
 }
 
 group = 'org.standardout'
-version = '1.6.0-SNAPSHOT'
+version = '1.7.0-SNAPSHOT'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -43,7 +43,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.3'
+	gradleVersion = '4.6'
 }
 
 // package groovydoc into a jar file
