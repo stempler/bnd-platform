@@ -3,6 +3,14 @@
  - Don't fail when merging Jars w/o manifest file - @qqilihq
  - remove 'Export-Package', 'Import-Package', 'Private-Package' for source bundle - @missedone
  - Prevent duplication of SNAPSHOT source bundles - @florianesser
+ - If no 'eclipseHome' is defined eclipse indigo is not downloaded any more, but a minimal eclipse app with a size of 4.8 MB. @SimonScholz
+ - The build folder does not have a eclipse-downloads folder any more, but the minimal eclipse app is stored in the gradleHomeDir, where the Gradle wrappers and other Gradle configurations are stored. @SimonScholz
+ - A new task called 'potentialOptionalImports' has been added. (See README for further information) @SimonScholz
+ - Public tasks are now more visible under the bnd-platform group when calling the 'tasks' task. @SimonScholz
+ - The Gradle wrapper of this project has been updated to Gradle 4.6 @SimonScholz
+ - The bnd-platform plug-in now applies Gradle's BasePlugin and therefore reuses the 'clean' task from Gradle's BasePlugin, therefore it integrates with other plug-ins more smoothly and will support Gradle 5 better, which does not allow to have a custom clean task. @SimonScholz
+ - The 'platform' closure now has a 'generatePlatformFeature' which states if a general feature should be created. In case custom features are generated you might not want to have an additional "generated platform feature" besides your own features. (default: **true**) @SimonScholz
+
 
 ### 1.5.0
 
