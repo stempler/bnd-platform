@@ -254,6 +254,13 @@ class PlatformPluginExtension {
 	boolean removeSignaturesFromWrappedBundles = true
 	
 	/**
+	 * States if a general feature should be created. By default it's turned on and called Generated platform feature.
+	 * In case custom features are generated you might not want to have an additional "generated platform feature"
+	 * besides your own features.
+	 */
+	boolean generatePlatformFeature = true
+	
+	/**
 	 * The ID for the platform feature.
 	 */
 	String featureId = 'platform.feature'
