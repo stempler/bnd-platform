@@ -48,6 +48,7 @@ Alternatives are including the repository content in the **buildSrc** folder as 
 The **platform** plugin comes with several Gradle tasks - the following are the main tasks and build upon each other:
 
 * ***bundles*** - create bundles and write them to **build/plugins**
+* ***potentialOptionalImports*** Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction (See "Optional Dependencies" section below) 
 * ***updateSite*** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
 * ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default)
 
@@ -445,6 +446,7 @@ Via the platform extension there are several settings you can provide:
 * **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
 * **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Uses https://dl.bintray.com/simon-scholz/eclipse-apps/eclipse-p2-minimal.tar.gz by default.
 * **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
+* **generatePlatformFeature** - States if a general feature should be created. In case custom features are generated you might not want to have an additional "generated platform feature" besides your own features. (default: **true**)
 * **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
 * **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
 * **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)

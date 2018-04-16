@@ -118,28 +118,22 @@ public class PlatformPlugin implements Plugin<Project> {
 		bundlesTask.doFirst(new BundlesAction(project, bundlesDir))
 
 		/*
-		 * Generate a feature definition for the platform feature.
+		 * Generate a default feature definition for the platform feature.
 		 */
 		Task platformFeatureTask = project.task('platformFeature', dependsOn: bundlesTask).doFirst {
 			// create platform feature.xml
-			Feature feature = new DefaultFeature(
-					id: project.platform.featureId,
-					label: project.platform.featureName,
-					version: project.platform.featureVersion,
-					providerName: project.platform.featureProvider,
-					bundles: project.platform.artifacts.values().toList(),
-					includedFeatures: project.platform.features.values().toList(),
-					project: project
-					)
-
-			project.platform.features[feature.id] = feature
+			generatePlatformFeature();
 		}
 
 		/*
 		 * Create JARs for all features. 
 		 */
-		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: platformFeatureTask).doFirst {
+		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: bundlesTask).doFirst {
 			featuresDir.mkdirs()
+
+			if(project.platform.generatePlatformFeature) {
+				generatePlatformFeature();
+			}
 
 			project.platform.features.values().each { Feature feature ->
 				File featureJar = new File(featuresDir, "${feature.id}_${feature.version}.jar")
@@ -408,4 +402,22 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 
 		return null;
 	}
+
+	/**
+	 * Generate a default feature definition for the platform feature.
+	 */
+	private void generatePlatformFeature() {
+		Feature feature = new DefaultFeature(
+			id: project.platform.featureId,
+			label: project.platform.featureName,
+			version: project.platform.featureVersion,
+			providerName: project.platform.featureProvider,
+			bundles: project.platform.artifacts.values().toList(),
+			includedFeatures: project.platform.features.values().toList(),
+			project: project
+			)
+
+		project.platform.features[feature.id] = feature
+	}
+
 }
