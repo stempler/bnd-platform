@@ -18,8 +18,7 @@ package org.standardout.gradle.plugin.platform.internal.config
 
 import org.gradle.api.Project;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact
-import org.standardout.gradle.plugin.platform.internal.Feature;
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
+import org.standardout.gradle.plugin.platform.internal.Feature
 
 class SourceFeature implements Feature {
 	
@@ -46,9 +45,9 @@ class SourceFeature implements Feature {
 	}
 	
 	@Override
-	public Iterable<BundleArtifact> getBundles() {
+	public Iterable<BundleArtifact> getIncludedBundles() {
 		// source bundles
-		feature.bundles.collect { BundleArtifact ba ->
+		feature.includedBundles.collect { BundleArtifact ba ->
 			def bundle = ba.isSource() ? ba : ba.sourceBundle
 			// only accept bundle if it still exists in the artifact map
 			// if it has been removed from there, it was an empty source bundle
@@ -64,4 +63,14 @@ class SourceFeature implements Feature {
 		}.findAll()
 	}
 
+	public Iterable<BundleArtifact> getRequiredBundles(){
+		[]
+	}
+
+	public Iterable<Feature> getRequiredFeatures(){
+		[]
+	}
+
+	
+	
 }

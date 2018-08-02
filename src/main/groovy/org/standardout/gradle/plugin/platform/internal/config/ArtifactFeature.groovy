@@ -16,8 +16,6 @@
 
 package org.standardout.gradle.plugin.platform.internal.config
 
-import java.util.Set;
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -25,7 +23,6 @@ import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
 import org.standardout.gradle.plugin.platform.internal.Feature
-import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
 import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 
@@ -51,7 +48,12 @@ class ArtifactFeature implements Feature {
 	/**
 	 * List of included features IDs
 	 */
-	final List<String> configFeatures = []
+	final List<String> configIncludedFeatures = []	
+	
+	/**
+	 * List of required features
+	 */
+	final List<String> configRequiredFeatures = []
 	
 	private String finalVersion
 	
@@ -116,7 +118,7 @@ class ArtifactFeature implements Feature {
 		finalVersion
 	}
 		
-	Iterable<BundleArtifact> getBundles() {
+	Collection<BundleArtifact> getIncludedBundles() {
 		/*
 		 * Attention: a call to this method can only yield a sensible
 		 * result after the artifacts map has been populated by the
@@ -124,16 +126,29 @@ class ArtifactFeature implements Feature {
 		 */
 		
 		// collect all artifacts that match the respective condition
-		def artifacts = project.platform.artifacts.values().findAll { BundleArtifact artifact ->
+		project.platform.artifacts.values().findAll { BundleArtifact artifact ->
 			configArtifacts.any { ArtifactsMatch match ->
 				match.acceptArtifact(artifact)
 			}
 		}
-		
-		// collect transitive dependencies
-		transitiveArtifacts(artifacts)
 	}
-	
+
+	@Override
+	Iterable<BundleArtifact> getRequiredBundles() {
+		def artifacts = transitiveArtifacts(getIncludedBundles()).toSet()
+
+		// Remove artifacts that are already in required features
+		for (Feature feature : getRequiredFeatures()) {
+			def includedBundles = feature.getIncludedBundles()
+			artifacts.removeAll(transitiveArtifacts(includedBundles.toList()))
+		}
+
+		// Remove self included bundles
+		artifacts.removeAll(getIncludedBundles())
+
+		artifacts
+	}
+
 	private Iterable<BundleArtifact> transitiveArtifacts(Collection<BundleArtifact> artifacts) {
 		Map<String, BundleArtifact> allArtifacts = [:]
 		
@@ -178,12 +193,19 @@ class ArtifactFeature implements Feature {
 	
 	Iterable<Feature> getIncludedFeatures() {
 		// resolve feature IDs
-		configFeatures.collect {
+		configIncludedFeatures.collect {
 			project.platform.features[it]
 		}.findAll()
 	}
-	
-	/**
+
+	@Override
+	Iterable<Feature> getRequiredFeatures() {
+		// resolve feature IDs
+		configRequiredFeatures.collect {
+			project.platform.features[it]
+		}.findAll()	
+	}
+/**
 	 * Delegate for the configuration closure to intercept calls
 	 * for the feature configuration.
 	 */
@@ -220,7 +242,7 @@ class ArtifactFeature implements Feature {
 				feature.configArtifacts << result
 			}
 			if (result instanceof Feature) {
-				feature.configFeatures << feature.id
+				feature.configIncludedFeatures << feature.id
 			}
 			
 			result
@@ -230,7 +252,10 @@ class ArtifactFeature implements Feature {
 		def getProperty(String name) {
 			if (name == 'includes') {
 				// expose feature list to allow adding feature IDs manually
-				feature.configFeatures
+				feature.configIncludedFeatures
+			}
+			else if (name == 'requires') {
+				feature.configRequiredFeatures
 			}
 			else {
 				orgDelegate."$name"

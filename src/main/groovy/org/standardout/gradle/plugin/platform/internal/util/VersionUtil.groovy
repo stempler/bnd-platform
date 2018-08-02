@@ -190,7 +190,7 @@ class VersionUtil {
 		def addQualifier
 		
 		// collect bundle IDs and versions
-		def bundles = feature.bundles.collect { BundleArtifact bundle ->
+		def bundles = feature.includedBundles.collect { BundleArtifact bundle ->
 			"${bundle.symbolicName}:${bundle.modifiedVersion}"
 		}.sort()
 		// collect feature IDs and versions
