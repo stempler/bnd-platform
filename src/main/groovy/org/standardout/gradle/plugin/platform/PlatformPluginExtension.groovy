@@ -112,6 +112,11 @@ class PlatformPluginExtension {
 	final Project project
 	
 	/**
+	 * States if additional configuration information from POM is desired.
+	 */
+	boolean extractPomInformation = true
+
+	/**
 	 * States if source for external dependencies should be fetched and corresponding source bundles created. 
 	 */
 	boolean fetchSources = true

@@ -193,7 +193,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		
 		// determine additional configuration from information in POM
 		StoredConfig pomConfig = null
-		if (!source) {
+		if (!source && project.platform.extractPomInformation) {
 			pomInfo = extractPomInfo(group: group, name: name, version: version, project)
 			if (pomInfo) {
 				pomConfig = pomInfo.toStoredConfig()
