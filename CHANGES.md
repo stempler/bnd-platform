@@ -1,5 +1,7 @@
 ### Unreleased
 
+### 1.7.0
+
  - Don't fail when merging Jars w/o manifest file - @qqilihq
  - remove 'Export-Package', 'Import-Package', 'Private-Package' for source bundle - @missedone
  - Prevent duplication of SNAPSHOT source bundles - @florianesser
