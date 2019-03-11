@@ -122,6 +122,13 @@ class BndConfig {
 	}
 	
 	/**
+	 * Returns the value of the bnd instruction with the given name.
+	 */
+	def getInstruction(String name) {
+		properties[name]
+	}
+	
+	/**
 	 * Add packages for optional import.
 	 */
 	def optionalImport(String... packages) {

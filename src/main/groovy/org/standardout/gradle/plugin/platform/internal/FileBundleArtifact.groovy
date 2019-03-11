@@ -51,6 +51,12 @@ class FileBundleArtifact implements BundleArtifact {
 	
 	BundleArtifact sourceBundle
 	
+	private final String os
+	
+	private final String arch
+	
+	private final String ws
+	
 	private final boolean source
 	
 	private final boolean wrap
@@ -106,6 +112,14 @@ class FileBundleArtifact implements BundleArtifact {
 				v = VersionUtil.addQualifier(v, symbolicName, bndConfig, project, customType)
 			}
 			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString()
+			
+			// Extract target platform constraints if present
+			def platformString = bndConfig.getInstruction('Eclipse-PlatformFilter')
+			if(platformString) {
+				ws = (platformString =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
+				os = (platformString =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
+				arch = (platformString =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
+			}
 		}
 		else if (jarInfo && jarInfo.symbolicName && jarInfo.version) {
 			// only jar info present (and jar is bundle)
@@ -151,6 +165,18 @@ class FileBundleArtifact implements BundleArtifact {
 		bundle.sourceBundle = this
 	}
 	
+	@Override
+	public String getOs() {
+		os
+	}
+	@Override
+	public String getArch() {
+		arch
+	}
+	@Override
+	public String getWs() {
+		ws
+	}
 	@Override
 	public boolean isSource() {
 		source
