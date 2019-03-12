@@ -56,6 +56,21 @@ public interface BundleArtifact {
 	String getModifiedVersion();
 	
 	/**
+	 * Target OS of the bundle.
+	 */
+	String getOs();
+
+	/**
+	 * Target Architecture of the bundle.
+	 */
+	String getArch();
+
+	/**
+	 * Allowed window subsystem of the bundle.
+	 */
+	String getWs();
+	
+	/**
 	 * Should the bundle be wrapped using bnd?
 	 */
 	boolean isWrap();

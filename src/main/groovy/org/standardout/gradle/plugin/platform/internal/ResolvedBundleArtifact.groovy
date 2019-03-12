@@ -60,7 +60,16 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 	
 	private String version
 	String getVersion() { version }
-
+	
+	private final String os
+	@Override public String getOs() { os }
+	
+	private final String arch
+	@Override public String getArch() { arch }
+	
+	private final String ws
+	@Override public String getWs() { ws }
+	
 	private final boolean source
 	boolean isSource() { source }
 	
@@ -240,6 +249,14 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			}
 			
 			addQualifier = !source // by default don't add qualifiers for source bundles
+			
+			// Extract target platform constraints if present
+			def platformString = bndConfig.getInstruction('Eclipse-PlatformFilter')
+			if(platformString) {
+				ws = (platformString =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
+				os = (platformString =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
+				arch = (platformString =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
+			}
 		}
 		else if (wrap) {
 			addQualifier = !source // by default don't add qualifiers for source bundles
