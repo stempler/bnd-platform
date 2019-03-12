@@ -81,7 +81,7 @@ class DefaultQualifierMap implements VersionQualifierMap {
 		def artifactVersion = artifact[versionString]
 		if (!artifactVersion) {
 			artifactVersion = [:]
-			artifact[version] = artifactVersion
+			artifact[versionString] = artifactVersion
 		}
 		
 		// sort existing qualifiers, qualifiers mapped to idents
