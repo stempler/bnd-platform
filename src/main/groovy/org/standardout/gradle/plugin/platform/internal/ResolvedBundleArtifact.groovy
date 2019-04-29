@@ -142,6 +142,9 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			// but different classifier
 			symbolicName += '.' + classifier
 		}
+		
+		// Platform-Filter (if available)
+		String platformFilter = null
 				
 		// reason why a bundle is not wrapped
 		JarInfo jarInfo = null
@@ -250,13 +253,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			
 			addQualifier = !source // by default don't add qualifiers for source bundles
 			
-			// Extract target platform constraints if present
-			def platformString = bndConfig.getInstruction('Eclipse-PlatformFilter')
-			if(platformString) {
-				ws = (platformString =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
-				os = (platformString =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
-				arch = (platformString =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
-			}
+			platformFilter = bndConfig.getInstruction('Eclipse-PlatformFilter')
 		}
 		else if (wrap) {
 			addQualifier = !source // by default don't add qualifiers for source bundles
@@ -273,6 +270,13 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		if (aux && project.platform.auxVersionedSymbolicNames) {
 			symbolicName = symbolicName + '-' + version // augment with (original) version
 			wrap = true // force wrap
+		}
+		
+		// Extract target platform constraints if present
+		if(platformFilter) {
+			ws = (jarInfo.platformFilter =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
+			os = (jarInfo.platformFilter =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
+			arch = (jarInfo.platformFilter =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
 		}
 		
 		this.modifiedVersion = modifiedVersion

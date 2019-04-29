@@ -34,6 +34,7 @@ class JarInfo {
 		Analyzer.IMPORT_PACKAGE,
 		Analyzer.BUNDLE_LICENSE,
 		Analyzer.BUNDLE_VENDOR,
+		'Eclipse-PlatformFilter',
 		'Eclipse-SourceBundle' // to be able to identify a source bundle
 	] as Set).asImmutable()
 
@@ -42,6 +43,8 @@ class JarInfo {
 	final String symbolicName
 	
 	final String bundleName
+	
+	final String platformFilter;
 	
 	final String version
 	
@@ -63,12 +66,14 @@ class JarInfo {
 			bundleName = main.getValue(Analyzer.BUNDLE_NAME)
 			version = main.getValue(Analyzer.BUNDLE_VERSION)
 			symbolicName = extractSymbolicName(main.getValue(Analyzer.BUNDLE_SYMBOLICNAME))
+			platformFilter = main.getValue('Eclipse-PlatformFilter')
 		}
 		else {
 			// the Jar has no manifest
 			bundleName = null
 			version = null
 			symbolicName = null
+			platformFilter = null
 		}
 		
 		instructions = properties.asImmutable() 
