@@ -68,9 +68,11 @@ class FeatureUtil {
 				// omit empty/null for os/arch/ws (may not be present)
 				if(artifact.os) {
 					paramMap.put('os', artifact.os)
-				} else if(artifact.arch) {
+				}
+				if(artifact.arch) {
 					paramMap.put('arch', artifact.arch)
-				} else if(artifact.ws) {
+				} 
+				if(artifact.ws) {
 					paramMap.put('ws', artifact.ws)
 				}
 

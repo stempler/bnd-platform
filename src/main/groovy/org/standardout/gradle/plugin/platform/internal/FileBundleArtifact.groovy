@@ -71,6 +71,7 @@ class FileBundleArtifact implements BundleArtifact {
 		this.source = false // don't mark as source bundle so it is processed as usual
 		
 		boolean source = false
+		String platformFilter = null
 		
 		JarInfo jarInfo = null
 		boolean includeDefaultConfig = true
@@ -114,12 +115,7 @@ class FileBundleArtifact implements BundleArtifact {
 			version = modifiedVersion = VersionUtil.toOsgiVersion(v).toString()
 			
 			// Extract target platform constraints if present
-			def platformString = bndConfig.getInstruction('Eclipse-PlatformFilter')
-			if(platformString) {
-				ws = (platformString =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
-				os = (platformString =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
-				arch = (platformString =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
-			}
+			platformFilter = bndConfig.getInstruction('Eclipse-PlatformFilter')
 		}
 		else if (jarInfo && jarInfo.symbolicName && jarInfo.version) {
 			// only jar info present (and jar is bundle)
@@ -132,9 +128,18 @@ class FileBundleArtifact implements BundleArtifact {
 			else {
 				bundleName = symbolicName
 			}
+			
+			platformFilter = jarInfo.platformFilter
 		}
 		else {
 			throw new IllegalStateException('A file dependency must either already be a bundle or a bnd configuration including version and symbolicName must be specified: ' + file)
+		}
+		
+		// Extract target platform constraints if present
+		if(platformFilter) {
+			ws = (jarInfo.platformFilter =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
+			os = (jarInfo.platformFilter =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
+			arch = (jarInfo.platformFilter =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
 		}
 		
 		this.targetFileName = symbolicName + '_' + modifiedVersion + '.jar'
