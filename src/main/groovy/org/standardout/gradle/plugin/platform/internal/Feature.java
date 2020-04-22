@@ -31,6 +31,8 @@ public interface Feature {
 	public String getVersion();
 	
 	public String getProviderName();
+
+	public String getLicense();
 	
 	public Iterable<BundleArtifact> getBundles();
 	
