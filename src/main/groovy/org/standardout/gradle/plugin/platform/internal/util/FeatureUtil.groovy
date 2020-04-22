@@ -49,6 +49,9 @@ class FeatureUtil {
 			'provider-name': feature.providerName
 			// plugin: branding_plugin_id
 		) {
+			if (feature.license) {
+				license(feature.license)
+			}
 			// included features
 			for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
 				def version = included.version?:'0.0.0'

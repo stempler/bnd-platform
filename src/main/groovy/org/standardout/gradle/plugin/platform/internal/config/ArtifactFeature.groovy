@@ -42,6 +42,7 @@ class ArtifactFeature implements Feature {
 	final String label
 	final String version
 	final String providerName
+	final String license
 	
 	/**
 	 * List of artifact references
@@ -63,6 +64,7 @@ class ArtifactFeature implements Feature {
 		def label
 		def version
 		def providerName
+		def license
 		
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
@@ -70,6 +72,7 @@ class ArtifactFeature implements Feature {
 			label = featureNotation.name
 			version = featureNotation.version
 			providerName = featureNotation.provider
+			license = featureNotation.license
 		}
 		else {
 			// assume String id and default values
@@ -89,6 +92,7 @@ class ArtifactFeature implements Feature {
 		this.providerName = providerName ?: project.platform.featureProvider
 		this.id = id
 		this.label = label ?: id
+		this.license = license ?: ""
 		
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null
