@@ -198,7 +198,7 @@ class DependencyHelper {
 				dep.moduleGroup, 
 				dep.moduleName, 
 				dep.moduleVersion, 
-				dep.configuration)
+				null)
             sourceDep.transitive = false
 			def artifact = new DefaultDependencyArtifact(sourceDep.name, "source", "jar", "sources", null)
             sourceDep.addArtifact(artifact)
