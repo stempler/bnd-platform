@@ -9,7 +9,6 @@ buildscript {
 }
 
 apply plugin: 'groovy'
-apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'eclipse'
 apply plugin: 'com.jfrog.bintray'
@@ -23,8 +22,8 @@ repositories {
 group = 'org.standardout'
 version = '1.9.0-SNAPSHOT'
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 jar {
 	// include license into jar
@@ -34,16 +33,16 @@ jar {
 }
 
 dependencies {
-	compile gradleApi()
-	compile 'biz.aQute.bnd:biz.aQute.bndlib:3.5.0'
-	compile 'org.osgi:osgi.core:6.0.0'
-	compile 'commons-io:commons-io:2.4'
-	compile 'de.undercouch:gradle-download-task:3.1.1'
-	compile localGroovy()
+	implementation gradleApi()
+	implementation 'biz.aQute.bnd:biz.aQute.bndlib:5.2.0'
+	implementation 'org.osgi:osgi.core:6.0.0'
+	implementation 'commons-io:commons-io:2.4'
+	implementation 'de.undercouch:gradle-download-task:3.1.1'
+	implementation localGroovy()
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '4.6'
+wrapper {
+	gradleVersion = '5.3'
 }
 
 // package groovydoc into a jar file
