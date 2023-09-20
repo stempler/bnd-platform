@@ -100,13 +100,6 @@ def configurePom(def pom) {
    }
 }
 
-install {
-	repositories.mavenInstaller {
-		// ensure correct artifact ID when installing locally
-		configurePom(pom)
-	}
-}
-
 // sign all artifacts
 signing {
 	required {
@@ -114,25 +107,6 @@ signing {
 		gradle.taskGraph.hasTask('uploadArchives')
 	}
 	sign configurations.archives
-}
-
-uploadArchives {
-	repositories {
-		mavenDeployer {
-			// sign artifacts before upload
-			beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-			
-			// upload to sonatype OSS (snapshot/release)
-			repository(url: this.version.endsWith('-SNAPSHOT') ?
-					'https://oss.sonatype.org/content/repositories/snapshots' :
-					'https://oss.sonatype.org/service/local/staging/deploy/maven2') {
-				authentication(userName: this.hasProperty('sonatypeUsername') ? sonatypeUsername : '',
-					password: this.hasProperty('sonatypePassword') ? sonatypePassword : '')
-			}
-			
-			configurePom(pom)
-		}
-	}
 }
 
 // groovydoc task work-around
@@ -178,12 +152,50 @@ bintray { // task bintrayUpload
 }
 
 publishing {
+    repositories {
+        maven {
+            url = this.version.endsWith('-SNAPSHOT') ? 'https://oss.sonatype.org/content/repositories/snapshots' : 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+            credentials {
+                username = this.hasProperty('sonatypeUsername') ? sonatypeUsername : ''
+                password = this.hasProperty('sonatypePassword') ? sonatypePassword : ''
+            }
+        }
+    }
     publications {
         MyPublication(MavenPublication) {
             from components.java
             groupId "${group}"
             artifactId 'bnd-platform'
             version "${version}"
+
+            pom {
+                name = 'bnd-platform'
+                packaging = 'jar'
+                description = 'Build OSGi bundles and Eclipse Update Sites from existing JARs, e.g. from Maven repositories (Plugin for Gradle)'
+                url = 'https://github.com/stempler/bnd-platform'
+
+                scm {
+                    url = 'scm:git:https://github.com/stempler/bnd-platform.git'
+                    connection = 'scm:git:https://github.com/stempler/bnd-platform.git'
+                    developerConnection = 'scm:git:https://github.com/stempler/bnd-platform.git'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'stempler'
+                        name = 'Simon Templer'
+                        email = 'simon@templer.cc'
+                    }
+                }
+            }
         }
     }
 }
