@@ -21,7 +21,7 @@ repositories {
 }
 
 group = 'org.standardout'
-version = '1.8.0-SNAPSHOT'
+version = '1.9.0-SNAPSHOT'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
