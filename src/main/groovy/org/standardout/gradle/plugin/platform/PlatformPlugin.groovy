@@ -215,6 +215,15 @@ public class PlatformPlugin implements Plugin<Project> {
 	
 				assert project.platform.eclipseHome
 				def eclipseHome = project.platform.eclipseHome.absolutePath
+
+				def javaHome = project.platform.javaHome?.absolutePath
+				def javaBin
+				if (javaHome) {
+					javaBin = "${javaHome}/bin/java"
+				}
+				else {
+					javaBin = "java"
+				}
 	
 				// find launcher jar
 				def launcherFiles = project.ant.fileScanner {
@@ -223,7 +232,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				def launcherJar = launcherFiles.iterator().next()
 				assert launcherJar
 	
-				project.logger.info "Using Eclipse at $eclipseHome for p2 repository generation."
+				project.logger.info "Using Java at $javaHome and Eclipse at $eclipseHome for p2 repository generation."
 	
 				/*
 				 * Documentation on Publisher:
@@ -235,7 +244,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
 				project.exec {
-					commandLine 'java', '-jar', launcherJar,
+					commandLine "${javaBin}", '-jar', launcherJar,
 							'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
 							'-metadataRepository', repoDirUri,
 							'-artifactRepository', repoDirUri,
@@ -245,7 +254,7 @@ public class PlatformPlugin implements Plugin<Project> {
 	
 				// launch Publisher for category / site.xml
 				project.exec {
-					commandLine 'java', '-jar', launcherJar,
+					commandLine "${javaBin}", '-jar', launcherJar,
 							'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
 							'-metadataRepository', repoDirUri,
 							'-categoryDefinition', categoryFileUri,

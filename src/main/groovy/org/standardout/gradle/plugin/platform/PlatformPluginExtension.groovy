@@ -313,6 +313,12 @@ class PlatformPluginExtension {
 	File eclipseHome
 
 	/**
+	 * The directory of a JDK installation to used for running Equinox Publisher. If none is specified,
+	 * the `java` binary available on the path is used.
+	 */
+	File javaHome
+
+	/**
 	 * The directory to store the downloaded Eclipse installation on local, 
 	 * this works if <code>eclipseHome</code> is not specified.
 	 * Default to <code>project.buildDir/eclipse-downloads</code>.
