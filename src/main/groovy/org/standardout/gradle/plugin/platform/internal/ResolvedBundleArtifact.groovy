@@ -401,7 +401,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		String pom = "${dependencyNotation.group}:${dependencyNotation.name}:${dependencyNotation.version}@pom"
 		File pomFile = null
 		try {
-			DependencyHelper.getDetachedDependency(project, pom, 'pom')
+			pomFile = DependencyHelper.getDetachedDependency(project, pom, 'pom')
 		} catch (e) {
 			project.logger.warn "Could not retrieve POM $pom"
 		}
