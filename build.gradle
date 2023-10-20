@@ -23,6 +23,9 @@ jar {
 	}
 }
 
+def isCI = "true".equals(System.getenv("CI"))
+def isRelease = !version.endsWith('-SNAPSHOT')
+
 dependencies {
 	implementation gradleApi()
 	implementation 'biz.aQute.bnd:biz.aQute.bndlib:5.2.0'
@@ -112,11 +115,14 @@ publishing {
 
 // sign all artifacts
 signing {
-	if ("true".equals(System.getenv("CI"))) {
+	if (isCI) { // use in ASCII armored key for CI
 		def signingKey = findProperty("signingKey")
 		def signingPassword = findProperty("signingPassword")
 		useInMemoryPgpKeys(signingKey, signingPassword)
 	}
-	
-	sign publishing.publications.mavenJava
+
+	if (isRelease || isCI) {
+		// only sign releases or on CI
+		sign publishing.publications.mavenJava
+	}
 }
