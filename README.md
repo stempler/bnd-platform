@@ -27,7 +27,7 @@ The simplest way to apply the plugin to your Gradle build is using the latest re
 ```groovy
 buildscript {
 	repositories {
-		jcenter()
+		mavenCentral()
 	}
 	dependencies {
 		classpath 'org.standardout:bnd-platform:1.7.0'
@@ -41,7 +41,23 @@ apply plugin: 'org.standardout.bnd-platform'
 
 Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
 
-*bnd-platform* has been tested with Gradle 1.11 and Gradle 2.0. In Gradle 2.0 I observed resolving dependencies may take very long compared to previous versions (more than 20 min for a build that previously took roughly 3 min). Let's hope this will be fixed in future Gradle versions - for now I recommend using an earlier version of Gradle.
+Snapshot versions are available in the related sonatype repository:
+
+```groovy
+buildscript {
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+    dependencies {
+        classpath 'org.standardout:bnd-platform:2.0.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'org.standardout.bnd-platform'
+```
+
 
 ### Tasks
 
