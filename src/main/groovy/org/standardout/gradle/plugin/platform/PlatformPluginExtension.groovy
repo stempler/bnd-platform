@@ -329,7 +329,7 @@ class PlatformPluginExtension {
 	 * 4.8 MB *.tar.gz file, which contains the minimal setup of eclipse plug-ins,
 	 * which are necessary to build an eclipse p2 update site.
 	 */
-	def eclipseMirror = 'http://dl.bintray.com/simon-scholz/eclipse-apps/eclipse-p2-minimal.tar.gz'
+	def eclipseMirror = 'https://raw.githubusercontent.com/stempler/bnd-platform/master/eclipse/eclipse-p2-minimal.tar.gz'
 	
 	/**
 	 * Call feature to create a feature configuration.
