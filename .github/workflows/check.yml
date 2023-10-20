@@ -21,6 +21,9 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build and test with Gradle
+        env:
+          # CI marker
+          CI: 'true'
         run: ./gradlew clean check
 
         # https://github.com/marketplace/actions/junit-report-action

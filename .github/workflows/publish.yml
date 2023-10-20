@@ -21,21 +21,30 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - id: install-secret-key
-        name: Install gpg secret key
-        run: |
-          # Install gpg secret key
-          cat <(echo -e "${{ secrets.SONATYE_PGP_PRIVATE_KEY }}") | gpg --batch --import
-          # Verify gpg secret key
-          gpg --list-secret-keys --keyid-format LONG
+      # - id: install-secret-key
+      #   name: Install gpg secret key
+      #   run: |
+      #     # Install gpg secret key
+      #     cat <(echo -e "${{ secrets.SONATYE_PGP_PRIVATE_KEY }}") | gpg --batch --import
+      #     # Verify gpg secret key
+      #     gpg --list-secret-keys --keyid-format LONG
 
       - name: Build and publish with Gradle
         env:
+          # CI marker
+          CI: 'true'
+
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
-          ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SONATYE_PGP_PASSWORD }}
-          ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SONATYE_PGP_KEY_ID }}
-          ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/runner/.gnupg/secring.gpg
+
+          # keyring file (did not get this to work)
+          # ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SONATYE_PGP_PASSWORD }}
+          # ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SONATYE_PGP_KEY_ID }}
+          # ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/runner/.gnupg/secring.gpg
+          
+          # in-memory key
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SONATYE_PGP_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SONATYE_PGP_PRIVATE_KEY }}
         run: ./gradlew clean check publishToSonatype
         # TODO what about publishing releases?
         # see https://github.com/gradle-nexus/publish-plugin#publishing-and-closing-in-different-gradle-invocations
