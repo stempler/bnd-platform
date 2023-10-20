@@ -1,0 +1,36 @@
+name: Check
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build and test with Gradle
+        run: ./gradlew clean check
+
+        # https://github.com/marketplace/actions/junit-report-action
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: 'build/test-results/**/*.xml'
+          require_tests: false # currently no tests present
+
+          annotate_only: true
+          detailed_summary: true
+          # fail_on_failure: true
