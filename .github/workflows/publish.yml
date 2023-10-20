@@ -34,6 +34,8 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SONATYE_PGP_PASSWORD }}
+          ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SONATYE_PGP_KEY_ID }}
+          ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/runner/.gnupg/secring.gpg
         run: ./gradlew clean check publishToSonatype
         # TODO what about publishing releases?
         # see https://github.com/gradle-nexus/publish-plugin#publishing-and-closing-in-different-gradle-invocations
