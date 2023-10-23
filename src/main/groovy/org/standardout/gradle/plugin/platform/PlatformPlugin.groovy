@@ -384,7 +384,7 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 		def artifactZipPath = new File(downloadsDir, filename)
 		def artifactZipPathPart = new File(downloadsDir, filename + '.part')
 		if (!artifactZipPath.exists()) {
-			project.download {
+			project.download.run {
 				src artifactDownloadUrl
 				dest artifactZipPathPart
 				overwrite true
