@@ -1,5 +1,18 @@
 ### Unreleased
 
+### 2.0.0
+
+ - Prevent ClassCastException in case of new artifactVersion - @florianesser
+ - Enable specifying ws/os/arch for plugins embedded in features - @Diewi
+ - Retain PlatformFilters for wrapped bundles - @Diewi
+ - Use all available platform specifiers in the feature generation - @Diewi
+ - Make Java binary used to run Publisher configurable - @florianesser
+ - Added support for feature license - @sdkrach
+ - Add minimal eclipse product to repository - @stempler
+ - Omit configuration when creating source artifact dependency (for compatibility to Gradle 6+) - @jona
+ - Fix extracting information from pom.xml - @urferr
+
+
 ### 1.7.0
 
  - Don't fail when merging Jars w/o manifest file - @qqilihq
