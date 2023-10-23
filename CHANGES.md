@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 2.0.1
+
+ - Fix incompatibility with Gradle download task (that prevented default eclipse artifact download)
+
 ### 2.0.0
 
  - Prevent ClassCastException in case of new artifactVersion - @florianesser
