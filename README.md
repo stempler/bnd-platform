@@ -30,9 +30,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:1.7.0'
-		// if using Gradle 1.x uncomment the following line
-//		classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3+'
+		classpath 'org.standardout:bnd-platform:2.0.0'
 	}
 }
 
@@ -51,7 +49,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.standardout:bnd-platform:2.0.0-SNAPSHOT'
+        classpath 'org.standardout:bnd-platform:2.1.0-SNAPSHOT'
     }
 }
 
