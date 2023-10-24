@@ -1,5 +1,8 @@
 ### Unreleased
 
+ - **BREAKING CHANGE** Rename `platform` configuration to `bndplatform` to resolve name conflict introduced in Gradle 5
+ - Change default Eclipse artifact to a full version of Eclipse 2023-09 (because the minimal product used so far produces incomplete update sites in some cases)
+
 ### 2.0.1
 
  - Fix incompatibility with Gradle download task (that prevented default eclipse artifact download)
