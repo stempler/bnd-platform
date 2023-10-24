@@ -28,9 +28,9 @@ def isRelease = !version.endsWith('-SNAPSHOT')
 
 dependencies {
 	implementation gradleApi()
-	implementation 'biz.aQute.bnd:biz.aQute.bndlib:5.2.0'
+	implementation 'biz.aQute.bnd:biz.aQute.bndlib:6.4.1'
 	implementation 'org.osgi:osgi.core:6.0.0'
-	implementation 'commons-io:commons-io:2.4'
+	implementation 'commons-io:commons-io:2.14.0'
 	implementation 'de.undercouch:gradle-download-task:5.5.0'
 	implementation localGroovy()
 }
