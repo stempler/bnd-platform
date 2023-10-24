@@ -45,7 +45,7 @@ import groovy.json.JsonOutput
 public class PlatformPlugin implements Plugin<Project> {
 
 	public static final String TASK_BUNDLES = 'bundles'
-	public static final String CONF_PLATFORM = 'platform'
+	public static final String CONF_PLATFORM = 'bndplatform'
 	public static final String CONF_AUX = 'platformaux'
 
 	private Project project

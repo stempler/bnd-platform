@@ -72,7 +72,10 @@ Be aware that for building the p2 repository Eclipse is used. If no path to a lo
 
 ### Adding dependencies
 
-*bnd-platform* adds a configuration named **platform** to a Gradle build. You can add dependencies to the **platform** configuration and configure them like you would with any other Gradle build - for example:
+*bnd-platform* adds a configuration named **bndplatform** to a Gradle build.
+Prior to version 3 the configuration was named **platform**, but this clashes with a [platform method](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#platform-java.lang.Object-) that was introduced in Gradle 5.
+
+You can add dependencies to the **bndplatform** configuration and configure them like you would with any other Gradle build - for example:
 
 ```groovy
 // add Maven Central so the dependency can be resolved
@@ -82,7 +85,7 @@ repositories {
 
 dependencies {
     // add pegdown as dependency to the platform configuration
-    platform 'org.pegdown:pegdown:1.4.2'
+    bndplatform 'org.pegdown:pegdown:1.4.2'
 }
 ```
 
