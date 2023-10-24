@@ -461,7 +461,7 @@ Via the platform extension there are several settings you can provide:
 * **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
 * **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
 * **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
-* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Uses https://raw.githubusercontent.com/stempler/bnd-platform/master/eclipse/eclipse-p2-minimal.tar.gz by default.
+* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Since version 3 uses an Eclipse 2023-09 mirror by default.
 * **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
 * **generatePlatformFeature** - States if a general feature should be created. In case custom features are generated you might not want to have an additional "generated platform feature" besides your own features. (default: **true**)
 * **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
