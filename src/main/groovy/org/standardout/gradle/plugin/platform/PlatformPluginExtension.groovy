@@ -329,7 +329,12 @@ class PlatformPluginExtension {
 	 * 4.8 MB *.tar.gz file, which contains the minimal setup of eclipse plug-ins,
 	 * which are necessary to build an eclipse p2 update site.
 	 */
-	def eclipseMirror = 'https://raw.githubusercontent.com/stempler/bnd-platform/master/eclipse/eclipse-p2-minimal.tar.gz'
+	// def eclipseMirror = 'https://raw.githubusercontent.com/stempler/bnd-platform/master/eclipse/eclipse-p2-minimal.tar.gz'
+	/**
+	 * XXX Above artifact creates update sites that are often missing plugins - reason is unclear.
+	 * Issue does not happen with recent eclipse versions (e.g. 2023-09) but attempts to create a new working minimal product failed. 
+	 */
+	def eclipseMirror = 'https://ftp.fau.de/eclipse/technology/epp/downloads/release/2023-09/R/eclipse-rcp-2023-09-R-linux-gtk-x86_64.tar.gz'
 	
 	/**
 	 * Call feature to create a feature configuration.
