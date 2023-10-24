@@ -49,7 +49,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.standardout:bnd-platform:2.1.0-SNAPSHOT'
+        classpath 'org.standardout:bnd-platform:3.0.0-SNAPSHOT'
     }
 }
 
