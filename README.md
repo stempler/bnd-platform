@@ -512,8 +512,9 @@ Steps are:
 1. Change version to release version
 2. Adapt changelog
 3. Create tag
-4. Publish release (`./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository`)
-5. Change version to new snapshot
+4. Publish release to Maven Central (`./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository`)
+5. Publish release to Gradle Plugin Portal
+6. Change version to new snapshot
 
 
 License
