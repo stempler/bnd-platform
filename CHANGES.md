@@ -1,7 +1,10 @@
 ### Unreleased
 
+### 3.0.0
+
  - **BREAKING CHANGE** Rename `platform` configuration to `bndplatform` to resolve name conflict introduced in Gradle 5
  - Change default Eclipse artifact to a full version of Eclipse 2023-09 (because the minimal product used so far produces incomplete update sites in some cases)
+ - Update bndlib to 6.4.1 to fix issue with invalid Zip files occurring in recent Java versions (e.g. 17.0.8)
 
 ### 2.0.1
 
