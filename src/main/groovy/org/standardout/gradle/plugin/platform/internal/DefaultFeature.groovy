@@ -27,6 +27,8 @@ class DefaultFeature implements Feature {
 	String version
 	String providerName
 	String license
+	String description
+	String copyright
 	List<BundleArtifact> bundles = []
 	List<Feature> includedFeatures = []
 	Project project

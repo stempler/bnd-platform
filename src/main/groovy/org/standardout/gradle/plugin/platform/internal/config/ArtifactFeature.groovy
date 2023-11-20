@@ -43,7 +43,9 @@ class ArtifactFeature implements Feature {
 	final String version
 	final String providerName
 	final String license
-	
+	final String description
+	final String copyright
+
 	/**
 	 * List of artifact references
 	 */
@@ -65,7 +67,9 @@ class ArtifactFeature implements Feature {
 		def version
 		def providerName
 		def license
-		
+		def description
+		def copyright
+
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
 			id = featureNotation.id
@@ -73,6 +77,8 @@ class ArtifactFeature implements Feature {
 			version = featureNotation.version
 			providerName = featureNotation.provider
 			license = featureNotation.license
+			description = featureNotation.description
+			copyright = featureNotation.copyright
 		}
 		else {
 			// assume String id and default values

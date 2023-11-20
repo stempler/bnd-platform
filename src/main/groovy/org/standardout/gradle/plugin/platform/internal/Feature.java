@@ -33,7 +33,11 @@ public interface Feature {
 	public String getProviderName();
 
 	public String getLicense();
-	
+
+	public String getDescription();
+
+	public String getCopyright();
+
 	public Iterable<BundleArtifact> getBundles();
 	
 	public Iterable<Feature> getIncludedFeatures();

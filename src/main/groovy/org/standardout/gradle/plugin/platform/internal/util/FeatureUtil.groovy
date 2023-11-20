@@ -52,6 +52,15 @@ class FeatureUtil {
 			if (feature.license) {
 				license(feature.license)
 			}
+
+			if (feature.description) {
+				description(feature.description)
+			}
+
+			if (feature.copyright) {
+				copyright(feature.copyright)
+			}
+
 			// included features
 			for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
 				def version = included.version?:'0.0.0'
