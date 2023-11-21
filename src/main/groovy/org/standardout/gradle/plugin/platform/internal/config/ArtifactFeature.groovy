@@ -99,7 +99,9 @@ class ArtifactFeature implements Feature {
 		this.id = id
 		this.label = label ?: id
 		this.license = license ?: ""
-		
+		this.description = description ?: ""
+		this.copyright = copyright ?: ""
+
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null
 		CustomConfigDelegate maskingDelegate = null
