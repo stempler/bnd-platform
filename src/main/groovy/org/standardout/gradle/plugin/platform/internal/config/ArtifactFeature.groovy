@@ -55,7 +55,12 @@ class ArtifactFeature implements Feature {
 	 * List of included features IDs
 	 */
 	final List<String> configFeatures = []
-	
+
+	/**
+	 * List of required features
+	 */
+	List<RequiredFeature> requiredFeatures = []
+
 	private String finalVersion
 	
 	ArtifactFeature(Project project, def featureNotation,
@@ -194,7 +199,7 @@ class ArtifactFeature implements Feature {
 			project.platform.features[it]
 		}.findAll()
 	}
-	
+
 	/**
 	 * Delegate for the configuration closure to intercept calls
 	 * for the feature configuration.
@@ -210,6 +215,18 @@ class ArtifactFeature implements Feature {
 		@Override
 		def invokeMethod(String name, def args) {
 			//TODO support manually adding a feature reference
+
+			if (name == "requires") {
+				def requiredNotation = args[0]
+				if (requiredNotation instanceof Map) {
+					def featureName = requiredNotation.featureName
+					def version = requiredNotation.version
+					def match = requiredNotation.match
+					def required = new RequiredFeature(featureName, version, match)
+					feature.requiredFeatures.add(required)
+				}
+				return
+			}
 
 			/*
 			 * If there are further nested closures inside features
@@ -237,7 +254,7 @@ class ArtifactFeature implements Feature {
 			
 			result
 		}
-		
+
 		@Override
 		def getProperty(String name) {
 			if (name == 'includes') {

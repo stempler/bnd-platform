@@ -61,4 +61,10 @@ class DefaultFeature implements Feature {
 		includedFeatures == null ? [] : includedFeatures
 	}
 
+	@Override
+	public Iterable<RequiredFeature> getRequiredFeatures()
+	{
+		[]
+	}
+
 }

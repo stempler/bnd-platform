@@ -41,5 +41,19 @@ public interface Feature {
 	public Iterable<BundleArtifact> getBundles();
 	
 	public Iterable<Feature> getIncludedFeatures();
-	
+
+	public Iterable<RequiredFeature> getRequiredFeatures();
+
+	class RequiredFeature {
+		public final String featureName;
+		public final String version;
+		public final String match;
+
+
+		public RequiredFeature(String featureName, String version, String match) {
+			this.featureName = featureName;
+			this.version = version;
+			this.match = match;
+		}
+	}
 }
