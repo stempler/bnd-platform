@@ -1,5 +1,9 @@
 ### Unreleased
 
+### 3.0.1
+
+ - Fix URL to default Eclipse artifact because previous one is no longer available
+
 ### 3.0.0
 
  - **BREAKING CHANGE** Rename `platform` configuration to `bndplatform` to resolve name conflict introduced in Gradle 5
