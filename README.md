@@ -30,7 +30,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:3.0.0'
+		classpath 'org.standardout:bnd-platform:3.0.1'
 	}
 }
 
