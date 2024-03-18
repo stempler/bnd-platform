@@ -224,7 +224,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				else {
 					javaBin = "java"
 				}
-	
+
 				// find launcher jar
 				def launcherFiles = project.ant.fileScanner {
 					fileset(dir: eclipseHome) { include(name: 'plugins/org.eclipse.equinox.launcher_*.jar') }
@@ -233,6 +233,11 @@ public class PlatformPlugin implements Plugin<Project> {
 				assert launcherJar
 	
 				project.logger.info "Using Java at $javaHome and Eclipse at $eclipseHome for p2 repository generation."
+
+				def appendToSite = project.platform.appendUpdateSite
+				if (appendToSite) {
+					project.logger.info "Appending to update site is enabled."
+				}
 	
 				/*
 				 * Documentation on Publisher:
@@ -244,21 +249,29 @@ public class PlatformPlugin implements Plugin<Project> {
 				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
 				project.exec {
-					commandLine "${javaBin}", '-jar', launcherJar,
+					def args = ["${javaBin}", '-jar', launcherJar,
 							'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
 							'-metadataRepository', repoDirUri,
 							'-artifactRepository', repoDirUri,
 							'-source', project.buildDir,
-							'-configs', 'ANY', '-publishArtifacts', '-compress'
+							'-configs', 'ANY', '-publishArtifacts', '-compress']
+					if (appendToSite) {
+						args.add('-append')
+					}
+					commandLine = args
 				}
 	
 				// launch Publisher for category / site.xml
 				project.exec {
-					commandLine "${javaBin}", '-jar', launcherJar,
+					def args = ["${javaBin}", '-jar', launcherJar,
 							'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
 							'-metadataRepository', repoDirUri,
 							'-categoryDefinition', categoryFileUri,
-							'-compress'
+							'-compress']
+					if (appendToSite) {
+						args.add('-append')
+					}
+					commandLine = args
 				}
 	
 				project.logger.info 'Built p2 repository.'

@@ -304,6 +304,11 @@ class PlatformPluginExtension {
 	 * The target file for the 'updateSiteZip' task.
 	 */
 	File updateSiteZipFile
+
+	/**
+	 * If the update site should be appended instead of over-written.
+	 */
+	boolean appendUpdateSite = false
 	
 	/**
 	 * The directory of a local Eclipse installation. If none is specified the
