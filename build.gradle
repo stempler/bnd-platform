@@ -15,8 +15,11 @@ repositories {
 group = 'org.standardout'
 version = '3.1.0-SNAPSHOT'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(8)
+	}
+}
 
 jar {
 	// include license into jar
@@ -35,6 +38,16 @@ dependencies {
 	implementation 'commons-io:commons-io:2.15.1'
 	implementation 'de.undercouch:gradle-download-task:5.6.0'
 	implementation localGroovy()
+
+	// Testing
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+
+	testImplementation("org.assertj:assertj-core:3.25.1")
+}
+
+test {
+	useJUnitPlatform()
 }
 
 tasks.wrapper {
@@ -100,7 +113,7 @@ publishing {
 			pom {
 				name = 'bnd-platform'
 				packaging = 'jar'
-				
+
 				configurePom(pom)
 			}
 		}

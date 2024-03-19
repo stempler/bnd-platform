@@ -63,7 +63,7 @@ apply plugin: 'org.standardout.bnd-platform'
 The **platform** plugin comes with several Gradle tasks - the following are the main tasks and build upon each other:
 
 * ***bundles*** - create bundles and write them to **build/plugins**
-* ***potentialOptionalImports*** Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction (See "Optional Dependencies" section below) 
+* ***potentialOptionalImports*** Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction (See "Optional Dependencies" section below)
 * ***updateSite*** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
 * ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default)
 
@@ -462,6 +462,7 @@ Via the platform extension there are several settings you can provide:
 * **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
 * **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
 * **appendUpdateSite** - if any the generated p2 repository should be appended to the one that already exists in **updateSiteDir** (default: `false`)
+* **createFeatureVersionFiles** - if for the created update site, a version file should be created per feature, e.g. `<feature-id>_versions.json`, that includes information on the versions of the feature available in the p2 repository (default: `false`)
 * **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
 * **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Since version 3 uses an Eclipse 2023-09 mirror by default.
 * **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
