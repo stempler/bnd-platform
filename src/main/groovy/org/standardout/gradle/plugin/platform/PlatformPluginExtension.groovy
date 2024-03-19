@@ -309,6 +309,16 @@ class PlatformPluginExtension {
 	 * If the update site should be appended instead of over-written.
 	 */
 	boolean appendUpdateSite = false
+
+	/**
+	 * If after creating the update site, additional files should be created for
+	 * each feature contained in the update site, that includes the information
+	 * on which versions are contained in the update site.
+	 *
+	 * This can be used with tools like Renovate to automated updates of feature
+	 * versions where the update site is used.
+	 */
+	boolean createFeatureVersionFiles = false
 	
 	/**
 	 * The directory of a local Eclipse installation. If none is specified the

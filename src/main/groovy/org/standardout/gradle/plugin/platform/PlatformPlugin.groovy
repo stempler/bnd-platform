@@ -16,6 +16,8 @@
 
 package org.standardout.gradle.plugin.platform
 
+import org.standardout.gradle.plugin.platform.internal.util.VersionFile
+
 import java.util.jar.*
 
 import org.gradle.api.GradleException
@@ -275,6 +277,11 @@ public class PlatformPlugin implements Plugin<Project> {
 				}
 	
 				project.logger.info 'Built p2 repository.'
+
+				def createFeatureVersionFiles = project.platform.createFeatureVersionFiles
+				if (createFeatureVersionFiles) {
+					VersionFile.createFeatureVersionFiles(project.platform.updateSiteDir)
+				}
 			}
 		}
 

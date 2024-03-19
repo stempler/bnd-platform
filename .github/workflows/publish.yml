@@ -41,7 +41,7 @@ jobs:
           # ORG_GRADLE_PROJECT_signing.password: ${{ secrets.SONATYE_PGP_PASSWORD }}
           # ORG_GRADLE_PROJECT_signing.keyId: ${{ secrets.SONATYE_PGP_KEY_ID }}
           # ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/runner/.gnupg/secring.gpg
-          
+
           # in-memory key
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SONATYE_PGP_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SONATYE_PGP_PRIVATE_KEY }}
@@ -55,7 +55,7 @@ jobs:
         if: always() # always run even if the previous step fails
         with:
           report_paths: 'build/test-results/**/*.xml'
-          require_tests: false # currently no tests present
+          require_tests: true # currently no tests present
 
           annotate_only: true
           detailed_summary: true

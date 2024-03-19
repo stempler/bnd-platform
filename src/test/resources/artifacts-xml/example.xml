@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?artifactRepository version='1.1.0'?>
+<repository name='file:/home/simon/repos/offline-resources/updatesite/build/updatesite/ - artifacts' type='org.eclipse.equinox.p2.artifact.repository.simpleRepository' version='1.0.0'>
+    <properties size='2'>
+        <property name='p2.timestamp' value='1710770425928'/>
+        <property name='p2.compressed' value='true'/>
+    </properties>
+    <mappings size='3'>
+        <rule filter='(&amp; (classifier=osgi.bundle))' output='${repoUrl}/plugins/${id}_${version}.jar'/>
+        <rule filter='(&amp; (classifier=binary))' output='${repoUrl}/binary/${id}_${version}'/>
+        <rule filter='(&amp; (classifier=org.eclipse.update.feature))' output='${repoUrl}/features/${id}_${version}.jar'/>
+    </mappings>
+    <artifacts size='9'>
+        <artifact classifier='org.eclipse.update.feature' id='to.wetransform.offlineresources.feature' version='2024.3.15.bnd-Ia6g4Q'>
+            <properties size='5'>
+                <property name='artifact.size' value='441'/>
+                <property name='download.size' value='441'/>
+                <property name='download.checksum.sha-512' value='5f1e413265b4d7bcffc75514104764c66aad18f825d97d71daca07eb874ab0c41e1f762074d91ff2db49450522effb320aee5fad6afd4ff702db48aed032df1a'/>
+                <property name='download.checksum.sha-256' value='9ab6b0ef619a436d01ddb1d09d69f70445882a569311d62d267d052f9066d1d5'/>
+                <property name='download.contentType' value='application/zip'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.www.w3.org' version='2024.1.25.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='18532'/>
+                <property name='download.size' value='18532'/>
+                <property name='download.checksum.sha-512' value='eeece45a645768df0797a0e990ec8c34b6c3ea9caf10def4474288aead3c9e44a3e1b035be25f9757b52f9b0cd4feea02c8afeca9f9264b357f146ae9ca7ae6e'/>
+                <property name='download.checksum.sha-256' value='769c333211055e1e184510d2e95b4bcf9b1dd1e88303b023374880bcb1b96fe2'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.schemas.opengis.net' version='2024.3.18.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='14571884'/>
+                <property name='download.size' value='14571884'/>
+                <property name='download.checksum.sha-512' value='bb9e1af2658ce727d7e6bd107e28547514fbfe7ac8f23e11a79f25ca1a42a5b935aaaf8720eec7d19dbdf3b9416e20ff09cf7738151ec8b6d6581aea1c1cf4e6'/>
+                <property name='download.checksum.sha-256' value='33340359c5c68ee62977104005290aeed5cc689d4ab13dcf329dc5d859003f14'/>
+            </properties>
+        </artifact>
+        <artifact classifier='org.eclipse.update.feature' id='to.wetransform.offlineresources.feature' version='2024.3.18.bnd-tNmhEg'>
+            <properties size='5'>
+                <property name='artifact.size' value='443'/>
+                <property name='download.size' value='443'/>
+                <property name='download.checksum.sha-512' value='36e12880f05a1c4c0d10170b8a84366463fc96710eea29ce9128f0c70154624ac8c38f51a11a40898e31c274da14baea0ccde06360c308444c1c1461d05a05df'/>
+                <property name='download.checksum.sha-256' value='de43b6f342cf3710a26d4a1d741c9bb7385677e8e74e95ba0b4c067b1573fe1d'/>
+                <property name='download.contentType' value='application/zip'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.inspire.ec.europa.eu' version='2024.3.15.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='5839548'/>
+                <property name='download.size' value='5839548'/>
+                <property name='download.checksum.sha-512' value='4d8f0972873dcc2242eb5b174d01a7ba70a6df732fa0bf6aa0636caaae3a4be9a126484c751c2fd5300bf25a1d30cc438aedd1f188ec7fb88d2dcb394539cfde'/>
+                <property name='download.checksum.sha-256' value='afffa6b7e58de085d0d6f1eb795ad5db0ed6b5b99c221888eebc5d2a36c2319e'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.schemas.opengis.net' version='2024.3.8.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='14571887'/>
+                <property name='download.size' value='14571887'/>
+                <property name='download.checksum.sha-512' value='233eebc16468cc3d23dc5783459bee5593de206dff936cc1afeb45ecc806c50b8df922543ab265e22fcffb715ce3a1f0e2e937e61dace5ea3ef553caba8d9378'/>
+                <property name='download.checksum.sha-256' value='4471f1e354c629fe6f828374a05240fe45fb5fd4b61ac157bd94be5f4c7cc12d'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.repository.gdi-de.org' version='2024.2.20.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='4760565'/>
+                <property name='download.size' value='4760565'/>
+                <property name='download.checksum.sha-512' value='c36f96ebac58d758ab3ed1e409c71c84f9dee7c7410c435de2110a895d32a9df7b038696b60b6b4132e6f0ac3a044745c1fb983ddaf469228acdd4a42866d9a0'/>
+                <property name='download.checksum.sha-256' value='8a0c058d6ef95a9737f68f57bb7bb152fe4b3a8f5253deec7749332c14da87ef'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.schemas.geosciml.org' version='2024.1.25.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='4029'/>
+                <property name='download.size' value='4029'/>
+                <property name='download.checksum.sha-512' value='3f9e1a4f76ad2a7c9ab6de03c6b50629ee61b59fbdee1021b98bc01732838b48dd82b2c49a41144ef7abfac573732adeb0f8372f54cfd067db0395161383647e'/>
+                <property name='download.checksum.sha-256' value='1ad370890bc7e71621a5f9f7773d7cce401f30db2dcd3c8a66d3fe9b199a1e6c'/>
+            </properties>
+        </artifact>
+        <artifact classifier='osgi.bundle' id='to.wetransform.offline-resources.portele.de' version='2024.1.25.bnd-8IYMsg'>
+            <properties size='4'>
+                <property name='artifact.size' value='1939'/>
+                <property name='download.size' value='1939'/>
+                <property name='download.checksum.sha-512' value='46b083abca27a1273245422148cb1c6708b365d706633ab9170116c50b42599fcd6a4953bec3ef4fa7dd90b472b41f8e25d4e366b805c020e44d424e1704a606'/>
+                <property name='download.checksum.sha-256' value='67707d04caaad5ed713c96e9f2182e856d4bf3a4f7b69ff2ad714a3e0170212b'/>
+            </properties>
+        </artifact>
+    </artifacts>
+</repository>
