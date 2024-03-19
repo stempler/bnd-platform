@@ -57,7 +57,7 @@ class VersionFile {
 		def featureVersions = collectFeatureVersions(artifactsXml)
 
 		featureVersions.forEach { featureId, versions ->
-			def versionFile = new File(updateSiteDir, "${featureId}_version.json")
+			def versionFile = new File(updateSiteDir, "${featureId}_versions.json")
 			writeVersionFile(versionFile, versions)
 		}
 	}
