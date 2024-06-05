@@ -137,9 +137,9 @@ class FileBundleArtifact implements BundleArtifact {
 		
 		// Extract target platform constraints if present
 		if(platformFilter) {
-			ws = (jarInfo.platformFilter =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
-			os = (jarInfo.platformFilter =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
-			arch = (jarInfo.platformFilter =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
+			ws = (platformFilter =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
+			os = (platformFilter =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
+			arch = (platformFilter =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
 		}
 		
 		this.targetFileName = symbolicName + '_' + modifiedVersion + '.jar'
