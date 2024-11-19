@@ -140,7 +140,12 @@ signing {
 }
 
 tasks.withType(Sign) {
+    doFirst {
+        println "isRelease: $isRelease"
+        println "isCI: $isCI"
+    }
     onlyIf {
-        isRelease || isCI
+//        isRelease || isCI
+		false
     }
 }
