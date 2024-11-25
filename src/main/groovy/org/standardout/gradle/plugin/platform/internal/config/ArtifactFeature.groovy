@@ -214,8 +214,6 @@ class ArtifactFeature implements Feature {
 
 		@Override
 		def invokeMethod(String name, def args) {
-			//TODO support manually adding a feature reference
-
 			if (name == "requires") {
 				def requiredNotation = args[0]
 				if (requiredNotation instanceof Map) {
