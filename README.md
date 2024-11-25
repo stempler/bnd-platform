@@ -324,6 +324,25 @@ platform {
 
 Providing  a feature ID is mandatory, but *name* and *version* may be omitted (the version defaults to the platform feature version). `plugin` and `bundle` can be used synonymously inside the `feature` block, but when using `bundle` you may experience problems when used in inner closures.
 
+The feature may include also other required features. See an example below how to define such dependencies:
+
+```groovy
+ platform {
+    // define a feature
+    feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
+
+        requires (
+            featureName: "required.feature.name",
+            version: "1.0.0",
+            match: "greaterOrEqual"
+        )
+
+        //... the rest of the feature definition
+
+    }
+}
+```
+
 ### Local dependencies
 
 You can easily add local JARs to the platform. **If the JAR is not an OSGi bundle yet**, you have add it on its own and at least provide **symbolicName** and **version**:
