@@ -22,7 +22,9 @@ For a quick start, check out the (outdated) [sample project on GitHub](https://g
 Usage
 -----
 
-The simplest way to apply the plugin to your Gradle build is using the latest release hosted on Maven Central:
+The simplest way to apply the plugin to your Gradle build is using the latest release on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/org.standardout.bnd-platform).
+
+The plugin is also hosted on Maven Central:
 
 ```groovy
 buildscript {
@@ -30,12 +32,14 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.standardout:bnd-platform:3.0.1'
+		classpath 'org.standardout:bnd-platform:<version>'
 	}
 }
 
 apply plugin: 'org.standardout.bnd-platform'
 ```
+
+You can look up the latest release version in the [GitHub releases](https://github.com/stempler/bnd-platform/releases).
 
 Alternatives are including the repository content in the **buildSrc** folder as done in the [sample project](https://github.com/stempler/bnd-platform-sample) or by installing the plugin to your local Maven repository using `gradlew install` and adding it as dependency to your build script via `mavenLocal()` repository.
 
@@ -50,12 +54,17 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.standardout:bnd-platform:3.1.0-SNAPSHOT'
+        classpath 'org.standardout:bnd-platform:<version>'
     }
 }
 
 apply plugin: 'org.standardout.bnd-platform'
 ```
+
+The latest snapshot version can be found in the [Sonatype repository](https://oss.sonatype.org/content/repositories/snapshots/org/standardout/bnd-platform/).
+
+If changes were made after the last release, the snapshot version is the last release version with the minor version number increased by one and the qualifier set to `-SNAPSHOT`.
+For example, for the 3.1.0 release the snapshot version would be 3.2.0-SNAPSHOT.
 
 
 ### Tasks
@@ -520,23 +529,6 @@ platform {
 	eclipseMirror = 'http://myeclipsedownload.com/eclipse.tar.gz'
 }
 ```
-
-
-
-Release
--------
-
-Releases are currently not done by the CI but manually.
-
-Steps are:
-
-1. Change version to release version
-2. Adapt changelog
-3. Create tag
-4. Publish release to Maven Central (`./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository`)
-5. Publish release to Gradle Plugin Portal
-6. Change version to new snapshot
-
 
 License
 -------
