@@ -52,6 +52,27 @@ class FeatureUtil {
 			if (feature.license) {
 				license(feature.license)
 			}
+
+			if (feature.description) {
+				description(feature.description)
+			}
+
+			if (feature.copyright) {
+				copyright(feature.copyright)
+			}
+
+			if (!feature.requiredFeatures.isEmpty()) {
+ 				requires() {
+					//required features
+					for (Feature.RequiredFeature required : feature.requiredFeatures.sort(true, { it.featureName })) {
+						def version = required.version?:'0.0.0'
+						def match = required.match?:"greaterOrEqual"
+						xml.import(feature: required.featureName, version: version, match:match)
+					}
+				}
+			}
+
+
 			// included features
 			for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
 				def version = included.version?:'0.0.0'

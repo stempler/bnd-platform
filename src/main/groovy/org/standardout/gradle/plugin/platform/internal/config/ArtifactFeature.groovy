@@ -31,41 +31,50 @@ import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 /**
  * Represents the configuration of a platform feature.
- * 
+ *
  * @author Simon Templer
  */
 class ArtifactFeature implements Feature {
-	
+
 	final Project project
-	
+
 	final String id
 	final String label
 	final String version
 	final String providerName
 	final String license
-	
+	final String description
+	final String copyright
+
 	/**
 	 * List of artifact references
 	 */
 	final List<ArtifactsMatch> configArtifacts = []
-	
+
 	/**
 	 * List of included features IDs
 	 */
 	final List<String> configFeatures = []
-	
+
+	/**
+	 * List of required features
+	 */
+	List<RequiredFeature> requiredFeatures = []
+
 	private String finalVersion
-	
+
 	ArtifactFeature(Project project, def featureNotation,
 			Closure featureClosure) {
 		this.project = project
-		
+
 		def id
 		def label
 		def version
 		def providerName
 		def license
-		
+		def description
+		def copyright
+
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
 			id = featureNotation.id
@@ -73,11 +82,13 @@ class ArtifactFeature implements Feature {
 			version = featureNotation.version
 			providerName = featureNotation.provider
 			license = featureNotation.license
+			description = featureNotation.description
+			copyright = featureNotation.copyright
 		}
 		else {
 			// assume String id and default values
 			String featureString = featureNotation as String
-			
+
 			//XXX support some kind of pattern?
 			// for now just assume it's the id
 			id = featureString
@@ -86,14 +97,16 @@ class ArtifactFeature implements Feature {
 		if (!id) {
 			throw new IllegalStateException('A feature ID must be provided when defining a feature')
 		}
-			
-		// default values and source adaptions	
+
+		// default values and source adaptions
 		this.version = VersionUtil.toOsgiVersion(((version ?: project.platform.featureVersion) ?: project.version) ?: '1.0.0').toString()
 		this.providerName = providerName ?: project.platform.featureProvider
 		this.id = id
 		this.label = label ?: id
 		this.license = license ?: ""
-		
+		this.description = description ?: ""
+		this.copyright = copyright ?: ""
+
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null
 		CustomConfigDelegate maskingDelegate = null
@@ -104,43 +117,43 @@ class ArtifactFeature implements Feature {
 			configClone.resolveStrategy = Closure.DELEGATE_FIRST
 			configClone()
 		}
-	
+
 		maskedConfig.delegate = project.platform // delegate is the platform extension
 		maskedConfig()
-		
+
 		// save feature configuration
 		project.platform.features[this.id] = this
 	}
-		
-	@Override	
+
+	@Override
 	public String getVersion() {
 		if (!finalVersion) {
 			finalVersion = VersionUtil.addQualifier(version, this, project)
 		}
 		finalVersion
 	}
-		
+
 	Iterable<BundleArtifact> getBundles() {
 		/*
 		 * Attention: a call to this method can only yield a sensible
 		 * result after the artifacts map has been populated by the
 		 * respective Gradle task.
 		 */
-		
+
 		// collect all artifacts that match the respective condition
 		def artifacts = project.platform.artifacts.values().findAll { BundleArtifact artifact ->
 			configArtifacts.any { ArtifactsMatch match ->
 				match.acceptArtifact(artifact)
 			}
 		}
-		
+
 		// collect transitive dependencies
 		transitiveArtifacts(artifacts)
 	}
-	
+
 	private Iterable<BundleArtifact> transitiveArtifacts(Collection<BundleArtifact> artifacts) {
 		Map<String, BundleArtifact> allArtifacts = [:]
-		
+
 		artifacts.each { BundleArtifact artifact ->
 			if (artifact instanceof DependencyArtifact) {
 				artifact.representedDependencies.each { ResolvedDependency dep ->
@@ -151,24 +164,24 @@ class ArtifactFeature implements Feature {
 					}
 				}
 			}
-			
+
 			// in any case, add the bundle itself
 			allArtifacts[artifact.id] = artifact
 		}
-		
-		
+
+
 		// artifact bundles
 		allArtifacts.values().findAll { BundleArtifact ba ->
 			!ba.isSource()
 		}
-	} 
-	
+	}
+
 	/**
 	 * Find bundle artifact representations for resolved artifacts.
 	 */
 	private Collection<BundleArtifact> findArtifacts(Iterable<ResolvedArtifact> arts) {
 		def result = []
-		
+
 		arts.each { ResolvedArtifact ra ->
 			def id = "${ra.moduleVersion.id.group}:${ra.moduleVersion.id.name}:${ra.moduleVersion.id.version}"
 			def ba = project.platform.artifacts[id]
@@ -176,17 +189,17 @@ class ArtifactFeature implements Feature {
 				result << ba
 			}
 		}
-		
+
 		result
 	}
-	
+
 	Iterable<Feature> getIncludedFeatures() {
 		// resolve feature IDs
 		configFeatures.collect {
 			project.platform.features[it]
 		}.findAll()
 	}
-	
+
 	/**
 	 * Delegate for the configuration closure to intercept calls
 	 * for the feature configuration.
@@ -201,7 +214,17 @@ class ArtifactFeature implements Feature {
 
 		@Override
 		def invokeMethod(String name, def args) {
-			//TODO support manually adding a feature reference
+			if (name == "requires") {
+				def requiredNotation = args[0]
+				if (requiredNotation instanceof Map) {
+					def featureName = requiredNotation.featureName
+					def version = requiredNotation.version
+					def match = requiredNotation.match
+					def required = new RequiredFeature(featureName, version, match)
+					feature.requiredFeatures.add(required)
+				}
+				return
+			}
 
 			/*
 			 * If there are further nested closures inside features
@@ -209,15 +232,15 @@ class ArtifactFeature implements Feature {
 			 * is asked first, and we cannot intercept the call.
 			 * Thus as an alternative, 'plugin' can (should) be called instead
 			 * of 'bundle' inside feature.
-			 * 
+			 *
 			 *  XXX an alternative would be having some kind of feature stack in
 			 *  the extension, but this requires then the bundle method in the
-			 *  extension to add the bundle to the feature.		
+			 *  extension to add the bundle to the feature.
 			 */
 			if (name == 'plugin') name = 'bundle'
-			
+
 			def result = orgDelegate."$name"(*args)
-			
+
 			// intercept result
 			if (result instanceof ArtifactsMatch) {
 				// bundle or merge
@@ -226,10 +249,10 @@ class ArtifactFeature implements Feature {
 			if (result instanceof Feature) {
 				feature.configFeatures << feature.id
 			}
-			
+
 			result
 		}
-		
+
 		@Override
 		def getProperty(String name) {
 			if (name == 'includes') {
@@ -240,11 +263,11 @@ class ArtifactFeature implements Feature {
 				orgDelegate."$name"
 			}
 		}
-		
+
 		@Override
 		void setProperty(String name, def value) {
 			orgDelegate."$name" = value
 		}
 	}
-	
+
 }

@@ -27,6 +27,8 @@ class DefaultFeature implements Feature {
 	String version
 	String providerName
 	String license
+	String description
+	String copyright
 	List<BundleArtifact> bundles = []
 	List<Feature> includedFeatures = []
 	Project project
@@ -57,6 +59,12 @@ class DefaultFeature implements Feature {
 	@Override
 	public Iterable<Feature> getIncludedFeatures() {
 		includedFeatures == null ? [] : includedFeatures
+	}
+
+	@Override
+	public Iterable<RequiredFeature> getRequiredFeatures()
+	{
+		[]
 	}
 
 }
