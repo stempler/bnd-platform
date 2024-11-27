@@ -74,6 +74,10 @@ jobs:
           fail_on_failure: true
 
       - name: Determine app token for release
+        # Permissions needed
+        #   contents: write
+        #   issues: write
+        #   pull-requests: write
         uses: actions/create-github-app-token@5d869da34e18e7287c1daad50e0b8ea0f506ce69 # v1.11.0
         id: app-token
         with:
@@ -84,16 +88,12 @@ jobs:
         id: release
         uses: cycjimmy/semantic-release-action@b1b432f13acb7768e0c8efdec416d363a57546f2 # v4.1.1
         env:
-          # Permissions needed
-          #   contents: write
-          #   issues: write
-          #   pull-requests: write
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-#          GIT_AUTHOR_NAME: wetransform Bot
-#          GIT_AUTHOR_EMAIL: 113353961+wetransformer@users.noreply.github.com
-#          GIT_COMMITTER_NAME: wetransform Bot
-#          GIT_COMMITTER_EMAIL: 113353961+wetransformer@users.noreply.github.com
           RUNNER_DEBUG: 1
+
+          # attempt for more verbose logging
+          # see https://github.com/semantic-release/semantic-release/blob/master/docs/usage/configuration.md#debug
+          DEBUG: "semantic-release:*"
 
           # For Gradle execution
 
