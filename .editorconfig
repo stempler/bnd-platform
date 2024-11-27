@@ -11,6 +11,16 @@ indent_size = 4
 # not supported by eclipseconfig
 insert_final_newline = true
 
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
+[*.{json,json5}]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+
 [*.{groovy,java,gradle}]
 charset = utf-8
 indent_style = tab

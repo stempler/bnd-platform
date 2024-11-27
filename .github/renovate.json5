@@ -6,4 +6,46 @@
     "security:openssf-scorecard",
     ":enableVulnerabilityAlertsWithLabel(security)",
   ],
+  labels: [
+    "renovate",
+    "renovate/{{updateType}}",
+  ],
+  customManagers: [
+    {
+      description: "Update semantic-release in GitHub Action workflows",
+      customType: "regex",
+      fileMatch: ["(^workflow-templates|\\.github/(actions|workflows))\\/.+\\.ya?ml$"],
+      matchStrings: [
+        "\
+semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?\
+(\\s+|\\s+.*)"
+      ],
+      datasourceTemplate: "npm",
+      depNameTemplate: "semantic-release"
+    },
+    {
+      description: "Any other workflows related file with dependencies",
+      customType: "regex",
+      fileMatch: [
+        "(^workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$",
+      ],
+      matchStrings: [
+        "\
+.*renovate:\
+\\sdatasource=(?<datasource>.*?)\
+\\sdepName=(?<depName>.*?)\
+(\\sversioning=(?<versioning>.*?))?\
+\n.*(version|Version|VERSION)\\s*(:=|=|:)\\s*\"?(?<currentValue>.*?)\
+(@(?<currentDigest>sha256:[a-f0-9]+))?\"?\
+(\\s+|\\s+.*)"
+      ],
+      versioningTemplate: "\
+{{#if versioning}}\
+{{{versioning}}}\
+{{else}}\
+semver-coerced\
+{{/if}}"
+    },
+  ],
+  separateMinorPatch: false
 }

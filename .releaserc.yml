@@ -1,0 +1,21 @@
+---
+branches: main
+
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+  - "@semantic-release/changelog"
+  - - "@semantic-release/exec"
+    - # verifyRelease - Tag has not been created (is created after prepare) and version
+      # has not been set at this point, so verification of the version is not possible,
+      # but verification of dependencies
+      verifyReleaseCmd: ./gradlew verifyNoSnapshotDependencies
+
+      # publish - verify that version is release version and perform publishing tasks
+      publishCmd: ./gradlew showVersion verifyReleaseVersion publishPlugins publishToSonatype closeAndReleaseSonatypeStagingRepository
+  - - "@semantic-release/git"
+    - assets:
+        - CHANGELOG.md
+  - "@semantic-release/github"

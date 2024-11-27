@@ -6,12 +6,22 @@ on:
       - master
   workflow_dispatch: {}
 
+concurrency:
+  # only run one publishing at a time to avoid conflicts
+  group: publish-${{ github.ref }}
+
 jobs:
   publish:
+    # Only on main repository (don't publish on forks)
+    if: github.repository_owner == 'stempler'
+
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # fetch-depth 0 is required to fetch all tags (and to determine the version based on tags)
+          fetch-depth: 0
 
       - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
@@ -46,8 +56,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SONATYE_PGP_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SONATYE_PGP_PRIVATE_KEY }}
         run: ./gradlew clean check publishToSonatype
-        # TODO what about publishing releases?
-        # see https://github.com/gradle-nexus/publish-plugin#publishing-and-closing-in-different-gradle-invocations
 
         # https://github.com/marketplace/actions/junit-report-action
       - name: Publish Test Report
