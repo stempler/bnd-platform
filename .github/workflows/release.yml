@@ -41,6 +41,9 @@ jobs:
         with:
           # fetch-depth 0 is required to fetch all tags (and to determine the version based on tags)
           fetch-depth: 0
+          # do not persist credentials because this clashes with semantic-release action
+          # (because the @semantic-release/git attempts to use them but needs permissions to bypass protection)
+          persist-credentials: false
 
       - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
