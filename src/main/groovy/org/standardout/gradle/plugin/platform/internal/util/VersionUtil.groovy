@@ -120,7 +120,7 @@ class VersionUtil {
 		}
 
 		if (project.platform.testingMode) {
-			def versionWithQualifier = addQualifier(version, project.platform.testingQualifier)
+			def versionWithQualifier = VersionUtil.addQualifier(version, project.platform.testingQualifier)
 			if (versionWithQualifier != null) {
 				return versionWithQualifier
 			}
@@ -168,7 +168,7 @@ class VersionUtil {
 
 		if (addQualifier) {
 			// append additional qualifier
-			def versionWithQualifier = addQualifier(version, addQualifier)
+			def versionWithQualifier = VersionUtil.addQualifier(version, addQualifier)
 			if (versionWithQualifier != null) {
 				return versionWithQualifier
 			}
@@ -188,7 +188,7 @@ class VersionUtil {
 	 */
 	static String addQualifier(String version, Feature feature, Project project) {
 		if (project.platform.testingMode) {
-			def versionWithQualifier = addQualifier(version, project.platform.testingQualifier)
+			def versionWithQualifier = VersionUtil.addQualifier(version, project.platform.testingQualifier)
 			if (versionWithQualifier != null) {
 				return versionWithQualifier
 			}
@@ -232,7 +232,7 @@ class VersionUtil {
 
 		if (addQualifier) {
 			// append additional qualifier
-			def versionWithQualifier = addQualifier(version, addQualifier)
+			def versionWithQualifier = VersionUtil.addQualifier(version, addQualifier)
 			if (versionWithQualifier != null) {
 				return versionWithQualifier
 			}
@@ -243,7 +243,7 @@ class VersionUtil {
 	}
 
 	static String addQualifier(String version, String addQualifier) {
-		addQualifier(toOsgiVersion(version), addQualifier)?.toString()
+		VersionUtil.addQualifier(toOsgiVersion(version), addQualifier)?.toString()
 	}
 
 	static Version addQualifier(Version version, String addQualifier) {
