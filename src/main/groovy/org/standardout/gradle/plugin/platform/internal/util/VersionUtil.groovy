@@ -28,10 +28,10 @@ import aQute.bnd.osgi.Analyzer
 
 
 class VersionUtil {
-	
+
 	/**
 	 * Convert a version string to a valid OSGi version.
-	 * 
+	 *
 	 * @param version the version string
 	 * @param onInvalid closure that is called with the OSGi version if the
 	 *   original version string yielded no valid OSGi version
@@ -51,7 +51,7 @@ class VersionUtil {
 				if (qualifier != null) {
 					qualifier = qualifier.replaceAll(/[^0-9a-zA-Z\-_]/, '_')
 				}
-				
+
 				osgiVersion = new Version(
 					match[1] as int,
 					(match[3] as Integer)?:0,
@@ -63,16 +63,20 @@ class VersionUtil {
 				osgiVersion = Version.parseVersion(strippedVersion)
 			}
 
-			// invalid callback			
+			// invalid callback
 			if (onInvalid != null) {
 				onInvalid(osgiVersion)
 			}
 		}
-		
+
 		osgiVersion
 	}
-	
+
 	static VersionQualifierMap getQualifierMap(Project project) {
+		if (project.platform.testingMode) {
+			return null
+		}
+
 		def map = project.platform.hashQualifierMap
 		if (map instanceof VersionQualifierMap) {
 			map
@@ -97,10 +101,10 @@ class VersionUtil {
 			null
 		}
 	}
-	
+
 	/**
 	 * Add a qualifier to the bundle version.
-	 * 
+	 *
 	 * @param version the current bundle version
 	 * @param symbolicName the bundle symbolic name
 	 * @param bndConfig the bnd configuration, may be <code>null</code>
@@ -114,12 +118,22 @@ class VersionUtil {
 		if (bndConfig?.addQualifier == false) {
 			return version
 		}
-		
+
+		if (project.platform.testingMode) {
+			def versionWithQualifier = addQualifier(version, project.platform.testingQualifier)
+			if (versionWithQualifier != null) {
+				return versionWithQualifier
+			}
+			else {
+				return version
+			}
+		}
+
 		// determine additional qualifier
-		
+
 		// default qualifier
 		def addQualifier = project.platform.defaultQualifier
-		
+
 		if (bndConfig != null && project.platform.useBndHashQualifiers) {
 			// strip down properties
 			def props = bndConfig.properties.findAll {
@@ -128,10 +142,10 @@ class VersionUtil {
 				key != Analyzer.BUNDLE_VERSION &&
 				key != Analyzer.BUNDLE_NAME
 			}
-			
+
 			if (props) {
 				// there actually are relevant properties
-				
+
 				// calculate hash from properties
 				def propString = props.sort().toMapString()
 				byte[] bytes = project.platform.hashCalculator(propString)
@@ -142,7 +156,7 @@ class VersionUtil {
 						// use qualifier map
 						def osgiVersion = toOsgiVersion(version)
 						addQualifier = qualifierMap.getQualifier(bundleType,
-							symbolicName, osgiVersion, hash)	
+							symbolicName, osgiVersion, hash)
 					}
 					else {
 						// just use hash
@@ -151,27 +165,19 @@ class VersionUtil {
 				}
 			}
 		}
-		
+
 		if (addQualifier) {
 			// append additional qualifier
-			def osgiVersion = toOsgiVersion(version)
-			if (osgiVersion != null) {
-				def qualifier = osgiVersion.qualifier
-				if (qualifier) {
-					qualifier += "-$addQualifier"
-				}
-				else {
-					qualifier = addQualifier
-				}
-				Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
-				return mv.toString()
+			def versionWithQualifier = addQualifier(version, addQualifier)
+			if (versionWithQualifier != null) {
+				return versionWithQualifier
 			}
 		}
-		
+
 		// fall back to original version
 		version
 	}
-	
+
 	/**
 	 * Add a qualifier to a feature version, based on the feature content.
 	 *
@@ -181,14 +187,24 @@ class VersionUtil {
 	 * @return the modified or the given version, depending on the configuration
 	 */
 	static String addQualifier(String version, Feature feature, Project project) {
+		if (project.platform.testingMode) {
+			def versionWithQualifier = addQualifier(version, project.platform.testingQualifier)
+			if (versionWithQualifier != null) {
+				return versionWithQualifier
+			}
+			else {
+				return version
+			}
+		}
+
 		// early exit if qualifiers are not enabled
 		if (!project.platform.useFeatureHashQualifiers) {
 			return version
 		}
-		
+
 		// determine qualifier
 		def addQualifier
-		
+
 		// collect bundle IDs and versions
 		def bundles = feature.bundles.collect { BundleArtifact bundle ->
 			"${bundle.symbolicName}:${bundle.modifiedVersion}"
@@ -197,7 +213,7 @@ class VersionUtil {
 		def features = feature.includedFeatures.collect { Feature include ->
 			"${include.id}:${include.version}"
 		}.sort()
-		
+
 		def propString = [bundles: bundles, features: features].toMapString()
 		byte[] bytes = project.platform.hashCalculator(propString)
 		if (bytes) {
@@ -206,32 +222,47 @@ class VersionUtil {
 			if (qualifierMap) {
 				// use qualifier map
 				def osgiVersion = toOsgiVersion(version)
-				addQualifier = qualifierMap.getQualifier('feature', feature.id, osgiVersion, hash)	
+				addQualifier = qualifierMap.getQualifier('feature', feature.id, osgiVersion, hash)
 			}
 			else {
 				// just use hash
 				addQualifier = 'bnd-' + hash
 			}
 		}
-		
+
 		if (addQualifier) {
 			// append additional qualifier
-			def osgiVersion = toOsgiVersion(version)
-			if (osgiVersion != null) {
-				def qualifier = osgiVersion.qualifier
-				if (qualifier) {
-					qualifier += "-$addQualifier"
-				}
-				else {
-					qualifier = addQualifier
-				}
-				Version mv = new Version(osgiVersion.major, osgiVersion.minor, osgiVersion.micro, qualifier)
-				return mv.toString()
+			def versionWithQualifier = addQualifier(version, addQualifier)
+			if (versionWithQualifier != null) {
+				return versionWithQualifier
 			}
 		}
-		
+
 		// fall back to original version
 		version
 	}
-	
+
+	static String addQualifier(String version, String addQualifier) {
+		addQualifier(toOsgiVersion(version), addQualifier)?.toString()
+	}
+
+	static Version addQualifier(Version version, String addQualifier) {
+		if (version == null) {
+			return null
+		}
+
+		if (addQualifier) {
+			// append additional qualifier
+			def qualifier = version.qualifier
+			if (qualifier) {
+				qualifier += "-$addQualifier"
+			}
+			else {
+				qualifier = addQualifier
+			}
+			return new Version(version.major, version.minor, version.micro, qualifier)
+		}
+		version
+	}
+
 }

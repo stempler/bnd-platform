@@ -17,6 +17,7 @@
 package org.standardout.gradle.plugin.platform
 
 import org.standardout.gradle.plugin.platform.internal.util.VersionFile
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
 
 import java.util.jar.*
 
@@ -40,7 +41,7 @@ import groovy.json.JsonOutput
 
 /**
  * OSGi platform plugin for Gradle.
- * 
+ *
  * @author Robert Gregor
  * @author Simon Templer
  */
@@ -84,16 +85,23 @@ public class PlatformPlugin implements Plugin<Project> {
 		project.afterEvaluate {
 			// feature version default
 			if (project.platform.featureVersion == null) {
+				def candidateVersion = null
 				if (project.version) {
 					try {
-						project.platform.featureVersion = Version.parseVersion(project.version).toString()
+						candidateVersion = Version.parseVersion(project.version).toString()
 					} catch (e) {
 						// ignore
 					}
 				}
-			}
-			if (project.platform.featureVersion == null) {
-				project.platform.featureVersion = '1.0.0'
+				if (candidateVersion == null) {
+					candidateVersion = '1.0.0'
+				}
+
+				if (project.platform.testingMode) {
+					candidateVersion = VersionUtil.addQualifier(candidateVersion, project.platform.testingQualifier)
+				}
+
+				project.platform.featureVersion = candidateVersion
 			}
 
 			if (project.platform.downloadsDir == null) {
@@ -128,7 +136,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 
 		/*
-		 * Create JARs for all features. 
+		 * Create JARs for all features.
 		 */
 		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: bundlesTask).doFirst {
 			featuresDir.mkdirs()
@@ -214,7 +222,7 @@ public class PlatformPlugin implements Plugin<Project> {
 			description 'Create a p2 repository from the bundles and write it to build/updatesite'
 			doFirst {
 				project.platform.updateSiteDir.mkdirs()
-	
+
 				assert project.platform.eclipseHome
 				def eclipseHome = project.platform.eclipseHome.absolutePath
 
@@ -233,20 +241,20 @@ public class PlatformPlugin implements Plugin<Project> {
 				}
 				def launcherJar = launcherFiles.iterator().next()
 				assert launcherJar
-	
+
 				project.logger.info "Using Java at $javaHome and Eclipse at $eclipseHome for p2 repository generation."
 
 				def appendToSite = project.platform.appendUpdateSite
 				if (appendToSite) {
 					project.logger.info "Appending to update site is enabled."
 				}
-	
+
 				/*
 				 * Documentation on Publisher:
 				 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
 				 * http://wiki.eclipse.org/Equinox/p2/Publisher
 				 */
-	
+
 				// launch Publisher for Features and Bundles
 				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
@@ -262,7 +270,7 @@ public class PlatformPlugin implements Plugin<Project> {
 					}
 					commandLine = args
 				}
-	
+
 				// launch Publisher for category / site.xml
 				project.exec {
 					def args = ["${javaBin}", '-jar', launcherJar,
@@ -275,7 +283,7 @@ public class PlatformPlugin implements Plugin<Project> {
 					}
 					commandLine = args
 				}
-	
+
 				project.logger.info 'Built p2 repository.'
 
 				def createFeatureVersionFiles = project.platform.createFeatureVersionFiles
@@ -299,7 +307,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 
 		/*
-		 * Task that creates a Json file with a mapping of bundle name to  
+		 * Task that creates a Json file with a mapping of bundle name to
 		 */
 		Task artifactMapTask = project.task('artifactMap', dependsOn: bundlesTask).doFirst {
 			Map<String, BundleArtifact> artifacts = project.platform.artifacts
@@ -330,13 +338,13 @@ public class PlatformPlugin implements Plugin<Project> {
 
 		/**
 		 * Creates a potentialOptionalImports.txt file in the build directory of potential optional imports.
-		 * 
+		 *
 		 * Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
 		 * therefore optionalImport instructions for the bnd configuration are used quite frequently.
-		 * This task should help to generate the optional import statements, 
+		 * This task should help to generate the optional import statements,
 		 * but please be careful since this task simply creates the optionalImport statements for each and every imported package.
 		 * This means that YOU have to check yourself if the dependency is really optional.
-		 * 
+		 *
 		 * See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 		 */
 		Task potentialOptionalImports = project.task('potentialOptionalImports', dependsOn: bundlesTask) {
@@ -347,7 +355,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				def reportFile = new File(project.buildDir, 'potentialOptionalImports.txt').newWriter()
 				reportFile << '''Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
 therefore optionalImport instructions for the bnd configuration are used quite frequently.
-This task should help to generate the optional import statements, 
+This task should help to generate the optional import statements,
 but please be careful since this task simply creates the optionalImport statements for each and every imported package.
 This means that YOU have to check yourself if the dependency is really optional.
 
