@@ -97,9 +97,10 @@ public class PlatformPlugin implements Plugin<Project> {
 					candidateVersion = '1.0.0'
 				}
 
-				if (project.platform.testingMode) {
-					candidateVersion = VersionUtil.addQualifier(candidateVersion, project.platform.testingQualifier)
-				}
+				// not necessary, as qualifier is added automatically when creating the feature
+//				if (project.platform.testingMode) {
+//					candidateVersion = VersionUtil.addQualifier(candidateVersion, project.platform.testingQualifier)
+//				}
 
 				project.platform.featureVersion = candidateVersion
 			}
