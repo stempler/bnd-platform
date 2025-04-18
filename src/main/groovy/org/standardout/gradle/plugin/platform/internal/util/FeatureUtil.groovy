@@ -23,31 +23,31 @@ import org.standardout.gradle.plugin.platform.internal.BundleArtifact
 import org.standardout.gradle.plugin.platform.internal.Feature
 
 class FeatureUtil {
-	
+
 	static void createFeatureXml(Feature feature, File target) {
 		target.parentFile.mkdirs()
-		
+
 		target.withWriter('UTF-8'){ Writer w ->
 			createFeatureXml(feature, w)
 		}
 	}
-	
+
 	static void createFeatureXml(Feature feature, OutputStream target) {
 		Writer w = new OutputStreamWriter(target, 'UTF-8') //target.newWriter('UTF-8')
 		createFeatureXml(feature, w)
 	}
-	
+
 	static void createFeatureXml(Feature feature, Writer target) {
 		def xml = new groovy.xml.MarkupBuilder(target)
 		xml.setDoubleQuotes(true)
 		xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
-		
+
 		xml.feature(
 			id: feature.id,
 			label: feature.label,
 			version: feature.version,
-			'provider-name': feature.providerName
-			// plugin: branding_plugin_id
+			'provider-name': feature.providerName,
+			plugin: feature.plugin
 		) {
 			if (feature.license) {
 				license(feature.license)
@@ -78,7 +78,7 @@ class FeatureUtil {
 				def version = included.version?:'0.0.0'
 				includes(id: included.id, version: version)
 			}
-		
+
 			// included bundles
 			for (BundleArtifact artifact : feature.bundles.sort(true, { it.symbolicName })) {
 				// define each plug-in
@@ -88,14 +88,14 @@ class FeatureUtil {
 					'install-size': 0,
 					version: artifact.modifiedVersion,
 					unpack: false]
-				
+
 				// omit empty/null for os/arch/ws (may not be present)
 				if(artifact.os) {
 					paramMap.put('os', artifact.os)
 				}
 				if(artifact.arch) {
 					paramMap.put('arch', artifact.arch)
-				} 
+				}
 				if(artifact.ws) {
 					paramMap.put('ws', artifact.ws)
 				}
@@ -104,11 +104,11 @@ class FeatureUtil {
 			}
 		}
 	}
-	
+
 	static void createJar(Feature feature, def jarFile) {
 		File target = jarFile as File
 		target.parentFile.mkdirs()
-		
+
 		// create feature jar
 		target.withOutputStream {
 			ZipOutputStream zipStream = new ZipOutputStream(it)
