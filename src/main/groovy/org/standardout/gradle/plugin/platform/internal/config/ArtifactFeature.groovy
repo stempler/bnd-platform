@@ -45,6 +45,7 @@ class ArtifactFeature implements Feature {
 	final String license
 	final String description
 	final String copyright
+	final String plugin
 
 	/**
 	 * List of artifact references
@@ -74,6 +75,7 @@ class ArtifactFeature implements Feature {
 		def license
 		def description
 		def copyright
+		def plugin
 
 		// extract basic feature information from feature notation
 		if (featureNotation instanceof Map) {
@@ -84,6 +86,7 @@ class ArtifactFeature implements Feature {
 			license = featureNotation.license
 			description = featureNotation.description
 			copyright = featureNotation.copyright
+			plugin = featureNotation.plugin
 		}
 		else {
 			// assume String id and default values
@@ -106,6 +109,7 @@ class ArtifactFeature implements Feature {
 		this.license = license ?: ""
 		this.description = description ?: ""
 		this.copyright = copyright ?: ""
+		this.plugin = plugin ?: ""
 
 		// create masking delegate to be able to intercept internal call results
 		Closure maskedConfig = null

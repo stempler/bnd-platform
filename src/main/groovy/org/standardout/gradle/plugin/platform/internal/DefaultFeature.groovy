@@ -21,7 +21,7 @@ import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
 
 
 class DefaultFeature implements Feature {
-	
+
 	String id
 	String label
 	String version
@@ -29,10 +29,11 @@ class DefaultFeature implements Feature {
 	String license
 	String description
 	String copyright
+	String plugin
 	List<BundleArtifact> bundles = []
 	List<Feature> includedFeatures = []
 	Project project
-	
+
 	private String finalVersion
 
 	@Override
@@ -42,7 +43,7 @@ class DefaultFeature implements Feature {
 		}
 		finalVersion
 	}
-	
+
 	void setVersion(String version) {
 		this.version = VersionUtil.toOsgiVersion(version).toString()
 	}
@@ -50,7 +51,7 @@ class DefaultFeature implements Feature {
 	String getProviderName() {
 		providerName?:'Generated with bnd-platform'
 	}
-	
+
 	@Override
 	public Iterable<BundleArtifact> getBundles() {
 		bundles == null ? [] : bundles
