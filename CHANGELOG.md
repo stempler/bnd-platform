@@ -1,3 +1,20 @@
+## [3.2.0](https://github.com/stempler/bnd-platform/compare/v3.1.0...v3.2.0) (2025-04-30)
+
+### Features
+
+* **plugin:** added branding plugin feature attribute ([15c5e9c](https://github.com/stempler/bnd-platform/commit/15c5e9c548a14463ce1a79e20f17e114432fdaeb))
+
+### Bug Fixes
+
+* **deps:** update dependency commons-io:commons-io to v2.19.0 ([d556fd9](https://github.com/stempler/bnd-platform/commit/d556fd91ae68d40202021b3f29e2389d810d57a4))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.0 ([f10eb68](https://github.com/stempler/bnd-platform/commit/f10eb68f281ae988faec83fe443de506515dd556))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.2 ([a9036f7](https://github.com/stempler/bnd-platform/commit/a9036f7d1ee019db0c4675a445b4f316686f72d3))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.3 ([1281eb7](https://github.com/stempler/bnd-platform/commit/1281eb7953dc24811799dad713f7633691f3ed49))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.12.1 ([8bfe10b](https://github.com/stempler/bnd-platform/commit/8bfe10bfed9904b316c0f6cdac32b9f3f2fcf0ac))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.12.2 ([4c9ef08](https://github.com/stempler/bnd-platform/commit/4c9ef0830e8bc7e2f44cc783530f58515abc03e3))
+* **deps:** update junit5 monorepo to v5.11.4 ([f9ed743](https://github.com/stempler/bnd-platform/commit/f9ed7433285af86962d61452d05be2ed53e19de5))
+* **deps:** update junit5 monorepo to v5.12.0 ([f241df5](https://github.com/stempler/bnd-platform/commit/f241df5141277968e15c4f426167ee3bcb1b1ffe))
+
 ## [3.1.0](https://github.com/stempler/bnd-platform/compare/v3.0.1...v3.1.0) (2024-11-27)
 
 ### Features
