@@ -1,3 +1,15 @@
+## [3.2.1](https://github.com/stempler/bnd-platform/compare/v3.2.0...v3.2.1) (2025-09-19)
+
+### Bug Fixes
+
+* **deps:** update dependency commons-io:commons-io to v2.20.0 ([9433eb7](https://github.com/stempler/bnd-platform/commit/9433eb7a40eb4b9687f80327de70a79d5111092e))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.4 ([84806a5](https://github.com/stempler/bnd-platform/commit/84806a575542cf170c490eacd021e974b8daca81))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.5 ([376b3fe](https://github.com/stempler/bnd-platform/commit/376b3fe76c8319994559d0f9a0223d6ddbac5ff7))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.13.0 ([db7d4d7](https://github.com/stempler/bnd-platform/commit/db7d4d7007723ad5c5cdbda3ede8f5895672449b))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.13.1 ([14439a4](https://github.com/stempler/bnd-platform/commit/14439a483601d6bd12b14228e802ba416141d1b7))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.13.2 ([f8a95d4](https://github.com/stempler/bnd-platform/commit/f8a95d478eda7a11989045439dd8251dbd7c1e0d))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.13.4 ([c3b46bf](https://github.com/stempler/bnd-platform/commit/c3b46bff8ab2d4396dafaf643f402bf831c3d428))
+
 ## [3.2.0](https://github.com/stempler/bnd-platform/compare/v3.1.0...v3.2.0) (2025-04-30)
 
 ### Features
