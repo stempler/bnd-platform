@@ -111,7 +111,7 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
         with:
           dry_run: ${{ inputs.dryRun }}
-          semantic_version: 24.2.9
+          semantic_version: 25.0.1
 
           extra_plugins:
             "@semantic-release/changelog@\
