@@ -52,7 +52,7 @@ test {
 
 tasks.wrapper {
 	distributionType = Wrapper.DistributionType.ALL
-	gradleVersion = '8.14.3'
+	gradleVersion = '8.14.4'
 }
 
 gradlePlugin {
