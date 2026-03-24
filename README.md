@@ -1,26 +1,24 @@
-bnd-platform
-============
+# bnd-platform
 
 Using OSGi and having trouble to get all the dependencies as proper OSGi bundles?
 Even worse, sometimes you need to adapt bundles due to class loading issues or make an annoying dependency optional?
 
-*bnd-platform* can help you solve that problem - it builds OSGi bundles and even Eclipse Update Sites from existing JARs, for instance retrieved from Maven repositories together with transitive dependencies. If needed you can adapt the creation of bundles via general or individual configuration options.
-*bnd-platform* is a [Gradle](http://www.gradle.org/) plugin and uses [bnd](http://www.aqute.biz/Bnd/Bnd) to create bundles and [Eclipse](http://www.eclipse.org/) for the creation of p2 repositories.
+_bnd-platform_ can help you solve that problem - it builds OSGi bundles and even Eclipse Update Sites from existing JARs, for instance retrieved from Maven repositories together with transitive dependencies. If needed you can adapt the creation of bundles via general or individual configuration options.
+_bnd-platform_ is a [Gradle](http://www.gradle.org/) plugin and uses [bnd](http://www.aqute.biz/Bnd/Bnd) to create bundles and [Eclipse](http://www.eclipse.org/) for the creation of p2 repositories.
 
 For a quick start, check out the (outdated) [sample project on GitHub](https://github.com/stempler/bnd-platform-sample) or use [this minimal example](https://github.com/stempler/bnd-platform-minimal) as a template for your build.
 
-**What *bnd-platform* can do:**
-* Create bundles for any JARs that can be defined as dependencies using Gradle (e.g. local JARs, JARs from Maven repositories) and their transitive dependencies
-* Download dependency sources and create source bundles (with *Eclipse-SourceBundle* manifest header)
-* Add *Bundle-License* and *Bundle-Vendor* headers based on information from associated POM files
-* Merge multiple JARs/dependencies into one bundle, e.g. where needed due to duplicate packages or classloader issues
-* Adapt the configuration for wrapping JARs or adapting existing bundles, e.g. to influence the imported packages
-* Create an Eclipse Update Site / p2 repository from the created bundles
-* Automatically associate version numbers to imported packages (experimental)
+**What _bnd-platform_ can do:**
 
+- Create bundles for any JARs that can be defined as dependencies using Gradle (e.g. local JARs, JARs from Maven repositories) and their transitive dependencies
+- Download dependency sources and create source bundles (with _Eclipse-SourceBundle_ manifest header)
+- Add _Bundle-License_ and _Bundle-Vendor_ headers based on information from associated POM files
+- Merge multiple JARs/dependencies into one bundle, e.g. where needed due to duplicate packages or classloader issues
+- Adapt the configuration for wrapping JARs or adapting existing bundles, e.g. to influence the imported packages
+- Create an Eclipse Update Site / p2 repository from the created bundles
+- Automatically associate version numbers to imported packages (experimental)
 
-Usage
------
+## Usage
 
 The simplest way to apply the plugin to your Gradle build is using the latest release on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/org.standardout.bnd-platform).
 
@@ -66,23 +64,22 @@ The latest snapshot version can be found in the [Sonatype repository](https://os
 If changes were made after the last release, the snapshot version is the last release version with the minor version number increased by one and the qualifier set to `-SNAPSHOT`.
 For example, for the 3.1.0 release the snapshot version would be 3.2.0-SNAPSHOT.
 
-
 ### Tasks
 
 The **platform** plugin comes with several Gradle tasks - the following are the main tasks and build upon each other:
 
-* ***bundles*** - create bundles and write them to **build/plugins**
-* ***potentialOptionalImports*** Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction (See "Optional Dependencies" section below)
-* ***updateSite*** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
-* ***updateSiteZip*** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default)
+- **_bundles_** - create bundles and write them to **build/plugins**
+- **_potentialOptionalImports_** Creates a potentialOptionalImports.txt file of imported packages of all generated bundles with the optionalImport instruction (See "Optional Dependencies" section below)
+- **_updateSite_** - create a p2 repository from the bundles and write it to **build/updatesite** (default)
+- **_updateSiteZip_** - create a ZIP archive from the p2 repository and write it to **build/updatesite.zip** (default)
 
-In addition, the ***clean*** task deletes all previously created bundles or update site artifacts. Usually you will want to clean the created bundles when building an update site, e.g. `gradle clean updateSite`.
+In addition, the **_clean_** task deletes all previously created bundles or update site artifacts. Usually you will want to clean the created bundles when building an update site, e.g. `gradle clean updateSite`.
 
 Be aware that for building the p2 repository Eclipse is used. If no path to a local Eclipse installation is configured (see the settings section later on) the plugin will by default download Eclipse Indigo and use it for that purpose.
 
 ### Adding dependencies
 
-*bnd-platform* adds a configuration named **bndplatform** to a Gradle build.
+_bnd-platform_ adds a configuration named **bndplatform** to a Gradle build.
 Prior to version 3 the configuration was named **platform**, but this clashes with a [platform method](https://docs.gradle.org/current/javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html#platform-java.lang.Object-) that was introduced in Gradle 5.
 
 You can add dependencies to the **bndplatform** configuration and configure them like you would with any other Gradle build - for example:
@@ -99,11 +96,11 @@ dependencies {
 }
 ```
 
-That's it - if you combine the previous code snippet with this one you have your first *bnd-platform* build script. A call `gradle updateSite` would create a p2 repository containing bundles for the [pegdown](https://github.com/sirthias/pegdown) library and its dependencies.
+That's it - if you combine the previous code snippet with this one you have your first _bnd-platform_ build script. A call `gradle updateSite` would create a p2 repository containing bundles for the [pegdown](https://github.com/sirthias/pegdown) library and its dependencies.
 
 Please see the Gradle documentation on [basic](http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html) and [advanced](http://www.gradle.org/docs/current/userguide/dependency_management.html) dependency management for more details on the dependency configration and advanced issues like resolving version conflicts or dealing with transitive dependencies.
 
-As an alternative to the conventional dependency declaration you can use the *platform* extension to add a dependency using the **bundle** keyword:
+As an alternative to the conventional dependency declaration you can use the _platform_ extension to add a dependency using the **bundle** keyword:
 
 ```groovy
 platform {
@@ -116,7 +113,7 @@ Both notations support adapting the dependency configuration as supported by Gra
 
 ### Bundle configuration
 
-The *bnd* library is used as a tool to create OSGi bundles from JARs. *bnd* analyzes the class files in a JAR to determine packages to import and export. *bnd* also allows to configure its behavior through a set of header instructions that resemble the OSGi manifest headers (see the [bnd website](http://www.aqute.biz/Bnd/Format) for a detailed description).
+The _bnd_ library is used as a tool to create OSGi bundles from JARs. _bnd_ analyzes the class files in a JAR to determine packages to import and export. _bnd_ also allows to configure its behavior through a set of header instructions that resemble the OSGi manifest headers (see the [bnd website](http://www.aqute.biz/Bnd/Format) for a detailed description).
 
 The bundle configuration can be applied when adding a dependency:
 
@@ -174,10 +171,11 @@ platform {
 You can enable auto-determining versions for package imports by enabling the `determineImportVersions` plugin setting. For each bundle to be created from a JAR retrieved via Maven/Ivy, their direct dependencies are analysed in turn and package imports are determined by the packages present there and the version of the dependency modules. This works for most cases, but is not as good as if the information would be determined based on the packages exported by the dependencies. What comes as a bonus is that for packages that are not found in the direct dependencies the imports are made optional automatically.
 
 A default strategy defines how the versions are represented for the **Import-Package** instructions, i.e. what lower and upper bounds are allowed for an imported package. Pre-defined strategies that can be used are:
-* **MINIMUM** - the module version is the minimum version for the package import, there is no upper boundary
-* **MAJOR** - like MINIMUM, but with the next major version (excluded) as upper boundary  (default)
-* **MINOR** - like MINIMUM, but with the next minor version (excluded) as upper boundary
-* **NONE** - no version constraint for package imports
+
+- **MINIMUM** - the module version is the minimum version for the package import, there is no upper boundary
+- **MAJOR** - like MINIMUM, but with the next major version (excluded) as upper boundary (default)
+- **MINOR** - like MINIMUM, but with the next minor version (excluded) as upper boundary
+- **NONE** - no version constraint for package imports
 
 Set the version strategy for the whole platform like this:
 
@@ -202,11 +200,11 @@ platform {
 }
 ```
 
-The above example influences the package imports for the packages provided by *guice* for all bundles that have *guice* as their dependency. This is needed in this case as *guice* already is provided as OSGi bundle with the exported package versions differing from the module version - and because *bnd-platform* currently only uses the information of the module version and applies it to all imports instead of using available package export information. This might be improved in the future if there is need.
+The above example influences the package imports for the packages provided by _guice_ for all bundles that have _guice_ as their dependency. This is needed in this case as _guice_ already is provided as OSGi bundle with the exported package versions differing from the module version - and because _bnd-platform_ currently only uses the information of the module version and applies it to all imports instead of using available package export information. This might be improved in the future if there is need.
 
 ### Default configuration
 
-*bnd-platform* will by default leave JARs that are recognized as bundles (meaning they have a *Bundle-SymbolicName* header already defined) as they are, except to eventually added *Bundle-License* and *Bundle-Vendor* headers if not yet present. If an existing bundle is wrapped because a bundle configuration applies to it, the configration from the bundle manifest applies as default configuration.
+_bnd-platform_ will by default leave JARs that are recognized as bundles (meaning they have a _Bundle-SymbolicName_ header already defined) as they are, except to eventually added _Bundle-License_ and _Bundle-Vendor_ headers if not yet present. If an existing bundle is wrapped because a bundle configuration applies to it, the configration from the bundle manifest applies as default configuration.
 
 To other JARs the global default configuration applies, which exports packages with the dependency's version number and imports any identified packages as mandatory import. You can override or extend the global default configuration by adding a **bnd** configuration without giving a dependency notation, for example:
 
@@ -220,7 +218,7 @@ platform {
 }
 ```
 
-But be careful what you put into the default configuration - setting the *symbolicName* or *version* here will not be seen as error, but does not make any sense and may lead to unpredicatable behavior (as there can't be two bundles with the same symbolic name and version).
+But be careful what you put into the default configuration - setting the _symbolicName_ or _version_ here will not be seen as error, but does not make any sense and may lead to unpredicatable behavior (as there can't be two bundles with the same symbolic name and version).
 
 ### Configuration priority
 
@@ -268,6 +266,7 @@ For example the [Retrofit](https://mvnrepository.com/artifact/com.squareup.retro
   <optional>true</optional>
 </dependency>
 ```
+
 Since it is unlikely to happen that you want an android dependency in your OSGi application it can be marked as optional:
 
 ```groovy
@@ -278,20 +277,21 @@ plugin('com.squareup.retrofit2:retrofit:2.4.0'){
         }
 }
 ```
+
 Unfortunately the information about the `<optional>true</optional>` instruction is lost during a Gradle build because Gradle's dependency management does not support it yet. (FYI https://docs.gradle.org/4.6/release-notes.html#support-for-optional-dependencies-in-pom-consumption)
 So the bnd-platform plug-in cannot add the optionalImport instructions automatically, yet.
 
 For the [Retrofit](https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit/2.4.0 "Retrofit 2.4.0 on Maven Central") library it is fairly easy to write the optionalImport instructions like above, but there are other libraries, which have plenty of these `<optional>true</optional>` instruction.
 
-In order to generate the list of potential optional imports a _potentialOptionalImports_ task has been created. This task  creates a _potentialOptionalImports.txt_ file, which lists potential optional imports of each and every bundle, which is created during a build.
+In order to generate the list of potential optional imports a _potentialOptionalImports_ task has been created. This task creates a _potentialOptionalImports.txt_ file, which lists potential optional imports of each and every bundle, which is created during a build.
 
 ### Sharing configurations
 
-Even though setting up an extensive platform of OSGi bundles can be done quite fast using *bnd-platform*, in many cases additional configuration is necessary. It comes naturally that it should be possible to reuse and share those configurations.
+Even though setting up an extensive platform of OSGi bundles can be done quite fast using _bnd-platform_, in many cases additional configuration is necessary. It comes naturally that it should be possible to reuse and share those configurations.
 
 With Gradle you can use `apply from: 'someScript.gradle'` to include other build scripts. In those you can define dependencies, bnd configuration or remote repositories like you would do in the main build script.
 
-An alternative is using the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) which allows you to include specific methods from an external script and thus provide parameters to the include. In context of *bnd-platform* it often makes sense to provide a version number as parameter. See the [sample project](https://github.com/stempler/bnd-platform-sample) for some nice examples, e.g. the [logging](https://github.com/stempler/bnd-platform-sample/blob/master/modules/logging.groovy) or [geotools](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy) platform modules defined there. Using the *include* plugin these modules are applied to the sample build like this:
+An alternative is using the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) which allows you to include specific methods from an external script and thus provide parameters to the include. In context of _bnd-platform_ it often makes sense to provide a version number as parameter. See the [sample project](https://github.com/stempler/bnd-platform-sample) for some nice examples, e.g. the [logging](https://github.com/stempler/bnd-platform-sample/blob/master/modules/logging.groovy) or [geotools](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy) platform modules defined there. Using the _include_ plugin these modules are applied to the sample build like this:
 
 ```groovy
 include {
@@ -307,7 +307,7 @@ include {
 
 We have created a repository on GitHub to collect the platform modules and configurations we use for our projects and you are welcome to fork and contribute: [shared-platform](https://github.com/igd-geo/shared-platform). The repository is designed to be used with the [gradle-include-plugin](https://github.com/stempler/gradle-include-plugin) and to enable the sharing of configurations without imposing them on you - just include the configuration that makes sense for you and augment it with your own.
 
-### Defining features *(since 1.1)*
+### Defining features _(since 1.1)_
 
 You can combine dependencies to an Eclipse feature. The feature will contain the dependencies, as well as their transitive dependencies. You can use the features for more fine-grained control in you target platform or in a feature based Eclipse product. The platform feature contains all features you define. If fetching sources is enabled, a matching source feature will be created for each feature.
 
@@ -331,7 +331,7 @@ platform {
 }
 ```
 
-Providing  a feature ID is mandatory, but *name* and *version* may be omitted (the version defaults to the platform feature version). `plugin` and `bundle` can be used synonymously inside the `feature` block, but when using `bundle` you may experience problems when used in inner closures.
+Providing a feature ID is mandatory, but _name_ and _version_ may be omitted (the version defaults to the platform feature version). `plugin` and `bundle` can be used synonymously inside the `feature` block, but when using `bundle` you may experience problems when used in inner closures.
 
 The feature may include also other required features. See an example below how to define such dependencies:
 
@@ -393,9 +393,10 @@ platform {
 When resolving the **platform** configuration with **bnd-platform**, **Gradle** will only include one version for each dependency. This is intentional as even though OSGi is designed to deal with issues such as multiple versions of a bundle, often it will lead to problems - namely package uses conflicts (please note that you can get package uses conflicts even with only one version of each bundle, as some may conflict with packages provided by the system bundle).
 
 However, if there is the need to have multiple versions of a bundle, these are your options:
-* use multiple **bnd-platform** builds, each will resolve its dependencies independent of the others
-* add dependencies to the **platformaux** configuration - they will be added in addition to the resolved platform configuration (but w/o their transitive dependencies)
-* add the additional versions as local dependencies
+
+- use multiple **bnd-platform** builds, each will resolve its dependencies independent of the others
+- add dependencies to the **platformaux** configuration - they will be added in addition to the resolved platform configuration (but w/o their transitive dependencies)
+- add the additional versions as local dependencies
 
 Following is an example using the **platformaux** configuration:
 
@@ -408,7 +409,7 @@ dependencies {
 
 ### Merged bundles
 
-Sometimes it is necessary to create a bundle out of multiple JARs, most often due to class loading issues. The [Geotools](http://www.geotools.org/) library is a famous example of that. It uses [Java SPI](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html) as extension mechanism, which does only recognize extensions from the same class loader. One way [suggested to cope with this](http://docs.geotools.org/stable/userguide/welcome/application.html#osgi) is creating a monolithic bundle that includes all the needed geotools modules (which I prefer because with Geotools otherwise you have different bundles partly exporting the same packages). Doing this with *bnd-platform* is quite easy:
+Sometimes it is necessary to create a bundle out of multiple JARs, most often due to class loading issues. The [Geotools](http://www.geotools.org/) library is a famous example of that. It uses [Java SPI](http://docs.oracle.com/javase/tutorial/sound/SPI-intro.html) as extension mechanism, which does only recognize extensions from the same class loader. One way [suggested to cope with this](http://docs.geotools.org/stable/userguide/welcome/application.html#osgi) is creating a monolithic bundle that includes all the needed geotools modules (which I prefer because with Geotools otherwise you have different bundles partly exporting the same packages). Doing this with _bnd-platform_ is quite easy:
 
 ```groovy
 platform {
@@ -438,15 +439,15 @@ platform {
 }
 ```
 
-Providing the **symbolicName** and **version** as part of the *bnd* configuration is mandatory for merged bundles, as the information from the original JARs' manifests is discarded.
+Providing the **symbolicName** and **version** as part of the _bnd_ configuration is mandatory for merged bundles, as the information from the original JARs' manifests is discarded.
 Please note that the example above misses the Maven repositories needed to actually retrieve those artifacts, see the sample project for a [more complete example](https://github.com/stempler/bnd-platform-sample/blob/master/modules/geotools.groovy).
 
-If you use `match { ... }` to merge bundles, it is called for each artifact. The artifact can be accessed via the variable **it**. An artifact has the following properties that can be useful to check against in a *match*:
+If you use `match { ... }` to merge bundles, it is called for each artifact. The artifact can be accessed via the variable **it**. An artifact has the following properties that can be useful to check against in a _match_:
 
-* **group** - the group name of the artifact, e.g. *'org.geotools'*
-* **name** - the name (artifact ID) of the artifact, e.g. *'gt-shapefile'*
-* **version** - the version of the artifact
-* **file** - the local or downloaded file of the artifact, as File object
+- **group** - the group name of the artifact, e.g. _'org.geotools'_
+- **name** - the name (artifact ID) of the artifact, e.g. _'gt-shapefile'_
+- **version** - the version of the artifact
+- **file** - the local or downloaded file of the artifact, as File object
 
 As alternative to **match** or in combination with it you can add bundles to merge via **bundle** or **include**. The syntax is the same as when adding dependencies. However, using **include** you just specify an artifact to be included if it is a dependency defined somewhere else, it does not add it as dependency.
 
@@ -468,8 +469,8 @@ platform {
 
 You can supply parameters to **merge**, currently those are:
 
-* **failOnDuplicate** - fail if the same file occurs in more than one JAR (not taking into account the manifest)  (default: **true**)
-* **collectServices** - combines files in `META-INF/services` defining extensions via SPI (default: **true**)
+- **failOnDuplicate** - fail if the same file occurs in more than one JAR (not taking into account the manifest) (default: **true**)
+- **collectServices** - combines files in `META-INF/services` defining extensions via SPI (default: **true**)
 
 You can specify them as named parameters, e.g.:
 
@@ -481,41 +482,40 @@ platform {
 }
 ```
 
-Plugin settings
----------------
+## Plugin settings
 
 Via the platform extension there are several settings you can provide:
 
-* **fetchSources** - if sources for external dependencies should be fetched and source bundles created (default: **true**)
-* **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
-* **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
-* **appendUpdateSite** - if any the generated p2 repository should be appended to the one that already exists in **updateSiteDir** (default: `false`)
-* **createFeatureVersionFiles** - if for the created update site, a version file should be created per feature, e.g. `<feature-id>_versions.json`, that includes information on the versions of the feature available in the p2 repository (default: `false`)
-* **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
-* **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via *eclipseHome*. Since version 3 uses an Eclipse 2023-09 mirror by default.
-* **downloadsDir** -  the directory to store the downloaded Eclipse installation on local, this works if *eclipseHome* is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
-* **generatePlatformFeature** - States if a general feature should be created. In case custom features are generated you might not want to have an additional "generated platform feature" besides your own features. (default: **true**)
-* **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
-* **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
-* **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
-* **featureProvider** - the provider name to be used for features (default: **'Generated with bnd-platform'**)
-* **categoryId** - the identifier of the feature's category (default: **'platform'**)
-* **categoryName** - the name of the feature's category (default: **'Target platform'**)
-* **determineImportVersions** - automatically determine package import versions (default: `false`)
-* **importVersionStrategy** = global strategy for import versions (default: `MAJOR`)
-* **importIgnorePackages** - set of packages to ignore when analyzing packages of dependencies to determine package import versions
-* **defaultQualifier** - the default version qualifier to use for wrapped bundles. If a qualifier is already
-     * present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
-* **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
-* **useFeatureHashQualifiers** - if a hash based on the feature content should be appended as qualifier to feature versions (default: `true`)
-* **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
-* **hashQualifierMap** - for bundles/features that would have hash based qualifiers, map those to qualifiers that ensure a specific behavior. The default qualifier map is based on version history persisted to a file and date based qualifiers to ensure increasing version qualifiers (can be important for update mechanisms). To use the default qualifier map, simply provide a file or file path for the version history to be stored in (will be stored as Json).
-* **defaultQualifierMap.prefix** - the prefix to use for version qualifiers provided via the default qualifier map (default: `'i'`)
-* **defaultQualifierMap.baseDate** - configures the base level for time based qualifiers generated by the default qualifier map. Valid values are `YEAR`, `MONTH`, `DAY`, `MINUTE`, `SECOND`, `MILLISECOND` (default: `MONTH`)
-* **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
-* **removeSignaturesFromWrappedBundles** - if signatures should be removed from signed jars that are wrapped using bnd (default: `true`)
-* **addBndPlatformManifestHeaders** - if *bnd-platform* specific manifest headers should be added. Adds information to the manifest that allows reconstructing the original Maven artifact identifiers (default: `false`)
-* **extractPomInformation** - if additional configuration information from POM is desired (default: `true`)
+- **fetchSources** - if sources for external dependencies should be fetched and source bundles created (default: **true**)
+- **updateSiteDir** - the directory the generated p2 repository is written to (default: `new File(buildDir, 'updatesite')`)
+- **updateSiteZipFile** - the target file for the zipped p2 repository (default: `new File(buildDir, 'updatesite.zip')`)
+- **appendUpdateSite** - if any the generated p2 repository should be appended to the one that already exists in **updateSiteDir** (default: `false`)
+- **createFeatureVersionFiles** - if for the created update site, a version file should be created per feature, e.g. `<feature-id>_versions.json`, that includes information on the versions of the feature available in the p2 repository (default: `false`)
+- **eclipseHome** - File object pointing to the directory of a local Eclipse installation to be used for generating the p2 repository (default: `null`)
+- **eclipseMirror** - Eclipse download URLs to be used when no local installation is provided via _eclipseHome_. Since version 3 uses an Eclipse 2023-09 mirror by default.
+- **downloadsDir** - the directory to store the downloaded Eclipse installation on local, this works if _eclipseHome_ is not specified. (default: `new File(buildDir, 'eclipse-downloads')`)
+- **generatePlatformFeature** - States if a general feature should be created. In case custom features are generated you might not want to have an additional "generated platform feature" besides your own features. (default: **true**)
+- **featureId** - the identifier of the feature including the platform bundles that will be available in the created update site (default: **'platform.feature'**)
+- **featureName** - the name of the feature including the platform bundles that will be available in the created update site (default: **'Generated platform feature'**)
+- **featureVersion** - the version number for the feature including the platform bundles that will be available in the created update site (defaults to the project version)
+- **featureProvider** - the provider name to be used for features (default: **'Generated with bnd-platform'**)
+- **categoryId** - the identifier of the feature's category (default: **'platform'**)
+- **categoryName** - the name of the feature's category (default: **'Target platform'**)
+- **determineImportVersions** - automatically determine package import versions (default: `false`)
+- **importVersionStrategy** = global strategy for import versions (default: `MAJOR`)
+- **importIgnorePackages** - set of packages to ignore when analyzing packages of dependencies to determine package import versions
+- **defaultQualifier** - the default version qualifier to use for wrapped bundles. If a qualifier is already
+    - present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
+- **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
+- **useFeatureHashQualifiers** - if a hash based on the feature content should be appended as qualifier to feature versions (default: `true`)
+- **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
+- **hashQualifierMap** - for bundles/features that would have hash based qualifiers, map those to qualifiers that ensure a specific behavior. The default qualifier map is based on version history persisted to a file and date based qualifiers to ensure increasing version qualifiers (can be important for update mechanisms). To use the default qualifier map, simply provide a file or file path for the version history to be stored in (will be stored as Json).
+- **defaultQualifierMap.prefix** - the prefix to use for version qualifiers provided via the default qualifier map (default: `'i'`)
+- **defaultQualifierMap.baseDate** - configures the base level for time based qualifiers generated by the default qualifier map. Valid values are `YEAR`, `MONTH`, `DAY`, `MINUTE`, `SECOND`, `MILLISECOND` (default: `MONTH`)
+- **auxVersionedSymbolicNames** - states if the symbolic names for bundles created via the platformaux configuration should be adapted to include the version number. This is useful when dealing with systems that have problems when there actually are bundles with the same name but different versions. An example is Eclipse RCP plugin-based products - they can include only one version of a bundle with the same name. (default: `false`)
+- **removeSignaturesFromWrappedBundles** - if signatures should be removed from signed jars that are wrapped using bnd (default: `true`)
+- **addBndPlatformManifestHeaders** - if _bnd-platform_ specific manifest headers should be added. Adds information to the manifest that allows reconstructing the original Maven artifact identifiers (default: `false`)
+- **extractPomInformation** - if additional configuration information from POM is desired (default: `true`)
 
 <!--- * **defaultQualifierMap.fixedDatePattern** - a fixed pattern for formatting the current date for use as part of the qualifier. Provide the pattern in a form suitable for SimpleDataFormat that ensures that the order of those dates as String is the same as the date order (e.g. `'yyyyMMddHHmm'`) -->
 
@@ -530,8 +530,7 @@ platform {
 }
 ```
 
-License
--------
+## License
 
 This software is licensed under the
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).

@@ -36,11 +36,10 @@ jobs:
       #     cat <(echo -e "${{ secrets.SONATYE_PGP_PRIVATE_KEY }}") | gpg --batch --import
       #     # Verify gpg secret key
       #     gpg --list-secret-keys --keyid-format LONG
-
       - name: Build and publish with Gradle
         env:
           # CI marker
-          CI: 'true'
+          CI: "true"
 
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
@@ -60,7 +59,7 @@ jobs:
         uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
         if: always() # always run even if the previous step fails
         with:
-          report_paths: 'build/test-results/**/*.xml'
+          report_paths: "build/test-results/**/*.xml"
           require_tests: true # currently no tests present
 
           annotate_only: true
