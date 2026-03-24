@@ -16,7 +16,8 @@
 
 package org.standardout.gradle.plugin.platform.internal
 
-import groovy.util.slurpersupport.GPathResult;
+import groovy.xml.XmlSlurper;
+import groovy.xml.slurpersupport.GPathResult;
 
 import java.nio.ByteBuffer;
 import java.util.Set;
