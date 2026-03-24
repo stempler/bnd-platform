@@ -25,11 +25,11 @@
     {
       description: "Update semantic-release in GitHub Action workflows",
       customType: "regex",
-      fileMatch: ["(^workflow-templates|\\.github/(actions|workflows))\\/.+\\.ya?ml$"],
+      managerFilePatterns: [
+        "/(^workflow-templates|\\.github/(actions|workflows))\\/.+\\.ya?ml$/"
+      ],
       matchStrings: [
-        "\
-semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?\
-(\\s+|\\s+.*)"
+        "semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?(\\s+|\\s+.*)"
       ],
       datasourceTemplate: "npm",
       depNameTemplate: "semantic-release"
@@ -37,8 +37,8 @@ semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?\
     {
       description: "Any other workflows related file with dependencies",
       customType: "regex",
-      fileMatch: [
-        "(^workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$",
+      managerFilePatterns: [
+        "/(^workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$/"
       ],
       matchStrings: [
         "\
