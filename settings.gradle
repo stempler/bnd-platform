@@ -1,0 +1,14 @@
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+		maven {
+			url 'https://artifactory.wetransform.to/artifactory/local'
+		}
+	}
+}
+
+plugins {
+	id('to.wetransform.settings.default') version "3.0.0"
+}
+
+rootProject.name = 'bnd-platform'

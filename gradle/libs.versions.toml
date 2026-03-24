@@ -1,0 +1,14 @@
+[versions]
+bndlib = "6.4.1"
+osgi-core = "8.0.0"
+commons-io = "2.21.0"
+gradle-download-task = "5.7.0"
+
+[libraries]
+bnd-bndlib = { module = "biz.aQute.bnd:biz.aQute.bndlib", version.ref = "bndlib" }
+
+osgi-core = { module = "org.osgi:osgi.core", version.ref = "osgi-core" }
+
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+
+gradle-download-task = { module = "de.undercouch:gradle-download-task", version.ref = "gradle-download-task" }

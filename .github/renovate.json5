@@ -5,6 +5,8 @@
     "helpers:pinGitHubActionDigestsToSemver",
     "security:openssf-scorecard",
     ":enableVulnerabilityAlertsWithLabel(security)",
+    // use chore for test-only Gradle dependencies (Gradle manager does not make a distinction based on configurations)
+    ":pathSemanticCommitType(gradle/test-libs.versions.toml,chore)",
   ],
   labels: [
     "renovate",
