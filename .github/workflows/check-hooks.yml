@@ -1,0 +1,29 @@
+---
+name: Run pre-commit hook checks
+
+on:
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  check-hooks:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # fetch all history so checks (e.g. gitleaks) can check the full history
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
+
+      - name: Run checks
+        run: |
+          hk check --all
+        env:
+          MISE_ENV: ci
+          # specify profile for CI check where all files are checked
+          HK_PROFILE: ci-check-all
