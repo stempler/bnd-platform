@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 /**
  * Decorator for a class that doesn't fail on accessing missing properties.
  */
-class IgnoreSetPropertyDecorator {
+class IgnoreSetPropertyDecorator implements GroovyInterceptable {
 
 	private final def decoratee
 	
