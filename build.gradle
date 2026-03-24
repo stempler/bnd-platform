@@ -55,7 +55,37 @@ tasks.wrapper {
 	gradleVersion = '9.4.1'
 }
 
+sourceSets {
+	functionalTest {
+		groovy.srcDir file('src/functionalTest/groovy')
+		resources.srcDir file('src/functionalTest/resources')
+		compileClasspath += sourceSets.main.output + configurations.testCompileClasspath
+		runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+	}
+}
+
+tasks.register('functionalTest', Test) {
+	description = 'Runs the functional tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.functionalTest.output.classesDirs
+	classpath = sourceSets.functionalTest.runtimeClasspath
+	useJUnitPlatform()
+	maxParallelForks = 1
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('functionalTest')
+}
+
+dependencies {
+	functionalTestImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
+	functionalTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	functionalTestImplementation 'org.assertj:assertj-core:3.27.7'
+	functionalTestImplementation gradleTestKit()
+}
+
 gradlePlugin {
+	testSourceSets.add(sourceSets.functionalTest)
 	def githubUrl = 'https://github.com/stempler/bnd-platform'
     website = githubUrl
     vcsUrl = githubUrl
