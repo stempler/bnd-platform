@@ -8,24 +8,29 @@ class BundleWrappingTest extends AbstractFunctionalTest {
 
 	@Test
 	void nonOsgiBundleIsWrapped() {
+		// asm 3.3.1 is a pre-OSGi jar — bnd must generate all OSGi manifest headers
 		writeBuildFile("""
-			bundle 'com.google.code.gson:gson:2.10.1'
+			bundle 'asm:asm:3.3.1'
 		""")
 
 		runTask('bundles')
 
-		def gsonJar = findBundle('gson')
-		assertThat(gsonJar).as('gson JAR should exist in build/plugins').isNotNull()
+		def asmJar = findBundle('asm')
+		assertThat(asmJar).as('asm JAR should exist in build/plugins').isNotNull()
 
-		def manifest = readManifest(gsonJar)
+		def manifest = readManifest(asmJar)
 		assertThat(manifest.mainAttributes.getValue('Bundle-SymbolicName'))
-			.as('Bundle-SymbolicName should be set')
+			.as('bnd should generate a Bundle-SymbolicName for a non-OSGi jar')
 			.isNotNull()
 			.isNotEmpty()
 		assertThat(manifest.mainAttributes.getValue('Bundle-Version'))
-			.as('Bundle-Version should be set')
+			.as('bnd should generate a Bundle-Version for a non-OSGi jar')
 			.isNotNull()
 			.isNotEmpty()
+		assertThat(manifest.mainAttributes.getValue('Export-Package'))
+			.as('bnd should generate Export-Package based on the jar contents')
+			.isNotNull()
+			.contains('org.objectweb.asm')
 	}
 
 	@Test
