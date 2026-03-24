@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 /**
  * Decorator for a class that ignores method invocations.
  */
-class IgnoreMethodDecorator {
+class IgnoreMethodDecorator implements GroovyInterceptable {
 
 	private final def decoratee
 	

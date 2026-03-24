@@ -127,7 +127,7 @@ class DependencyHelper {
 		Dependency dep = project.dependencies.create(dependencyNotation)
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
 		
-		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies(SATISFY_ALL)
+		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
 		
 		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
 		resolvedDependencies.each {
@@ -146,7 +146,7 @@ class DependencyHelper {
 	static Set<ResolvedArtifact> getArtifacts(Project project, Dependency dep) {
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
 		
-		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies(SATISFY_ALL)
+		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
 		
 		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
 		resolvedDependencies.each {

@@ -16,6 +16,9 @@
 
 package org.standardout.gradle.plugin.platform.internal.util.bnd
 
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -261,7 +264,7 @@ class BundleHelper {
 		assert !jarFiles.empty : 'Cannot merge no jars'
 		
 		if (jarFiles.size() == 1) {
-			project.ant.copy ( file : jarFiles[0] , tofile : targetFile )
+			Files.copy(jarFiles[0].toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
 			return
 		}
 		

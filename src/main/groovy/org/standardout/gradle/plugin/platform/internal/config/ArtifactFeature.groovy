@@ -208,7 +208,7 @@ class ArtifactFeature implements Feature {
 	 * Delegate for the configuration closure to intercept calls
 	 * for the feature configuration.
 	 */
-	private static class CustomConfigDelegate {
+	private static class CustomConfigDelegate implements GroovyInterceptable {
 		private final def orgDelegate
 		private final ArtifactFeature feature
 		CustomConfigDelegate(def orgDelegate, ArtifactFeature feature) {
