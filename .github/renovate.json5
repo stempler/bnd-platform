@@ -12,6 +12,15 @@
     "renovate",
     "renovate/{{updateType}}",
   ],
+  packageRules: [
+    // group wetransform convention plugins
+    {
+      "groupName": "wetransform Gradle conventions",
+      "groupSlug": "wetf-gradle-conventions",
+      "matchDatasources": ["maven"],
+      "matchDepNames": ["/^to\.wetransform\.(settings|conventions).*$/"]
+    }
+  ],
   customManagers: [
     {
       description: "Update semantic-release in GitHub Action workflows",
