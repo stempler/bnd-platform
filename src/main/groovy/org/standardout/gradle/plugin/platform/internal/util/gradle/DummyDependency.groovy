@@ -66,7 +66,6 @@ class DummyDependency implements Dependency {
 		classifier
 	}
 
-	@Override
 	public boolean contentEquals(Dependency paramDependency) {
 		equals(paramDependency)
 	}
