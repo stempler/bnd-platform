@@ -7,6 +7,7 @@
     ":enableVulnerabilityAlertsWithLabel(security)",
     // use chore for test-only Gradle dependencies (Gradle manager does not make a distinction based on configurations)
     ":pathSemanticCommitType(gradle/test-libs.versions.toml,chore)",
+    "github>wetransform/renovate-config:java-17.json5",
   ],
   labels: ["renovate", "renovate/{{updateType}}"],
   packageRules: [
