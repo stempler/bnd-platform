@@ -165,10 +165,14 @@ class BundleDependency implements ArtifactsMatch {
 		}
 
 		/**
-		 * Extracted bnd closure		
+		 * Extracted bnd closure
 		 */
 		Closure bndClosure
-		
+
+		def bnd(Closure c) {
+			this.bndClosure = c
+		}
+
 		@Override
 		def invokeMethod(String name, def args) {
 			if (name == 'bnd') {
