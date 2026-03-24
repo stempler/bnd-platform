@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.gradle
 
 import groovy.transform.EqualsAndHashCode
@@ -23,12 +22,12 @@ import org.gradle.internal.HasInternalProtocol
 
 /**
  * Dummy dependency class (that may have a <code>null</code> name).
- *  
+ *
  * @author Simon Templer
  */
 @EqualsAndHashCode
 class DummyDependency implements Dependency {
-	
+
 	private final String group
 	private final String name
 	private final String version
@@ -42,7 +41,7 @@ class DummyDependency implements Dependency {
 		this.version = version
 		this.classifier = classifier
 	}
-	
+
 	DummyDependency(Map properties) {
 		this(properties.group, properties.name, properties.version, properties.classifier)
 	}
@@ -61,7 +60,7 @@ class DummyDependency implements Dependency {
 	public String getVersion() {
 		version
 	}
-	
+
 	public String getClassifier() {
 		classifier
 	}

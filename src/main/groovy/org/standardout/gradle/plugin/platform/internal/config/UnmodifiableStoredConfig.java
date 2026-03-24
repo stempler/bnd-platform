@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config;
-
-import groovy.lang.Closure;
 
 import java.io.File;
 import java.util.Collections;
@@ -25,8 +22,10 @@ import java.util.Map;
 
 import org.gradle.api.Project;
 
+import groovy.lang.Closure;
+
 public class UnmodifiableStoredConfig implements StoredConfig {
-	
+
 	private final StoredConfig decoratee;
 
 	public UnmodifiableStoredConfig(StoredConfig decoratee) {
@@ -38,7 +37,7 @@ public class UnmodifiableStoredConfig implements StoredConfig {
 	public List<Closure> getBndClosures() {
 		return Collections.unmodifiableList(decoratee.getBndClosures());
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public List<Closure> getImportsClosures() {
 		return Collections.unmodifiableList(decoratee.getImportsClosures());
@@ -49,18 +48,18 @@ public class UnmodifiableStoredConfig implements StoredConfig {
 	}
 
 	public BndConfig evaluate(Project project, String group, String name,
-			String version, Map<String, String> initialProperties) {
+		String version, Map<String, String> initialProperties) {
 		return decoratee.evaluate(project, group, name, version, initialProperties);
 	}
 
 	public BndConfig evaluate(Project project, String group, String name,
-			String version, File file, Map<String, String> initialProperties) {
+		String version, File file, Map<String, String> initialProperties) {
 		return decoratee.evaluate(project, group, name, version, file, initialProperties);
 	}
 
 	@Override
 	public ImportsConfig importsConfig(Project project, String group,
-			String name, String version) {
+		String name, String version) {
 		return decoratee.importsConfig(project, group, name, version);
 	}
 
@@ -75,5 +74,5 @@ public class UnmodifiableStoredConfig implements StoredConfig {
 	public boolean isEmpty() {
 		return decoratee.isEmpty();
 	}
-	
+
 }

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.groovy
 
-import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.runtime.InvokerHelper
 
 /**
  * Decorator for a class that ignores method invocations.
@@ -24,24 +23,23 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 class IgnoreMethodDecorator implements GroovyInterceptable {
 
 	private final def decoratee
-	
+
 	IgnoreMethodDecorator(def decoratee) {
 		this.decoratee = decoratee
 	}
-	
+
 	@Override
 	def invokeMethod(String name, def args) {
 		// ignore
 	}
-	
+
 	@Override
 	def getProperty(String name) {
 		decoratee."$name"
 	}
-	
+
 	@Override
 	void setProperty(String name, def value) {
 		decoratee."$name" = value
 	}
-	
 }

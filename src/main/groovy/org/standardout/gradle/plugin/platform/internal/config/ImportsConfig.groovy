@@ -13,37 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config
 
-import org.gradle.api.Project;
+import org.gradle.api.Project
 
 /**
  * Represents the configuration of a library concerning the import of packages to other bundles.
  */
 class ImportsConfig {
-	
+
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param project the gradle project
 	 */
 	ImportsConfig(Project project, String group, String name, String version) {
 		this.project = project
-		
+
 		this.group = group
 		this.name = name
 		this.version = version
 	}
-	
+
 	final Project project
-	
+
 	final String group
-	
+
 	final String name
-	
+
 	final String version
-	
+
 	Closure versionStrategy
-	
 }

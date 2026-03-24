@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal;
 
 import java.io.File;
@@ -24,37 +23,37 @@ import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
  * Represents a bundle artifact represented by a single file.
  */
 public interface BundleArtifact {
-	
+
 	/**
 	 * The associated file.
 	 */
 	File getFile();
-	
+
 	/**
 	 * The original version.
 	 */
 	String getVersion();
 
 	/**
-	 * If the bundle is a source bundle.	
+	 * If the bundle is a source bundle.
 	 */
 	boolean isSource();
-	
+
 	/**
 	 * The bundle name.
 	 */
 	String getBundleName();
-	
+
 	/**
 	 * The bundle symbolic name.
 	 */
 	String getSymbolicName();
-	
+
 	/**
 	 * The modified bundle version to use.
 	 */
 	String getModifiedVersion();
-	
+
 	/**
 	 * Target OS of the bundle.
 	 */
@@ -69,22 +68,22 @@ public interface BundleArtifact {
 	 * Allowed window subsystem of the bundle.
 	 */
 	String getWs();
-	
+
 	/**
 	 * Should the bundle be wrapped using bnd?
 	 */
 	boolean isWrap();
-	
+
 	/**
 	 * The reason why it should not be wrapped
 	 */
 	String getNoWrapReason();
-	
+
 	/**
 	 * The associated bnd configuration, if any
 	 */
 	BndConfig getBndConfig();
-	
+
 	/**
 	 * The unique identifier.
 	 */
@@ -94,12 +93,12 @@ public interface BundleArtifact {
 	 * The name of the target file.
 	 */
 	String getTargetFileName();
-	
+
 	/**
 	 * The associated source bundle, if any.
 	 */
 	BundleArtifact getSourceBundle();
-	
+
 	/**
 	 * Set the associated source bundle, may be <code>null</code>.
 	 */

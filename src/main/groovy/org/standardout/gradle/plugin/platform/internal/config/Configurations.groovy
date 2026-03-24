@@ -13,43 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config
 
-import org.gradle.api.Project;
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.osgi.framework.Version;
-import org.standardout.gradle.plugin.platform.PlatformPluginExtension;
-import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
-import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper;
-import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator;
+import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.PlatformPluginExtension
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
+import org.standardout.gradle.plugin.platform.internal.DependencyArtifact
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
+import org.standardout.gradle.plugin.platform.internal.util.bnd.BundleHelper
+import org.standardout.gradle.plugin.platform.internal.util.groovy.LaxPropertyDecorator
 
-import aQute.bnd.header.Attrs;
-import aQute.bnd.osgi.Analyzer;
-import aQute.bnd.osgi.Descriptors.PackageRef;
+import aQute.bnd.header.Attrs
+import aQute.bnd.osgi.Analyzer
+import aQute.bnd.osgi.Descriptors.PackageRef
 
 /**
  * Bundle configuration index.
  */
 class Configurations {
-	
+
 	private final Project project
-	
+
 	private final Map<File, StoredConfig> fileConfigurations = [:]
-	
+
 	private final Map<String, Map<String, Map<String, Map<String, StoredConfig>>>> dependencyConfigurations = [:]
-	
+
 	private final List<MergeConfig> merges = []
-	
+
 	private final StoredConfig defaultConfiguration
-	
+
 	private final StoredConfig overrideConfiguration
-	
+
 	Configurations(Project project) {
 		this.project = project
-		
+
 		// default bnd configuration for wrapped bundles
 		// does not apply to bundles that are already bundles
 		def defaultBndConfig = {
@@ -61,42 +60,41 @@ class Configurations {
 		defaultConfiguration = new StoredConfigImpl(defaultBndConfig)
 		overrideConfiguration = new StoredConfigImpl()
 	}
-	
+
 	void addMerge(MergeConfig merge) {
 		merges << merge
 	}
-	
+
 	void addDefaultConfig(StoredConfig config) {
 		defaultConfiguration << config
 	}
-	
+
 	StoredConfig getDefaultConfig() {
 		new UnmodifiableStoredConfig(defaultConfiguration)
 	}
-	
+
 	void addOverrideConfig(StoredConfig config) {
 		overrideConfiguration << config
 	}
-	
+
 	StoredConfig getOverrideConfig() {
 		new UnmodifiableStoredConfig(overrideConfiguration)
 	}
-	
+
 	/**
 	 * Create bundles for the given artifacts.
 	 */
 	void createBundles(Iterable<BundleArtifact> artifacts, File targetDir) {
 		List<List<BundleArtifact>> mergeBuckets = new ArrayList<List<BundleArtifact>>(merges.size())
 		List<BundleArtifact> remaining = []
-		
-		artifacts.each {
-			BundleArtifact art ->
-			if (!art.isSource()) { // ignore source bundles
+
+		artifacts.each { BundleArtifact art ->
+			if (!art.isSource()) {
+				// ignore source bundles
 				boolean added = false
 				def matchAgainst = new LaxPropertyDecorator(art)
 				// check for each merge if the bundle is part of the merge
-				merges.eachWithIndex {
-					MergeConfig merge, int index ->
+				merges.eachWithIndex { MergeConfig merge, int index ->
 					// call match closure(s) with artifact
 					// any match will result in the bundle being merged
 					if (merge.matchClosures.any { it(matchAgainst) }) {
@@ -109,21 +107,20 @@ class Configurations {
 						added = true
 					}
 				}
-				
+
 				if (!added) {
 					remaining << art
 				}
 			}
 		}
-		
+
 		// collect all jars for classpath
-//		def jarFiles = artifacts.collect {
-//			it.file
-//		}
-		
+		//		def jarFiles = artifacts.collect {
+		//			it.file
+		//		}
+
 		// merged bundles
-		mergeBuckets.eachWithIndex {
-			def bundles, int index ->
+		mergeBuckets.eachWithIndex { def bundles, int index ->
 			if (bundles) {
 				BundleHelper.merge(project, merges[index], bundles, targetDir)
 			}
@@ -131,21 +128,20 @@ class Configurations {
 				project.logger.warn 'No bundles match merge'
 			}
 		}
-		
+
 		// other bundles
-		remaining.each {
-			BundleArtifact art ->
+		remaining.each { BundleArtifact art ->
 			BundleHelper.bundle(project, art, targetDir)
 		}
 	}
-	
+
 	/**
 	 * Add configuration for a file based dependency.
 	 */
 	void putConfiguration(File file, StoredConfig config) {
 		assert file
-		
-		StoredConfig current = fileConfigurations[file] 
+
+		StoredConfig current = fileConfigurations[file]
 		if (current != null) {
 			if (config.bndClosures && current.bndClosures) {
 				project.logger.warn "Multiple bnd configurations for file $file, later definitions may override previous"
@@ -157,41 +153,41 @@ class Configurations {
 			fileConfigurations[file] = config
 		}
 	}
-	
+
 	/**
 	 * Get configuration for a file based dependency.
 	 */
 	StoredConfig getConfiguration(File file, boolean includeDefaultConfig,
-			boolean includeOverrideConfig = true) {
+		boolean includeOverrideConfig = true) {
 		StoredConfig result = new StoredConfigImpl()
-		
+
 		if (includeDefaultConfig) {
 			// add default configuration to configuration
 			result << defaultConfig
 		}
-		
+
 		StoredConfig fileConfig = fileConfigurations[file]
 		if (fileConfig) {
 			// add file specific configuration
 			result << fileConfig
 		}
-		
+
 		if (includeOverrideConfig) {
 			// add override configuration
 			result << overrideConfig
 		}
-		
+
 		result
 	}
-	
+
 	/**
 	 * Add configuration for a dependency.
 	 */
 	void putConfiguration(String group = null, String name = null, String version = null,
 		String classifier = null, StoredConfig config) {
-		
+
 		assert group || name: 'At least group or name must be specified for bnd configuration'
-		
+
 		Map<String, StoredConfig> versionConfig = dependencyConfigurations.get(group, [:]).get(name, [:]).get(version, [:])
 		StoredConfig current = versionConfig.get(classifier)
 		if (current != null) {
@@ -205,7 +201,7 @@ class Configurations {
 			versionConfig.put(classifier, config)
 		}
 	}
-	
+
 	/**
 	 * Get the (combined) configuration for the given parameters defining a dependency.
 	 */
@@ -213,10 +209,10 @@ class Configurations {
 		boolean includeDefaultConfig, DependencyArtifact artifact) {
 		final StoredConfig res = new StoredConfigImpl()
 		StoredConfig tmp
-		
+
 		// bnd override configuration
 		overrideConfig >> res
-		
+
 		// fully qualified
 		if (group && name && version) {
 			tmp = dependencyConfigurations.get(group)?.get(name)?.get(version)?.get(classifier)
@@ -224,7 +220,7 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-		
+
 		// w/o version
 		if (group && name) {
 			tmp = dependencyConfigurations.get(group)?.get(name)?.get(null)?.get(classifier)
@@ -232,7 +228,7 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-			
+
 		// w/o group
 		if (name && version) {
 			tmp = dependencyConfigurations.get(null)?.get(name)?.get(version)?.get(classifier)
@@ -240,7 +236,7 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-		
+
 		// w/o name
 		if (group && version) {
 			tmp = dependencyConfigurations.get(group)?.get(null)?.get(version)?.get(null)
@@ -248,7 +244,7 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-		
+
 		// only name
 		if (name) {
 			tmp = dependencyConfigurations.get(null)?.get(name)?.get(null)?.get(classifier)
@@ -256,7 +252,7 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-		
+
 		// only group
 		if (group) {
 			tmp = dependencyConfigurations.get(group)?.get(null)?.get(null)?.get(null)
@@ -264,53 +260,51 @@ class Configurations {
 				tmp >> res // prepend configuration
 			}
 		}
-		
+
 		if (includeDefaultConfig) {
 			if (artifact != null && project.platform.determineImportVersions) {
 				// import package versions based on dependencies
 				defaultImports(artifact.getDirectDependencies(project)) >> res
 			}
-			
+
 			// prepend default configuration
 			defaultConfig >> res
 		}
-		
+
 		res
 	}
-		
+
 	StoredConfig defaultImports(Iterable<ResolvedArtifact> deps) {
 		def importMap = [:]
-		
+
 		final Closure defaultStrategy = project.platform.importVersionStrategy
-		
+
 		// create a map of package names to version number and strategies
-		deps.each {
-			ResolvedArtifact dep ->
+		deps.each { ResolvedArtifact dep ->
 			if (dep.extension != 'jar') {
 				return
 			}
-			
+
 			def group = dep.moduleVersion.id.group
 			def name = dep.moduleVersion.id.name
 			def version = dep.moduleVersion.id.version
 			def strategy = defaultStrategy
-			
+
 			// for the default behavior assuming the module version as default import version for the packages
 			def osgiVersion = VersionUtil.toOsgiVersion(version)
-			
+
 			// check if there is an artifact specific configuration
 			ImportsConfig cfg = getConfiguration(group, name, version, dep.classifier, false, null)?.importsConfig(project, group, name, version)
 			if (cfg != null) {
 				strategy = cfg.versionStrategy?:strategy // specific strategy
 			}
-			
+
 			// determine packages
 			try {
 				Analyzer analyzer = new Analyzer()
-				analyzer.setJar(dep.file);
+				analyzer.setJar(dep.file)
 				analyzer.analyze()
-				analyzer.getContained().each {
-					PackageRef p, Attrs attrs ->
+				analyzer.getContained().each { PackageRef p, Attrs attrs ->
 					String pkg = p.FQN
 					if (pkg != '.' && !project.platform.importIgnorePackages.contains(pkg)) {
 						if (importMap.containsKey(pkg)) {
@@ -327,49 +321,50 @@ class Configurations {
 						else {
 							// add package w/ artifact strategy
 							importMap[pkg] = [osgiVersion, strategy]
-						} 
+						}
 					}
 				}
 			} catch (Exception e) {
 				project.logger.error("Could not determine imports from dependency $dep", e)
 			}
 		}
-		
+
 		if (importMap.empty) {
 			// return an empty configuration that doesn't override anything
 			return new StoredConfigImpl()
 		}
-		
+
 		// turn map in map of package instructions and attributes
-		importMap = importMap.collectEntries {
-			String pkg, def versionAndStrategy ->
+		importMap = importMap.collectEntries { String pkg, def versionAndStrategy ->
 			// determine version assignment
 			Version osgiVersion = versionAndStrategy[0]
 			Closure strategy = versionAndStrategy[1]
 			// apply given strategy
 			def version = strategy(osgiVersion) as String
-			
+
 			// each package import with wildcard and version
 			if (version) {
-				[pkg + '.*', "version=\"$version\""]
+				[
+					pkg + '.*',
+					"version=\"$version\""
+				]
 			}
 			else {
 				[pkg + '.*', null]
 			}
 		}
-				
+
 		// make other imports optional (as they are not provided through dependencies)
 		importMap['*'] = 'resolution:=optional'
-		
+
 		// sort the map so longer package names come first (because we use wildcards everywhere)
-		importMap = importMap.sort {
-			a, b -> -(a.key.length() <=> b.key.length())
+		importMap = importMap.sort { a, b ->
+			-(a.key.length() <=> b.key.length())
 		}
-		
+
 		Closure bndClosure = {
 			// overrides any previous Import-Package configuration!
-			instruction 'Import-Package', importMap.collect {
-				String p, String attrs ->
+			instruction 'Import-Package', importMap.collect { String p, String attrs ->
 				if (attrs) {
 					"$p;$attrs"
 				}
@@ -378,8 +373,7 @@ class Configurations {
 				}
 			}.join(',')
 		}
-		
+
 		new StoredConfigImpl(bndClosure)
 	}
-
 }

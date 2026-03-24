@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal
 
-import java.io.File;
-import java.util.Set;
+import java.io.File
+import java.util.Set
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
-import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig
 
 class MergeBundleArtifact extends FileBundleArtifact implements DependencyArtifact {
-	
+
 	private final Iterable<ResolvedDependency> representedDependencies
-	
+
 	private final Set<ResolvedArtifact> directDependencies
-	
+
 	/**
 	 * Create a bundle artifact represented by a Jar.
 	 */
 	MergeBundleArtifact(File artifactFile, Project project, StoredConfig config,
-			String customId, Set<ResolvedArtifact> directDependencies,
-			Iterable<ResolvedDependency> representedDependencies) {
+	String customId, Set<ResolvedArtifact> directDependencies,
+	Iterable<ResolvedDependency> representedDependencies) {
 		super(artifactFile, project, config, customId, 'mergedBundle')
 		this.directDependencies = directDependencies.asImmutable()
 		this.representedDependencies = representedDependencies
@@ -51,5 +50,4 @@ class MergeBundleArtifact extends FileBundleArtifact implements DependencyArtifa
 	public Iterable<ResolvedDependency> getRepresentedDependencies() {
 		representedDependencies
 	}
-
 }

@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
-import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig
 
 class SourceBundleArtifact extends ResolvedBundleArtifact {
 
 	BundleArtifact parentBundle
 
 	public SourceBundleArtifact(ResolvedArtifact artifact, Project project) {
-		super(artifact, null, project);
+		super(artifact, null, project)
 	}
 
 	@Override
@@ -47,7 +46,7 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 			super.getSymbolicName() + ".$classifier"
 		}
 	}
-	
+
 	String getModifiedVersion() {
 		if (parentBundle) {
 			// return the parent bundles version to prevent issues
@@ -70,5 +69,4 @@ class SourceBundleArtifact extends ResolvedBundleArtifact {
 		// no bnd configuration applicable
 		null
 	}
-	
 }

@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config
 
-import org.gradle.api.Project;
+import org.gradle.api.Project
 import org.standardout.gradle.plugin.platform.internal.BundleArtifact
-import org.standardout.gradle.plugin.platform.internal.Feature;
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
+import org.standardout.gradle.plugin.platform.internal.Feature
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
 
 class SourceFeature implements Feature {
-	
+
 	private final @Delegate Feature feature
-	
+
 	private final Project project
-	
+
 	private String finalVersion
 
 	public SourceFeature(Feature feature, Project project) {
-		super();
-		this.feature = feature;
-		this.project = project;
+		super()
+		this.feature = feature
+		this.project = project
 	}
 
 	@Override
@@ -44,7 +43,7 @@ class SourceFeature implements Feature {
 	public String getLabel() {
 		feature.label + ' sources'
 	}
-	
+
 	@Override
 	public Iterable<BundleArtifact> getBundles() {
 		// source bundles
@@ -63,5 +62,4 @@ class SourceFeature implements Feature {
 			project.platform.features["${it.id}.source"]
 		}.findAll()
 	}
-
 }

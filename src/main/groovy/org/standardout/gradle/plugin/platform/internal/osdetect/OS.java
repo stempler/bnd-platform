@@ -1,13 +1,11 @@
 /*
- * Copied from DurianSwt
- * 
- * Copyright 2016 DiffPlug
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,15 +53,15 @@ public enum OS {
 	/** Returns the architecture of the given operating system. */
 	public Arch getArch() {
 		switch (this) {
-		case WIN_x64:
-		case LINUX_x64:
-		case MAC_x64:
-			return Arch.x64;
-		case WIN_x86:
-		case LINUX_x86:
-			return Arch.x86;
-		default:
-			throw unsupportedException(this);
+			case WIN_x64 :
+			case LINUX_x64 :
+			case MAC_x64 :
+				return Arch.x64;
+			case WIN_x86 :
+			case LINUX_x86 :
+				return Arch.x86;
+			default :
+				throw unsupportedException(this);
 		}
 	}
 
@@ -84,10 +82,9 @@ public enum OS {
 		String os_name = System.getProperty("os.name").toLowerCase(Locale.getDefault());
 		boolean isWin = os_name.contains("win");
 		boolean isMac = os_name.contains("mac");
-		boolean isLinux =
-				os_name.contains("nix") ||
-				os_name.contains("nux") ||
-				os_name.contains("aix");
+		boolean isLinux = os_name.contains("nix") ||
+			os_name.contains("nux") ||
+			os_name.contains("aix");
 
 		if (isMac) {
 			return MAC_x64;
@@ -97,14 +94,14 @@ public enum OS {
 		} else if (isLinux) {
 			String os_arch = System.getProperty("os.arch");
 			switch (os_arch) {
-			case "i386":
-			case "x86":
-				return LINUX_x86;
-			case "x86_64":
-			case "amd64":
-				return LINUX_x64;
-			default:
-				throw new IllegalArgumentException("Unknown os.arch " + os_arch + "'.");
+				case "i386" :
+				case "x86" :
+					return LINUX_x86;
+				case "x86_64" :
+				case "amd64" :
+					return LINUX_x64;
+				default :
+					throw new IllegalArgumentException("Unknown os.arch " + os_arch + "'.");
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown os.name '" + os_name + "'.");
@@ -117,21 +114,21 @@ public enum OS {
 	private static OS calculateRunning() {
 		Arch runningArch = runningJvm();
 		return NATIVE_OS.winMacLinux(
-				runningArch.x86x64(OS.WIN_x86, OS.WIN_x64),
-				OS.MAC_x64,
-				runningArch.x86x64(OS.LINUX_x86, OS.LINUX_x64));
+			runningArch.x86x64(OS.WIN_x86, OS.WIN_x64),
+			OS.MAC_x64,
+			runningArch.x86x64(OS.LINUX_x86, OS.LINUX_x64));
 	}
 
 	/** Returns the arch of the currently running JVM. */
 	private static Arch runningJvm() {
 		String sunArchDataModel = System.getProperty("sun.arch.data.model");
 		switch (sunArchDataModel) {
-		case "32":
-			return Arch.x86;
-		case "64":
-			return Arch.x64;
-		default:
-			throw new IllegalArgumentException(sunArchDataModel);
+			case "32" :
+				return Arch.x86;
+			case "64" :
+				return Arch.x64;
+			default :
+				throw new IllegalArgumentException(sunArchDataModel);
 		}
 	}
 

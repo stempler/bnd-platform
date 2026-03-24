@@ -1,13 +1,11 @@
 /*
- * Copied from DurianSwt
- * 
- * Copyright 2016 DiffPlug
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,12 +22,12 @@ public enum Arch {
 	/** Returns the appropriate value depending on the arch. */
 	public <T> T x86x64(T val86, T val64) {
 		switch (this) {
-		case x86:
-			return val86;
-		case x64:
-			return val64;
-		default:
-			throw unsupportedException(this);
+			case x86 :
+				return val86;
+			case x64 :
+				return val64;
+			default :
+				throw unsupportedException(this);
 		}
 	}
 

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform
 
-import org.standardout.gradle.plugin.platform.internal.util.VersionFile
+import groovy.io.FileType
+import groovy.json.JsonOutput
 
 import java.util.jar.*
 
@@ -26,21 +26,19 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.osgi.framework.Version
-import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.BundlesAction;
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
+import org.standardout.gradle.plugin.platform.internal.BundlesAction
 import org.standardout.gradle.plugin.platform.internal.DefaultFeature
 import org.standardout.gradle.plugin.platform.internal.Feature
-import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
+import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact
 import org.standardout.gradle.plugin.platform.internal.osdetect.SwtPlatform
-import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil;
+import org.standardout.gradle.plugin.platform.internal.util.FeatureUtil
+import org.standardout.gradle.plugin.platform.internal.util.VersionFile
 import org.standardout.gradle.plugin.platform.internal.util.bnd.BndHelper
-
-import groovy.io.FileType
-import groovy.json.JsonOutput
 
 /**
  * OSGi platform plugin for Gradle.
- * 
+ *
  * @author Robert Gregor
  * @author Simon Templer
  */
@@ -61,7 +59,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		this.project = project
 
 		// use BasePlugin to derive the clean task from it
-		project.getPluginManager().apply(BasePlugin.class);
+		project.getPluginManager().apply(BasePlugin.class)
 
 		configureEnvironment(project)
 
@@ -124,17 +122,17 @@ public class PlatformPlugin implements Plugin<Project> {
 		 */
 		Task platformFeatureTask = project.task('platformFeature', dependsOn: bundlesTask).doFirst {
 			// create platform feature.xml
-			generatePlatformFeature();
+			generatePlatformFeature()
 		}
 
 		/*
-		 * Create JARs for all features. 
+		 * Create JARs for all features.
 		 */
 		Task bundleFeaturesTask = project.task('bundleFeatures', dependsOn: bundlesTask).doFirst {
 			featuresDir.mkdirs()
 
 			if(project.platform.generatePlatformFeature) {
-				generatePlatformFeature();
+				generatePlatformFeature()
 			}
 
 			project.platform.features.values().each { Feature feature ->
@@ -214,7 +212,7 @@ public class PlatformPlugin implements Plugin<Project> {
 			description 'Create a p2 repository from the bundles and write it to build/updatesite'
 			doFirst {
 				project.platform.updateSiteDir.mkdirs()
-	
+
 				assert project.platform.eclipseHome
 				def eclipseHome = project.platform.eclipseHome.absolutePath
 
@@ -233,49 +231,67 @@ public class PlatformPlugin implements Plugin<Project> {
 				}
 				def launcherJar = launcherFiles.iterator().next()
 				assert launcherJar
-	
+
 				project.logger.info "Using Java at $javaHome and Eclipse at $eclipseHome for p2 repository generation."
 
 				def appendToSite = project.platform.appendUpdateSite
 				if (appendToSite) {
 					project.logger.info "Appending to update site is enabled."
 				}
-	
+
 				/*
 				 * Documentation on Publisher:
 				 * http://help.eclipse.org/juno/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/p2_publisher.html
 				 * http://wiki.eclipse.org/Equinox/p2/Publisher
 				 */
-	
+
 				// launch Publisher for Features and Bundles
 				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
 				project.exec {
-					def args = ["${javaBin}", '-jar', launcherJar,
-							'-application', 'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
-							'-metadataRepository', repoDirUri,
-							'-artifactRepository', repoDirUri,
-							'-source', project.buildDir,
-							'-configs', 'ANY', '-publishArtifacts', '-compress']
+					def args = [
+						"${javaBin}",
+						'-jar',
+						launcherJar,
+						'-application',
+						'org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher',
+						'-metadataRepository',
+						repoDirUri,
+						'-artifactRepository',
+						repoDirUri,
+						'-source',
+						project.buildDir,
+						'-configs',
+						'ANY',
+						'-publishArtifacts',
+						'-compress'
+					]
 					if (appendToSite) {
 						args.add('-append')
 					}
 					commandLine = args
 				}
-	
+
 				// launch Publisher for category / site.xml
 				project.exec {
-					def args = ["${javaBin}", '-jar', launcherJar,
-							'-application', 'org.eclipse.equinox.p2.publisher.CategoryPublisher',
-							'-metadataRepository', repoDirUri,
-							'-categoryDefinition', categoryFileUri,
-							'-compress']
+					def args = [
+						"${javaBin}",
+						'-jar',
+						launcherJar,
+						'-application',
+						'org.eclipse.equinox.p2.publisher.CategoryPublisher',
+						'-metadataRepository',
+						repoDirUri,
+						'-categoryDefinition',
+						categoryFileUri,
+						'-compress'
+					]
 					if (appendToSite) {
 						args.add('-append')
 					}
 					commandLine = args
 				}
-	
+
 				project.logger.info 'Built p2 repository.'
 
 				def createFeatureVersionFiles = project.platform.createFeatureVersionFiles
@@ -299,7 +315,7 @@ public class PlatformPlugin implements Plugin<Project> {
 		}
 
 		/*
-		 * Task that creates a Json file with a mapping of bundle name to  
+		 * Task that creates a Json file with a mapping of bundle name to
 		 */
 		Task artifactMapTask = project.task('artifactMap', dependsOn: bundlesTask).doFirst {
 			Map<String, BundleArtifact> artifacts = project.platform.artifacts
@@ -330,13 +346,13 @@ public class PlatformPlugin implements Plugin<Project> {
 
 		/**
 		 * Creates a potentialOptionalImports.txt file in the build directory of potential optional imports.
-		 * 
+		 *
 		 * Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
 		 * therefore optionalImport instructions for the bnd configuration are used quite frequently.
-		 * This task should help to generate the optional import statements, 
+		 * This task should help to generate the optional import statements,
 		 * but please be careful since this task simply creates the optionalImport statements for each and every imported package.
 		 * This means that YOU have to check yourself if the dependency is really optional.
-		 * 
+		 *
 		 * See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 		 */
 		Task potentialOptionalImports = project.task('potentialOptionalImports', dependsOn: bundlesTask) {
@@ -347,7 +363,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				def reportFile = new File(project.buildDir, 'potentialOptionalImports.txt').newWriter()
 				reportFile << '''Unfortunately optional dependencies specified in a pom.xml file get lost in Gradle,
 therefore optionalImport instructions for the bnd configuration are used quite frequently.
-This task should help to generate the optional import statements, 
+This task should help to generate the optional import statements,
 but please be careful since this task simply creates the optionalImport statements for each and every imported package.
 This means that YOU have to check yourself if the dependency is really optional.
 
@@ -357,7 +373,7 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 				def bundlesWithoutImports = []
 
 				bundlesDir.eachFileRecurse (FileType.FILES) { bundle ->
-					def symbolicNameAndPackageImports = BndHelper.getSymbolicNameAndPackageImports(bundle);
+					def symbolicNameAndPackageImports = BndHelper.getSymbolicNameAndPackageImports(bundle)
 
 					if(!symbolicNameAndPackageImports.second.empty) {
 						reportFile << "\n# ${symbolicNameAndPackageImports.first} \n\n"
@@ -376,7 +392,6 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 				reportFile.close()
 			}
 		}
-
 	}
 
 	/**
@@ -384,7 +399,7 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 	 */
 	def configureEnvironment(Project project) {
 		project.with {
-			SwtPlatform swt = SwtPlatform.getRunning();
+			SwtPlatform swt = SwtPlatform.getRunning()
 			if (!ext.properties.containsKey('osgiOS')) {
 				ext.osgiOS = swt.getOs()
 			}
@@ -420,16 +435,16 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 
 	private File checkDownloadedEclipse(File downloadsDir) {
 		for (String subDir in [
-			'eclipse',
-			'Eclipse.app/Contents/Eclipse'
-		]) {
+				'eclipse',
+				'Eclipse.app/Contents/Eclipse'
+			]) {
 			File downloadedEclipse = new File(downloadsDir, subDir)
 			if (downloadedEclipse.exists()) {
 				return downloadedEclipse
 			}
 		}
 
-		return null;
+		return null
 	}
 
 	/**
@@ -448,5 +463,4 @@ See https://github.com/stempler/bnd-platform/issues/19#issuecomment-253797523
 
 		project.platform.features[feature.id] = feature
 	}
-
 }

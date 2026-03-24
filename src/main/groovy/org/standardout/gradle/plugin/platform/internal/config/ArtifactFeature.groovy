@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config
 
-import java.util.Set;
+import java.util.Set
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
-import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch;
-import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.DependencyArtifact;
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
+import org.standardout.gradle.plugin.platform.internal.ArtifactsMatch
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
+import org.standardout.gradle.plugin.platform.internal.DependencyArtifact
 import org.standardout.gradle.plugin.platform.internal.Feature
-import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact;
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
+import org.standardout.gradle.plugin.platform.internal.ResolvedBundleArtifact
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
 
 
 /**
@@ -65,7 +64,7 @@ class ArtifactFeature implements Feature {
 	private String finalVersion
 
 	ArtifactFeature(Project project, def featureNotation,
-			Closure featureClosure) {
+	Closure featureClosure) {
 		this.project = project
 
 		def id
@@ -273,5 +272,4 @@ class ArtifactFeature implements Feature {
 			orgDelegate."$name" = value
 		}
 	}
-
 }

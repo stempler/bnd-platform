@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.bnd
 
 import java.io.IOException
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStream
+import java.io.OutputStream
 import java.nio.ByteBuffer
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.IOUtils
 
-import aQute.bnd.osgi.Resource;
+import aQute.bnd.osgi.Resource
 
 class ByteArrayResource implements Resource {
 
@@ -31,25 +30,24 @@ class ByteArrayResource implements Resource {
 	final long lastMod
 	String extra
 	ByteBuffer buffer
-	
+
 	ByteArrayResource(Resource resource) {
-		data = resource.openInputStream().withStream {
-			InputStream input ->
+		data = resource.openInputStream().withStream { InputStream input ->
 			IOUtils.toByteArray(input)
 		}
 		lastMod = resource.lastModified()
 		extra = resource.extra
 	}
-	
+
 	ByteArrayResource(byte[] data, long lastMod, String extra = null) {
 		this.data = data
 		this.lastMod = lastMod
 		this.extra = extra
 	}
-	
+
 	@Override
 	public InputStream openInputStream() throws Exception {
-		return new ByteArrayInputStream(data);
+		return new ByteArrayInputStream(data)
 	}
 
 	@Override
@@ -59,25 +57,23 @@ class ByteArrayResource implements Resource {
 
 	@Override
 	public long lastModified() {
-		return lastMod;
+		return lastMod
 	}
 
 	@Override
 	public long size() throws Exception {
-		return data.length;
+		return data.length
 	}
 
 	@Override
 	public void close() throws IOException {
-		
 	}
 
 	@Override
 	public ByteBuffer buffer() throws Exception {
 		if (buffer != null) {
-			return buffer;
+			return buffer
 		}
-		return buffer = ByteBuffer.wrap(data);
+		return buffer = ByteBuffer.wrap(data)
 	}
-
 }

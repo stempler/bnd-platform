@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
 
 /**
  * Implementation based on several classes from the gradle ide subproject, mainly
  * <code>DefaultIdeDependencyResolver</code>.
  */
 class DependencyHelper {
-	
+
 	/**
 	 * Determine the classifier for a dependency.
-	 * 
+	 *
 	 * @param dependency the dependency
 	 * @return the classifier or <code>null</code> for the default classifier
 	 */
@@ -56,10 +55,10 @@ class DependencyHelper {
 		else if (dependency instanceof DummyDependency) {
 			result = dependency.classifier
 		}
-		
+
 		result
 	}
-	
+
 	/**
 	 * Spec that accepts only external dependencies.
 	 */
@@ -68,7 +67,7 @@ class DependencyHelper {
 			return element instanceof ExternalDependency
 		}
 	}
-	
+
 	/**
 	 * Spec that accepts all dependencies.
 	 */
@@ -87,7 +86,7 @@ class DependencyHelper {
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
 		configuration.resolvedConfiguration.lenientConfiguration.getArtifacts(SATISFY_ALL)
 	}
-		
+
 	/**
 	 * Retrieve a specific dependency.
 	 */
@@ -96,8 +95,7 @@ class DependencyHelper {
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
 		Set<File> artifacts = configuration.resolve()
 		if (requiredExtension != null) {
-			artifacts = artifacts.findAll {
-				File file ->
+			artifacts = artifacts.findAll { File file ->
 				// only accept files w/ specific extension
 				file.name.endsWith(requiredExtension)
 			}
@@ -119,44 +117,42 @@ class DependencyHelper {
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieve the direct dependencies of a specific dependency.
 	 */
 	static Set<ResolvedArtifact> getDirectDependencies(Project project, def dependencyNotation) {
 		Dependency dep = project.dependencies.create(dependencyNotation)
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
-		
+
 		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
-		
+
 		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
-		resolvedDependencies.each {
-			ResolvedDependency rd ->
+		resolvedDependencies.each { ResolvedDependency rd ->
 			rd.children.each {
 				result.addAll(it.moduleArtifacts)
 			}
 		}
-		
+
 		result
 	}
-	
+
 	/**
 	 * Resolve a specific dependency to artifacts, excluding transitive dependencies.
 	 */
 	static Set<ResolvedArtifact> getArtifacts(Project project, Dependency dep) {
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
-		
+
 		Set<ResolvedDependency> resolvedDependencies = configuration.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies
-		
+
 		Set<ResolvedArtifact> result = new HashSet<ResolvedArtifact>()
-		resolvedDependencies.each {
-			ResolvedDependency rd ->
+		resolvedDependencies.each { ResolvedDependency rd ->
 			result.addAll(rd.moduleArtifacts)
 		}
-		
+
 		result
 	}
-	
+
 	/**
 	 * Resolve source artifacts for dependencies in the given configuration.
 	 */
@@ -192,19 +188,17 @@ class DependencyHelper {
 	 * Retrieves source artifacts for the given resolved dependencies.
 	 */
 	private static Set<ResolvedArtifact> retrieveSourcesForDeps(ConfigurationContainer configurationContainer, Set<ResolvedDependency> allDeps) {
-		List<ExternalDependency> externalDependencies = allDeps.collect {
-			ResolvedDependency dep ->
+		List<ExternalDependency> externalDependencies = allDeps.collect { ResolvedDependency dep ->
 			ExternalModuleDependency sourceDep = new DefaultExternalModuleDependency(
-				dep.moduleGroup, 
-				dep.moduleName, 
-				dep.moduleVersion, 
+				dep.moduleGroup,
+				dep.moduleName,
+				dep.moduleVersion,
 				null)
-            sourceDep.transitive = false
+			sourceDep.transitive = false
 			def artifact = new DefaultDependencyArtifact(sourceDep.name, "source", "jar", "sources", null)
-            sourceDep.addArtifact(artifact)
+			sourceDep.addArtifact(artifact)
 		}.toList()
 		Configuration detachedConfiguration = configurationContainer.detachedConfiguration(externalDependencies.toArray(new Dependency[externalDependencies.size()]))
 		return detachedConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.satisfyAll())
 	}
-	
 }

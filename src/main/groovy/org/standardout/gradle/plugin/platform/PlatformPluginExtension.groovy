@@ -13,56 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform
 
-import java.nio.ByteBuffer;
-import java.util.Set;
-import java.util.zip.Adler32;
+import groovy.lang.Closure
 
-import groovy.lang.Closure;
+import java.nio.ByteBuffer
+import java.util.Set
+import java.util.zip.Adler32
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
-import org.osgi.framework.Version;
-import org.standardout.gradle.plugin.platform.internal.BundleArtifact;
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
+import org.osgi.framework.Version
+import org.standardout.gradle.plugin.platform.internal.BundleArtifact
 import org.standardout.gradle.plugin.platform.internal.Feature
-import org.standardout.gradle.plugin.platform.internal.config.ArtifactFeature;
-import org.standardout.gradle.plugin.platform.internal.config.BundleDependency;
-import org.standardout.gradle.plugin.platform.internal.config.Configurations;
-import org.standardout.gradle.plugin.platform.internal.config.MergeConfig;
-import org.standardout.gradle.plugin.platform.internal.config.SourceFeature;
-import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
+import org.standardout.gradle.plugin.platform.internal.config.ArtifactFeature
+import org.standardout.gradle.plugin.platform.internal.config.BundleDependency
+import org.standardout.gradle.plugin.platform.internal.config.Configurations
+import org.standardout.gradle.plugin.platform.internal.config.MergeConfig
+import org.standardout.gradle.plugin.platform.internal.config.SourceFeature
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig
 import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl
-import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
 import org.standardout.gradle.plugin.platform.internal.util.gradle.DummyDependency
 
 /**
  * Extension for the platform plugin.
- *  
+ *
  * @author Simon Templer
  */
 class PlatformPluginExtension {
 	/**
 	 * Version strategy that uses no version constraint for imports.
 	 */
-	public static final Closure NONE = {
-		Version v ->
+	public static final Closure NONE = { Version v ->
 		null
 	}
 	/**
 	 * Version strategy that uses the given version as minimum version.
 	 */
-	public static final Closure MINIMUM = {
-		Version v ->
+	public static final Closure MINIMUM = { Version v ->
 		"${v.major}.${v.minor}"
 	}
 	/**
 	 * Version strategy that requires a minimum version and extends
 	 * to (not including) the next major version.
 	 */
-	public static final Closure MAJOR = {
-		Version v ->
+	public static final Closure MAJOR = { Version v ->
 		def min = MINIMUM.call(v)
 		"[${min},${v.major + 1}.0)"
 	}
@@ -70,17 +66,15 @@ class PlatformPluginExtension {
 	 * Version strategy that requires a minimum version and extends
 	 * to (not including) the next minor version.
 	 */
-	public static final Closure MINOR = {
-		Version v ->
+	public static final Closure MINOR = { Version v ->
 		def min = MINIMUM.call(v)
 		"[${min},${v.major}.${v.minor + 1})"
 	}
-	
+
 	/**
 	 * Hash calculator using the Adler32 checksum algorithm.
 	 */
-	public static final Closure ADLER32 = {
-		String config ->
+	public static final Closure ADLER32 = { String config ->
 		// calculate the checksum
 		def adler = new Adler32()
 		adler.update(config.bytes)
@@ -92,41 +86,41 @@ class PlatformPluginExtension {
 		}
 		bytes
 	}
-	
+
 	PlatformPluginExtension(Project project) {
 		this.project = project
 		this.configurations = new Configurations(project)
-		
+
 		// update site directory default
 		updateSiteDir = new File(project.buildDir, 'updatesite')
-		
+
 		// update site zip default
 		updateSiteZipFile = new File(project.buildDir, 'updatesite.zip')
-		
+
 		importIgnorePackages = new HashSet<String>()
 		importIgnorePackages << 'javax'
 		importIgnorePackages << 'java'
 		importIgnorePackages << 'license'
 	}
-	
+
 	final Project project
-	
+
 	/**
 	 * States if additional configuration information from POM is desired.
 	 */
 	boolean extractPomInformation = true
 
 	/**
-	 * States if source for external dependencies should be fetched and corresponding source bundles created. 
+	 * States if source for external dependencies should be fetched and corresponding source bundles created.
 	 */
 	boolean fetchSources = true
-	
+
 	/**
 	 * States if the package import versions for automatically wrapped bundles should be determined automatically.
 	 * This also will by default make package imports optional that are not found in dependencies.
 	 */
 	boolean determineImportVersions = false
-	
+
 	/**
 	 * States if bnd-platform specific manifest headers should be added.
 	 * Currently those headers serve the following purposes:
@@ -135,14 +129,14 @@ class PlatformPluginExtension {
 	 * </ul>
 	 */
 	boolean addBndPlatformManifestHeaders = false
-	
+
 	/**
 	 * Defines the global import version strategy.
-	 * 
+	 *
 	 * The strategy is a closure taking an OSGi version number and returning a version assignment for bnd as String.
 	 */
 	Closure importVersionStrategy = MAJOR
-	
+
 	/**
 	 * Packages to ignore when analyzing packages of dependencies to determine
 	 * package import version numbers.
@@ -152,38 +146,38 @@ class PlatformPluginExtension {
 	/**
 	 * The default version qualifier to use for wrapped bundles. If a qualifier is already
 	 * present the default will be appended, separated by a dash.
-	 * 
+	 *
 	 * Please note that this does not apply to file based dependencies automatically
 	 * (otherwise it might mess with existing source bundle associations). Set addQualifier
 	 * to <code>true</code> in the corresponding bnd configuration to enable it for a
-	 * file based dependency. 
+	 * file based dependency.
 	 */
 	String defaultQualifier = 'autowrapped'
-		
+
 	/**
 	 * States if bundle version qualifiers should be tagged with hashes calculated from the
 	 * bnd configuration. Overrides the default qualifier for bundles where a bnd configuration
 	 * is present.
-	 * 
+	 *
 	 * Please note that this does not apply to file based dependencies (otherwise it might
 	 * mess with existing source bundle associations).
 	 */
 	boolean useBndHashQualifiers = true
-	
+
 	/**
 	 * States if for features a qualifier should be added based on the included plugins
 	 * and features. This serves to prevent caching issues when there are minor changes
-	 * to a feature. 
+	 * to a feature.
 	 */
 	boolean useFeatureHashQualifiers = true
-	
+
 	/**
 	 * Map that is used to have reproducable increasing version numbers for bundles and features
 	 * when using hash qualifiers. The hash qualifiers are mapped to a date and time based qualifier
 	 * to ensure that changes to bundles and features that have the same version number are not
 	 * only reflected in the qualifier but also produce versions that are interpreted as newer
 	 * than the previous versions in the OSGi sense.
-	 * 
+	 *
 	 * The map needs to be persisted, thus it may be specified as
 	 * <ul>
 	 *   <li>as String or File specifying the file location the map is persisted to / from (Json file)</li>
@@ -191,7 +185,7 @@ class PlatformPluginExtension {
 	 * </ul>
 	 */
 	def hashQualifierMap
-	
+
 	// values for default qualifier map base date
 	public static final int YEAR = 0
 	public static final int MONTH = 1
@@ -199,7 +193,7 @@ class PlatformPluginExtension {
 	public static final int MINUTE = 3
 	public static final int SECOND = 4
 	public static final int MILLISECOND = 5
-	
+
 	/**
 	 * Default qualifier map configuration.
 	 */
@@ -208,7 +202,7 @@ class PlatformPluginExtension {
 		 * Prefix for qualifiers generated by the default qualifier map.
 		 */
 		prefix: 'i',
-		
+
 		/**
 		 * The default qualifier map tries to assign a time based qualifier. Through this method you
 		 * can indicate what should be the format of the shortest qualifier that is assigned.
@@ -224,7 +218,7 @@ class PlatformPluginExtension {
 		 * </ul>
 		 */
 		baseDate: MONTH,
-		
+
 		/**
 		 * Provides a fixed pattern for formatting the current date for use as part of the qualifier.
 		 * Provide the pattern in a form suitable for SimpleDataFormat that ensures that the order of
@@ -234,72 +228,72 @@ class PlatformPluginExtension {
 		 */
 		fixedDatePattern: null
 	]
-	
+
 	/**
 	 * Defines the hash calculator used for calculating hash qualifiers from bnd configuration.
-	 * 
+	 *
 	 * The closure takes a String and should return the hash as byte array. The qualifier will then be
 	 * the base 64 encoded hash.
 	 */
 	Closure hashCalculator = ADLER32
-	
+
 	/**
 	 * States if the symbolic names for bundles created via the platformaux configuration should
 	 * be adapted to include the version number. This is useful when dealing with systems that have
 	 * problems when there actually are bundles with the same name but different versions.
-	 * 
+	 *
 	 * An example is Eclipse RCP plugin-based products - they can include only one version of a bundle
 	 * with the same name.
 	 */
 	boolean auxVersionedSymbolicNames = false
-	
+
 	/**
 	 * States if signatures should be removed from wrapped bundles.
 	 */
 	boolean removeSignaturesFromWrappedBundles = true
-	
+
 	/**
 	 * States if a general feature should be created. By default it's turned on and called Generated platform feature.
 	 * In case custom features are generated you might not want to have an additional "generated platform feature"
 	 * besides your own features.
 	 */
 	boolean generatePlatformFeature = true
-	
+
 	/**
 	 * The ID for the platform feature.
 	 */
 	String featureId = 'platform.feature'
-	
+
 	/**
 	 * The name for the platform feature.
 	 */
 	String featureName = 'Generated platform feature'
-	
+
 	/**
 	 * Feature provider name.
 	 */
 	String featureProvider = 'Generated with bnd-platform'
-	
+
 	/**
 	 * The platform feature version, defaults to the project version if possible, otherwise to 1.0.0.
 	 */
 	String featureVersion
-	
+
 	/**
 	 * The ID of the feature's category in the update site.
 	 */
 	String categoryId = 'platform'
-	
+
 	/**
-	 * The name of the feature's category in the update site. 
+	 * The name of the feature's category in the update site.
 	 */
 	String categoryName = 'Target platform'
-	
+
 	/**
 	 * The directory to place the update site in. Will default to 'updatesite' in the build folder.
 	 */
 	File updateSiteDir
-	
+
 	/**
 	 * The target file for the 'updateSiteZip' task.
 	 */
@@ -319,7 +313,7 @@ class PlatformPluginExtension {
 	 * versions where the update site is used.
 	 */
 	boolean createFeatureVersionFiles = false
-	
+
 	/**
 	 * The directory of a local Eclipse installation. If none is specified the
 	 * <code>ECLIPSE_HOME</code> system property is checked, if it is not given as
@@ -334,7 +328,7 @@ class PlatformPluginExtension {
 	File javaHome
 
 	/**
-	 * The directory to store the downloaded Eclipse installation on local, 
+	 * The directory to store the downloaded Eclipse installation on local,
 	 * this works if <code>eclipseHome</code> is not specified.
 	 * Default to <code>project.buildDir/eclipse-downloads</code>.
 	 */
@@ -347,13 +341,13 @@ class PlatformPluginExtension {
 	// def eclipseMirror = 'https://raw.githubusercontent.com/stempler/bnd-platform/master/eclipse/eclipse-p2-minimal.tar.gz'
 	/**
 	 * XXX Above artifact creates update sites that are often missing plugins - reason is unclear.
-	 * Issue does not happen with recent eclipse versions (e.g. 2023-09) but attempts to create a new working minimal product failed. 
+	 * Issue does not happen with recent eclipse versions (e.g. 2023-09) but attempts to create a new working minimal product failed.
 	 */
 	def eclipseMirror = 'https://archive.eclipse.org/technology/epp/downloads/release/2023-09/R/eclipse-rcp-2023-09-R-linux-gtk-x86_64.tar.gz'
-	
+
 	/**
 	 * Call feature to create a feature configuration.
-	 * 
+	 *
 	 * @param featureNotation feature notation is either a feature ID (String) or a map
 	 *   containing with at least the <code>id</code> key set to the desired feature ID.
 	 *   Optional additional keys are <code>name</code> (the human readable feature name),
@@ -367,20 +361,20 @@ class PlatformPluginExtension {
 			project,
 			featureNotation,
 			featureClosure
-		)
-		
+			)
+
 		if (fetchSources) {
 			// also create a source feature
 			def sourceFeature = new SourceFeature(feature, project)
 			features[sourceFeature.id] = sourceFeature
 		}
-		
+
 		feature
 	}
-	
+
 	/**
 	 * Call bundle to add a dependency.
-	 * 
+	 *
 	 * @param dependencyNotation a dependency notation as supported by Gradle
 	 * @param configClosure a closure that performs dependency configuration
 	 * @return
@@ -391,12 +385,12 @@ class PlatformPluginExtension {
 			dependencyNotation,
 			configClosure,
 			true // create dependency
-		)
+			)
 	}
-	
+
 	/**
 	 * Call to configure the behaviour for other bundles importing a given dependency.
-	 * 
+	 *
 	 * @param dependencyNotation the dependency notation
 	 * @param importsClosure the imports configuration closure
 	 * @return
@@ -404,7 +398,7 @@ class PlatformPluginExtension {
 	void imports(def dependencyNotation, Closure importsClosure) {
 		StoredConfigImpl config = new StoredConfigImpl()
 		config.importsClosures << importsClosure
-		
+
 		// create detached dependency
 		Dependency dependency
 		if (dependencyNotation instanceof Map) {
@@ -413,7 +407,7 @@ class PlatformPluginExtension {
 		else {
 			dependency = project.dependencies.create(dependencyNotation)
 		}
-		
+
 		// save dependency configuration
 		project.platform.configurations.putConfiguration(
 			dependency.group,
@@ -422,7 +416,7 @@ class PlatformPluginExtension {
 			DependencyHelper.getClassifier(dependency),
 			config)
 	}
-	
+
 	/**
 	 * Call bnd to configure artifact, but don't add as dependency.
 	 *
@@ -436,9 +430,9 @@ class PlatformPluginExtension {
 			dependencyNotation,
 			bndClosure,
 			false // don't create dependency
-		)
+			)
 	}
-	
+
 	/**
 	 * Call bnd to extend/overwrite the default bnd configuration for all bundles.
 	 * Note that the default configuration does not apply to Jars that already were bundles.
@@ -450,10 +444,10 @@ class PlatformPluginExtension {
 			configurations.addDefaultConfig(new StoredConfigImpl(bndClosure))
 		}
 	}
-	
+
 	/**
 	 * Call to override the behavior for all created bundles, even existing bundles.
-	 * Use with care. 
+	 * Use with care.
 	 */
 	def override(Closure bndClosure) {
 		// warn as the user should be able to check if this is intended
@@ -462,7 +456,7 @@ class PlatformPluginExtension {
 			configurations.addOverrideConfig(new StoredConfigImpl(bndClosure))
 		}
 	}
-	
+
 	/**
 	 * Call merge to create bundle that is merged from different dependencies.
 	 * @param mergeClosure the merge closure, specifying a match and bnd configuration
@@ -473,19 +467,19 @@ class PlatformPluginExtension {
 		configurations.addMerge(config)
 		config
 	}
-	
+
 	// for internal use
-	
+
 	/**
 	 * Stores bnd configurations.
 	 */
 	final Configurations configurations
-	
+
 	/**
 	 * Maps artifact IDs to {@link BundleArtifact}s
 	 */
 	final Map<String, BundleArtifact> artifacts = [:]
-	
+
 	/**
 	 * Maps feature IDs to Features
 	 */

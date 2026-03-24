@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal;
 
 /**
@@ -50,7 +49,6 @@ public interface Feature {
 		public final String featureName;
 		public final String version;
 		public final String match;
-
 
 		public RequiredFeature(String featureName, String version, String match) {
 			this.featureName = featureName;
