@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.bnd;
 
 import java.io.File;
@@ -39,7 +38,7 @@ import aQute.libg.tuple.Pair;
 
 /**
  * Utilities for working with bnd.
- * 
+ *
  * @author Simon Templer
  */
 public class BndHelper {
@@ -59,10 +58,13 @@ public class BndHelper {
 	/**
 	 * Build the bnd configuration present in the given builder and write the bundle
 	 * to the target file.
-	 * 
-	 * @param b      the builder
-	 * @param target the target file
-	 * @throws Exception if creating the bundle fails
+	 *
+	 * @param b
+	 *            the builder
+	 * @param target
+	 *            the target file
+	 * @throws Exception
+	 *             if creating the bundle fails
 	 */
 	public static void buildAndClose(Builder b, File target) throws Exception {
 		try {
@@ -84,17 +86,22 @@ public class BndHelper {
 
 	/**
 	 * Wrap a Jar as it is, only changing the manifest.
-	 * 
-	 * @param source     the source jar
-	 * @param classpath  the class path
-	 * @param target     the target file
-	 * @param properties the bnd properties
+	 *
+	 * @param source
+	 *            the source jar
+	 * @param classpath
+	 *            the class path
+	 * @param target
+	 *            the target file
+	 * @param properties
+	 *            the bnd properties
 	 * @return if the target file was created, it will not be created if the source
 	 *         Jar is empty or invalid
-	 * @throws Exception if wrapping the Jar fails
+	 * @throws Exception
+	 *             if wrapping the Jar fails
 	 */
 	public static boolean wrap(File source, Collection<File> classpath, File target, Map<String, String> properties,
-			boolean removeSignature) throws Exception {
+		boolean removeSignature) throws Exception {
 		File file = source;
 
 		// test file
@@ -147,7 +154,7 @@ public class BndHelper {
 					for (String error : wrapper.getErrors()) {
 
 						System.out.println(
-								"Error reported by bundle wrapper for bundle " + name + " is ignored:\n" + error);
+							"Error reported by bundle wrapper for bundle " + name + " is ignored:\n" + error);
 					}
 				}
 
@@ -158,7 +165,7 @@ public class BndHelper {
 				}
 			} else {
 				throw new IllegalStateException(
-						"Failed calculating the manifest for a wrapped bundle: " + wrapper.getErrors());
+					"Failed calculating the manifest for a wrapped bundle: " + wrapper.getErrors());
 			}
 		} finally {
 			wrapper.close();
@@ -171,8 +178,9 @@ public class BndHelper {
 	 * Creates a {@link Pair} with the {@value Constants#BUNDLE_SYMBOLICNAME} as
 	 * first value and a list of imported packages as second value of the given
 	 * bundle, but without meta data like version and others .
-	 * 
-	 * @param bundle {@link File} which is an OSGi bundle
+	 *
+	 * @param bundle
+	 *            {@link File} which is an OSGi bundle
 	 * @return {@link Pair} containing the bundle's Bundle-SymbolicName and a list
 	 *         of imported packages
 	 * @throws Exception

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal;
 
 import java.util.Set;
@@ -23,15 +22,15 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 
 public interface DependencyArtifact {
-	
+
 	/**
 	 * @return the direct dependencies of this artifact
 	 */
 	Set<ResolvedArtifact> getDirectDependencies(Project project);
-	
+
 	/**
 	 * @return the resolved dependencies the artifact represents
-	 *   (no transitive dependencies)
+	 *         (no transitive dependencies)
 	 */
 	Iterable<ResolvedDependency> getRepresentedDependencies();
 

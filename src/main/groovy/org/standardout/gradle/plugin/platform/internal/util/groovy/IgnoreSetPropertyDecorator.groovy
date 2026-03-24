@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.groovy
 
-import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.runtime.InvokerHelper
 
 /**
  * Decorator for a class that doesn't fail on accessing missing properties.
@@ -24,24 +23,23 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 class IgnoreSetPropertyDecorator implements GroovyInterceptable {
 
 	private final def decoratee
-	
+
 	IgnoreSetPropertyDecorator(def decoratee) {
 		this.decoratee = decoratee
 	}
-	
+
 	@Override
 	def getProperty(String name) {
 		decoratee."$name"
 	}
-	
+
 	@Override
 	void setProperty(String name, def value) {
 		// ignore
 	}
-	
+
 	@Override
 	def invokeMethod(String name, def args) {
 		InvokerHelper.invokeMethod(decoratee, name, args)
 	}
-	
 }

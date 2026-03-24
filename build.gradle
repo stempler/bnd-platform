@@ -112,17 +112,23 @@ dependencies {
 gradlePlugin {
 	testSourceSets.add(sourceSets.functionalTest)
 	def githubUrl = 'https://github.com/stempler/bnd-platform'
-    website = githubUrl
-    vcsUrl = githubUrl
-    plugins {
-        bndPlatform {
-            id = 'org.standardout.bnd-platform'
-            implementationClass = 'org.standardout.gradle.plugin.platform.PlatformPlugin'
-            displayName = 'bnd-platform'
-            description = 'Build OSGi bundles and p2 repositories / Eclipse Update Sites from existing libraries and their dependencies, e.g. from Maven repositories. Useful for instance for creating a target platform for Eclipse/Equinox or Maven Tycho build from third party dependencies.'
-            tags.set(['bnd', 'osgi', 'p2', 'eclipse', 'tycho'])
-        }
-    }
+	website = githubUrl
+	vcsUrl = githubUrl
+	plugins {
+		bndPlatform {
+			id = 'org.standardout.bnd-platform'
+			implementationClass = 'org.standardout.gradle.plugin.platform.PlatformPlugin'
+			displayName = 'bnd-platform'
+			description = 'Build OSGi bundles and p2 repositories / Eclipse Update Sites from existing libraries and their dependencies, e.g. from Maven repositories. Useful for instance for creating a target platform for Eclipse/Equinox or Maven Tycho build from third party dependencies.'
+			tags.set([
+				'bnd',
+				'osgi',
+				'p2',
+				'eclipse',
+				'tycho'
+			])
+		}
+	}
 }
 
 nexusPublishing {
@@ -191,7 +197,8 @@ publishing {
 
 // sign all artifacts
 signing {
-	if (isCI) { // use in ASCII armored key for CI
+	if (isCI) {
+		// use in ASCII armored key for CI
 		def signingKey = findProperty("signingKey")
 		def signingPassword = findProperty("signingPassword")
 		useInMemoryPgpKeys(signingKey, signingPassword)
@@ -199,7 +206,7 @@ signing {
 }
 
 tasks.withType(Sign) {
-    onlyIf {
-        isRelease || isCI
-    }
+	onlyIf {
+		isRelease || isCI
+	}
 }

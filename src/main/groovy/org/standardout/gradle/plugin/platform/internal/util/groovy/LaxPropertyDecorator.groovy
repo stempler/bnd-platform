@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.groovy
 
-import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.runtime.InvokerHelper
 
 /**
  * Decorator for a class that doesn't fail on accessing missing properties.
@@ -24,15 +23,15 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 class LaxPropertyDecorator implements GroovyInterceptable {
 
 	private final def decoratee
-	
+
 	LaxPropertyDecorator(def decoratee) {
 		this.decoratee = decoratee
 	}
-	
+
 	def invokeMethod(String name, def args) {
 		InvokerHelper.invokeMethod(decoratee, name, args)
 	}
-	
+
 	def getProperty(String name) {
 		try {
 			decoratee."$name"
@@ -40,5 +39,4 @@ class LaxPropertyDecorator implements GroovyInterceptable {
 			null
 		}
 	}
-	
 }

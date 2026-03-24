@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.standardout.gradle.plugin.platform.internal;
 
 /**
  * Interface marking objects that match specific bundle artifacts.
  * Used to determine which artifacts to add to a feature.
- * 
+ *
  * @author Simon Templer
  */
 public interface ArtifactsMatch {
-	
+
 	/**
 	 * @return if the given artifact is a match
 	 */

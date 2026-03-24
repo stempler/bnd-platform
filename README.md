@@ -28,12 +28,12 @@ The plugin is also hosted on Maven Central:
 
 ```groovy
 buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'org.standardout:bnd-platform:<version>'
-	}
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.standardout:bnd-platform:<version>'
+    }
 }
 
 apply plugin: 'org.standardout.bnd-platform'
@@ -90,7 +90,7 @@ You can add dependencies to the **bndplatform** configuration and configure them
 ```groovy
 // add Maven Central so the dependency can be resolved
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
@@ -123,11 +123,11 @@ The bundle configuration can be applied when adding a dependency:
 ```groovy
 platform {
     bundle(group: 'net.sf.ehcache', name: 'ehcache-core', version:'2.6.6') {
-    	bnd {
-			// make hibernate packages optional
-			optionalImport 'org.hibernate', 'org.hibernate.*'
-		}
-	}
+        bnd {
+            // make hibernate packages optional
+            optionalImport 'org.hibernate', 'org.hibernate.*'
+        }
+    }
 }
 ```
 
@@ -136,9 +136,9 @@ Or independently - just registering the configuration without adding a dependenc
 ```groovy
 platform {
     bnd(group: 'net.sf.ehcache', name: 'ehcache-core') {
-		// make hibernate packages optional
-		optionalImport 'org.hibernate', 'org.hibernate.*'
-	}
+        // make hibernate packages optional
+        optionalImport 'org.hibernate', 'org.hibernate.*'
+    }
 }
 ```
 
@@ -272,10 +272,10 @@ Since it is unlikely to happen that you want an android dependency in your OSGi 
 
 ```groovy
 plugin('com.squareup.retrofit2:retrofit:2.4.0'){
-	bnd {
-		optionalImport 'android.os'
-		optionalImport 'android.net'
-    	}
+    bnd {
+        optionalImport 'android.os'
+        optionalImport 'android.net'
+        }
 }
 ```
 Unfortunately the information about the `<optional>true</optional>` instruction is lost during a Gradle build because Gradle's dependency management does not support it yet. (FYI https://docs.gradle.org/4.6/release-notes.html#support-for-optional-dependencies-in-pom-consumption)
@@ -295,13 +295,13 @@ An alternative is using the [gradle-include-plugin](https://github.com/stempler/
 
 ```groovy
 include {
-	from('modules/logging.groovy') {
-		slf4jAndLogback '1.7.2', '1.0.10' // slf4j and logback with given versions
-	}
+    from('modules/logging.groovy') {
+        slf4jAndLogback '1.7.2', '1.0.10' // slf4j and logback with given versions
+    }
 
-	from('modules/geotools.groovy') {
-		geotools() // include geotools with default modules and version
-	}
+    from('modules/geotools.groovy') {
+        geotools() // include geotools with default modules and version
+    }
 }
 ```
 
@@ -315,19 +315,19 @@ A feature includes all plugins (bundles) defined in its context, here an example
 
 ```groovy
 platform {
-	// define a feature
-	feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
-		// define what's in the feature
+    // define a feature
+    feature(id: 'platform.restclient', name: 'REST client dependencies', version: '1.0.0') {
+        // define what's in the feature
 
-		plugin 'org.codehaus.groovy.modules.http-builder:http-builder:0.6', {
-			// exclude this transitive dependency
-			exclude group: 'net.sourceforge.nekohtml', module: 'nekohtml'
-		}
-		plugin 'commons-io:commons-io:2.4'
+        plugin 'org.codehaus.groovy.modules.http-builder:http-builder:0.6', {
+            // exclude this transitive dependency
+            exclude group: 'net.sourceforge.nekohtml', module: 'nekohtml'
+        }
+        plugin 'commons-io:commons-io:2.4'
 
-		// include a feature that is defined elsewhere given its ID
-		includes << 'platform.geotools'
-	}
+        // include a feature that is defined elsewhere given its ID
+        includes << 'platform.geotools'
+    }
 }
 ```
 
@@ -358,17 +358,17 @@ You can easily add local JARs to the platform. **If the JAR is not an OSGi bundl
 
 ```groovy
 platform {
-	bundle file('someLibrary.jar'), {
-		bnd {
-			version = '1.0.0' // mandatory
-			symbolicName = 'com.example.library.some' // mandatory
-			bundleName = 'Some Library'
-			instruction 'Export-Package', "com.example.library.some.*;version=$version"
-		}
-	}
+    bundle file('someLibrary.jar'), {
+        bnd {
+            version = '1.0.0' // mandatory
+            symbolicName = 'com.example.library.some' // mandatory
+            bundleName = 'Some Library'
+            instruction 'Export-Package', "com.example.library.some.*;version=$version"
+        }
+    }
 
-	// depends on groovy
-	bundle 'org.codehaus.groovy:groovy:1.8.5'
+    // depends on groovy
+    bundle 'org.codehaus.groovy:groovy:1.8.5'
 }
 ```
 
@@ -378,13 +378,13 @@ As in the example above, you should make sure to add additional dependencies tha
 
 ```groovy
 platform {
-	// all bundles in a directory
-	bundle fileTree(dir: 'lib') {
-		include '*.jar'
-	}
+    // all bundles in a directory
+    bundle fileTree(dir: 'lib') {
+        include '*.jar'
+    }
 
-	// specific bundles
-	bundle files('someBundle.jar', 'someOtherBundle.jar')
+    // specific bundles
+    bundle files('someBundle.jar', 'someOtherBundle.jar')
 }
 ```
 
@@ -412,29 +412,29 @@ Sometimes it is necessary to create a bundle out of multiple JARs, most often du
 
 ```groovy
 platform {
-	def geotoolsVersion = '10.4'
+    def geotoolsVersion = '10.4'
 
-	// define the merged bundle
-	merge {
-		// the match closure is applied to all dependencies/artifacts encountered
-		// if true, an artifact is included in the bundle
-		match {
-			// merge all artifacts in org.geotools group, but not gt-opengis
-			it.group == 'org.geotools' && it.name != 'gt-opengis'
-		}
+    // define the merged bundle
+    merge {
+        // the match closure is applied to all dependencies/artifacts encountered
+        // if true, an artifact is included in the bundle
+        match {
+            // merge all artifacts in org.geotools group, but not gt-opengis
+            it.group == 'org.geotools' && it.name != 'gt-opengis'
+        }
 
-		bnd {
-			symbolicName = 'org.geotools'
-			bundleName = 'Geotools'
-			version = geotoolsVersion
-			instruction 'Export-Package', "org.geotools.*;version=$version"
-			instruction 'Private-Package', '*'
-		}
-	}
+        bnd {
+            symbolicName = 'org.geotools'
+            bundleName = 'Geotools'
+            version = geotoolsVersion
+            instruction 'Export-Package', "org.geotools.*;version=$version"
+            instruction 'Private-Package', '*'
+        }
+    }
 
-	// add geotools modules as dependencies
-	bundle "org.geotools:gt-shapefile:$geotoolsVersion"
-	// etc.
+    // add geotools modules as dependencies
+    bundle "org.geotools:gt-shapefile:$geotoolsVersion"
+    // etc.
 }
 ```
 
@@ -452,14 +452,14 @@ As alternative to **match** or in combination with it you can add bundles to mer
 
 ```groovy
 platform {
-	merge {
-		bundle 'someGroup:someArtifact:1.0.0' // also added as dependency
-		include group: 'someGroup', name: 'someOtherArtifact' // not added as dependency
+    merge {
+        bundle 'someGroup:someArtifact:1.0.0' // also added as dependency
+        include group: 'someGroup', name: 'someOtherArtifact' // not added as dependency
 
-		bnd {
-			...
-		}
-	}
+        bnd {
+            ...
+        }
+    }
 }
 
 ```
@@ -475,9 +475,9 @@ You can specify them as named parameters, e.g.:
 
 ```groovy
 platform {
-	merge(failOnDuplicate: false, collectServices: true) {
-		...
-	}
+    merge(failOnDuplicate: false, collectServices: true) {
+        ...
+    }
 }
 ```
 
@@ -505,7 +505,7 @@ Via the platform extension there are several settings you can provide:
 * **importVersionStrategy** = global strategy for import versions (default: `MAJOR`)
 * **importIgnorePackages** - set of packages to ignore when analyzing packages of dependencies to determine package import versions
 * **defaultQualifier** - the default version qualifier to use for wrapped bundles. If a qualifier is already
-	 * present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
+     * present the default will be appended, separated by a dash. Does by default not apply to file based dependencies (default: **'autowrapped'**)
 * **useBndHashQualifiers** - if a hash calculated from the bnd configuration should be used as version qualifier for wrapped bundles. It replaces the default qualifier where applicable (default: `true`)
 * **useFeatureHashQualifiers** - if a hash based on the feature content should be appended as qualifier to feature versions (default: `true`)
 * **hashCalculator** - hash calculator for determining the hash qualifier from a bundle's bnd configuration, can be replaced by a custom closure (default: `ADLER32`)
@@ -523,10 +523,10 @@ For example:
 
 ```groovy
 platform {
-	fetchSources = false
-	featureVersion = '3.1.0'
-	eclipseHome = new File('/opt/eclipse')
-	eclipseMirror = 'http://myeclipsedownload.com/eclipse.tar.gz'
+    fetchSources = false
+    featureVersion = '3.1.0'
+    eclipseHome = new File('/opt/eclipse')
+    eclipseMirror = 'http://myeclipsedownload.com/eclipse.tar.gz'
 }
 ```
 

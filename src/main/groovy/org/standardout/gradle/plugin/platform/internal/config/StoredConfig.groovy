@@ -13,52 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.config
 
-import groovy.lang.Closure;
+import groovy.lang.Closure
 
-import java.util.List;
-import java.util.Map;
-
-import org.codehaus.groovy.runtime.InvokerHelper;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import java.io.File
+import java.util.List
+import java.util.Map
+
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 
 /**
  * Stores the configuration of a bundle concerning bnd.
  */
 interface StoredConfig {
-	
+
 	List<Closure> getBndClosures()
-	
+
 	List<Closure> getImportsClosures()
 
 	BndConfig evaluate(Project project, File file, Map<String, String> initialProperties)
-	
+
 	BndConfig evaluate(Project project, String group, String name, String version, Map<String, String> initialProperties)
-	
+
 	BndConfig evaluate(Project project, String group, String name, String version, File file, Map<String, String> initialProperties)
 
 	/**
 	 * @return the imports configuration, may be <code>null</code>
 	 */
 	ImportsConfig importsConfig(Project project, String group, String name, String version)
-	
+
 	/**
-	 * Append the given configuration.	
+	 * Append the given configuration.
 	 */
 	void leftShift(StoredConfig other)
-	
+
 	/**
 	 * Prepend the own configuration to the given configuration object.
 	 */
 	void rightShift(StoredConfig other)
-	
+
 	/**
 	 * @return if the configuration is empty
 	 */
 	boolean isEmpty()
-	
 }

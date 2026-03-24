@@ -13,112 +13,137 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal
 
-import groovy.xml.XmlSlurper;
-import groovy.xml.slurpersupport.GPathResult;
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
 
-import java.nio.ByteBuffer;
-import java.util.Set;
+import java.nio.ByteBuffer
+import java.util.Set
 import java.util.jar.JarFile
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.Adler32;
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+import java.util.zip.Adler32
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.osgi.framework.Constants
 import org.osgi.framework.Version
-import org.standardout.gradle.plugin.platform.internal.config.BndConfig;
-import org.standardout.gradle.plugin.platform.internal.config.StoredConfig;
-import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl;
-import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStoredConfig;
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
-import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo;
-import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper;
+import org.standardout.gradle.plugin.platform.internal.config.BndConfig
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfig
+import org.standardout.gradle.plugin.platform.internal.config.StoredConfigImpl
+import org.standardout.gradle.plugin.platform.internal.config.UnmodifiableStoredConfig
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
+import org.standardout.gradle.plugin.platform.internal.util.bnd.JarInfo
+import org.standardout.gradle.plugin.platform.internal.util.gradle.DependencyHelper
 
-import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Analyzer
 
 
 class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
-	
+
 	private final File file
-	File getFile() { file }
-	
+	File getFile() {
+		file
+	}
+
 	final String classifier
-	
+
 	final String extension
-	
+
 	final String group
-	
+
 	final String name
-	
+
 	final PomInfo pomInfo
-	
+
 	BundleArtifact sourceBundle
-	
+
 	private String version
-	String getVersion() { version }
-	
+	String getVersion() {
+		version
+	}
+
 	private final String os
-	@Override public String getOs() { os }
-	
+	@Override public String getOs() {
+		os
+	}
+
 	private final String arch
-	@Override public String getArch() { arch }
-	
+	@Override public String getArch() {
+		arch
+	}
+
 	private final String ws
-	@Override public String getWs() { ws }
-	
+	@Override public String getWs() {
+		ws
+	}
+
 	private final boolean source
-	boolean isSource() { source }
-	
+	boolean isSource() {
+		source
+	}
+
 	private final String bundleName
-	String getBundleName() { bundleName }
-	
+	String getBundleName() {
+		bundleName
+	}
+
 	private final String symbolicName
-	String getSymbolicName() { symbolicName }
-	
+	String getSymbolicName() {
+		symbolicName
+	}
+
 	/**
 	 * Should the bundle be wrapped?
 	 */
 	private final boolean wrap
-	boolean isWrap() { wrap }
-	
+	boolean isWrap() {
+		wrap
+	}
+
 	private final String noWrapReason
-	String getNoWrapReason() { noWrapReason }
-	
+	String getNoWrapReason() {
+		noWrapReason
+	}
+
 	private final BndConfig bndConfig
-	BndConfig getBndConfig() { bndConfig }
-	
+	BndConfig getBndConfig() {
+		bndConfig
+	}
+
 	final String unifiedName
-	
+
 	private final String id
-	String getId() { id }
-	
+	String getId() {
+		id
+	}
+
 	private final String modifiedVersion
-	String getModifiedVersion() { modifiedVersion }
-	
+	String getModifiedVersion() {
+		modifiedVersion
+	}
+
 	String getTargetFileName() {
 		"${getSymbolicName()}_${getModifiedVersion()}.$extension"
 	}
-	
+
 	private final ResolvedDependency dependency
 	ResolvedDependency getDependency() {
 		dependency
 	}
-	
+
 	private final ResolvedArtifact artifact
 	ResolvedArtifact getArtifact() {
 		artifact
 	}
-	
+
 	/**
 	 * Create a bundle artifact from a resolved artifact.
 	 */
 	ResolvedBundleArtifact(ResolvedArtifact artifact, ResolvedDependency dependency,
-			Project project, final boolean aux = false) {
+	Project project, final boolean aux = false) {
 		this.dependency = dependency
 		this.artifact = artifact
 		// extract information from artifact
@@ -129,9 +154,9 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		this.name = artifact.moduleVersion.id.name
 		this.version = artifact.moduleVersion.id.version
 		def bundleVersion = this.version
-		
+
 		// derived information
-		
+
 		// is this a source bundle
 		source = artifact.classifier == 'sources'
 
@@ -143,10 +168,10 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			// but different classifier
 			symbolicName += '.' + classifier
 		}
-		
+
 		// Platform-Filter (if available)
 		String platformFilter = null
-				
+
 		// reason why a bundle is not wrapped
 		JarInfo jarInfo = null
 		boolean wrap
@@ -179,7 +204,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 				noWrapReason = ''
 			}
 		}
-		
+
 		// the unified name (that is equal for corresponding source and normal jars)
 		// it also is the key for the bundle dependency (if any)
 		def unifiedName = "$group:$name:$version"
@@ -191,19 +216,19 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			id = unifiedName
 		}
 		this.unifiedName = unifiedName
-		
+
 		// determine osgi version
 		Version osgiVersion = VersionUtil.toOsgiVersion(bundleVersion) {
 			project.logger.warn "Replacing illegal OSGi version $bundleVersion by ${it} for artifact $name"
 		}
-		
+
 		// resolve bundle configuration
 		StoredConfig config = new StoredConfigImpl()
 		// only include default configuration if not yet a bundle
 		StoredConfig bundleConfig = project.platform.configurations.getConfiguration(group, name, version, classifier, wrap,
 			this)
 		config << bundleConfig
-		
+
 		// determine additional configuration from information in POM
 		StoredConfig pomConfig = null
 		if (!source && project.platform.extractPomInformation) {
@@ -214,17 +239,17 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 					// prepend configuration
 					pomConfig >> config
 				}
-			} 
+			}
 		}
 		else {
 			pomInfo = null
 		}
-		
+
 		// an eventually modified version
 		def modifiedVersion = osgiVersion.toString()
 		// a qualifier to add
 		boolean addQualifier = false
-		
+
 		bndConfig = config.evaluate(project, group, name, modifiedVersion, file, jarInfo?.instructions)
 		if (bndConfig) {
 			if (!wrap && !source) {
@@ -236,7 +261,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 					project.logger.warn "Existing bundle $symbolicName may be augmented with additional information from the POM"
 				}
 			}
-			
+
 			// override symbolic name or bundle name
 			if (bndConfig.symbolicName) {
 				symbolicName = JarInfo.extractSymbolicName(bndConfig.symbolicName) // stripped symbolic name
@@ -251,9 +276,9 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 					osgiVersion = bndOsgiVersion
 				}
 			}
-			
+
 			addQualifier = !source // by default don't add qualifiers for source bundles
-			
+
 			platformFilter = bndConfig.getInstruction('Eclipse-PlatformFilter')
 		}
 		else if (wrap) {
@@ -262,31 +287,31 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		if (bndConfig?.addQualifier) {
 			addQualifier = true // forced qualifier
 		}
-		
+
 		if (addQualifier) {
 			modifiedVersion = VersionUtil.addQualifier(modifiedVersion, symbolicName, bndConfig, project)
 		}
-		
+
 		// adapt symbolic names for bundles in platformAux (if enabled)
 		if (aux && project.platform.auxVersionedSymbolicNames) {
 			symbolicName = symbolicName + '-' + version // augment with (original) version
 			wrap = true // force wrap
 		}
-		
+
 		// Extract target platform constraints if present
 		if(platformFilter) {
 			ws = (platformFilter =~ /.*\(osgi\.ws\=(.*?)\).*/)[ 0 ][ 1 ]
 			os = (platformFilter =~ /.*\(osgi\.os\=(.*?)\).*/)[ 0 ][ 1 ]
 			arch = (platformFilter =~ /.*\(osgi\.arch\=(.*?)\).*/)[ 0 ][ 1 ]
 		}
-		
+
 		this.modifiedVersion = modifiedVersion
-		
+
 		this.bundleName = bundleName
 		this.symbolicName = symbolicName
 		this.wrap = wrap
 	}
-	
+
 	@Override
 	public Iterable<ResolvedDependency> getRepresentedDependencies() {
 		dependency == null ? [] : [dependency]
@@ -313,18 +338,16 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			}
 		}
 		else {
-			String lastSection = group.substring( ++i );
+			String lastSection = group.substring( ++i )
 			if (name == lastSection) {
 				group
 			}
 			else if (name.startsWith(lastSection)) {
 				String id = name.substring(lastSection.length())
-				if (Character.isLetterOrDigit(id.charAt(0)))
-				{
+				if (Character.isLetterOrDigit(id.charAt(0))) {
 					group + '.' + id
 				}
-				else
-				{
+				else {
 					group + '.' + id.substring(1)
 				}
 			}
@@ -333,7 +356,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			}
 		}
 	}
-	
+
 	/**
 	 * Represents license information retrieved from a POM file.
 	 */
@@ -345,18 +368,18 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		final String licenseName
 		final String licenseUrl
 	}
-	
+
 	/**
 	 * Represents information retrieved from a POM file.
 	 */
 	public static class PomInfo {
 		final List<LicenseInfo> licenses = []
 		String organization
-		
+
 		boolean isEmpty() {
 			licenses.empty && !organization
 		}
-		
+
 		/**
 		 * Convert to stored configuration.
 		 * @return the represented configuration or <code>null</code>
@@ -367,8 +390,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			}
 			else {
 				def licenseStrings = []
-				licenses.each {
-					LicenseInfo license ->
+				licenses.each { LicenseInfo license ->
 					if (license.licenseUrl) {
 						if (license.licenseName) {
 							licenseStrings << "${license.licenseUrl};description=\"${license.licenseName}\""
@@ -381,7 +403,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 						licenseStrings << license.licenseName
 					}
 				}
-				
+
 				def bndClosure = {
 					if (organization && !properties['Bundle-Vendor']) {
 						instruction 'Bundle-Vendor', organization
@@ -394,7 +416,7 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 			}
 		}
 	}
-	
+
 	/**
 	 * Extract information from the POM file of the given dependency.
 	 */
@@ -406,23 +428,22 @@ class ResolvedBundleArtifact implements BundleArtifact, DependencyArtifact {
 		} catch (e) {
 			project.logger.warn "Could not retrieve POM $pom"
 		}
-		
+
 		PomInfo result = new PomInfo()
 		if (pomFile) {
 			def xml = new XmlSlurper().parse(pomFile)
-	
-	        xml.licenses.license.each {
-	            def license = new LicenseInfo(it.name.text().trim(), it.url.text().trim())
-	            result.licenses << license
-	        }
-			
+
+			xml.licenses.license.each {
+				def license = new LicenseInfo(it.name.text().trim(), it.url.text().trim())
+				result.licenses << license
+			}
+
 			def orgName = xml.organization.name.find()
 			if (orgName) {
 				result.organization = orgName.text().trim()
 			}
 		}
-		
+
 		result
 	}
-
 }

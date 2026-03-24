@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util.bnd
 
-import java.util.jar.JarFile;
+import java.util.jar.JarFile
 
-import aQute.bnd.osgi.Analyzer;
+import aQute.bnd.osgi.Analyzer
 
 class JarInfo {
-	
+
 	/**
 	 * Instruction properties - properties to retain as instructions when
 	 * wrapping an existing bundle.
@@ -39,21 +38,21 @@ class JarInfo {
 	] as Set).asImmutable()
 
 	final Map<String, String> instructions
-	
+
 	final String symbolicName
-	
+
 	final String bundleName
-	
-	final String platformFilter;
-	
+
+	final String platformFilter
+
 	final String version
-	
+
 	JarInfo(File file) {
 		JarFile jar = new JarFile(file)
-		
+
 		def manifest = jar.manifest
 		Map<String, String> properties = [:]
-		
+
 		if (manifest != null) {
 			def main = manifest.mainAttributes
 			INSTRUCTION_PROPERTIES.each {
@@ -62,7 +61,7 @@ class JarInfo {
 					properties[it] = value
 				}
 			}
-			
+
 			bundleName = main.getValue(Analyzer.BUNDLE_NAME)
 			version = main.getValue(Analyzer.BUNDLE_VERSION)
 			symbolicName = extractSymbolicName(main.getValue(Analyzer.BUNDLE_SYMBOLICNAME))
@@ -75,15 +74,15 @@ class JarInfo {
 			symbolicName = null
 			platformFilter = null
 		}
-		
-		instructions = properties.asImmutable() 
+
+		instructions = properties.asImmutable()
 	}
-	
+
 	public static String extractSymbolicName(String name) {
 		if (name == null) {
 			return name
 		}
-		
+
 		int end = name.indexOf(';')
 		if (end > 0) {
 			// remove all additional instructions
@@ -93,5 +92,4 @@ class JarInfo {
 			name
 		}
 	}
-	
 }

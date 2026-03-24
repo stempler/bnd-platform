@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal.util
 
 import java.util.zip.ZipEntry
@@ -48,61 +47,61 @@ class FeatureUtil {
 			version: feature.version,
 			'provider-name': feature.providerName,
 			plugin: feature.plugin
-		) {
-			if (feature.license) {
-				license(feature.license)
-			}
+			) {
+				if (feature.license) {
+					license(feature.license)
+				}
 
-			if (feature.description) {
-				description(feature.description)
-			}
+				if (feature.description) {
+					description(feature.description)
+				}
 
-			if (feature.copyright) {
-				copyright(feature.copyright)
-			}
+				if (feature.copyright) {
+					copyright(feature.copyright)
+				}
 
-			if (!feature.requiredFeatures.isEmpty()) {
- 				requires() {
-					//required features
-					for (Feature.RequiredFeature required : feature.requiredFeatures.sort(true, { it.featureName })) {
-						def version = required.version?:'0.0.0'
-						def match = required.match?:"greaterOrEqual"
-						xml.import(feature: required.featureName, version: version, match:match)
+				if (!feature.requiredFeatures.isEmpty()) {
+					requires() {
+						//required features
+						for (Feature.RequiredFeature required : feature.requiredFeatures.sort(true, { it.featureName })) {
+							def version = required.version?:'0.0.0'
+							def match = required.match?:"greaterOrEqual"
+							xml.import(feature: required.featureName, version: version, match:match)
+						}
 					}
 				}
-			}
 
 
-			// included features
-			for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
-				def version = included.version?:'0.0.0'
-				includes(id: included.id, version: version)
-			}
-
-			// included bundles
-			for (BundleArtifact artifact : feature.bundles.sort(true, { it.symbolicName })) {
-				// define each plug-in
-				def paramMap = [
-					'id': artifact.symbolicName,
-					'download-size': 0,
-					'install-size': 0,
-					version: artifact.modifiedVersion,
-					unpack: false]
-
-				// omit empty/null for os/arch/ws (may not be present)
-				if(artifact.os) {
-					paramMap.put('os', artifact.os)
-				}
-				if(artifact.arch) {
-					paramMap.put('arch', artifact.arch)
-				}
-				if(artifact.ws) {
-					paramMap.put('ws', artifact.ws)
+				// included features
+				for (Feature included : feature.includedFeatures.sort(true, { it.id })) {
+					def version = included.version?:'0.0.0'
+					includes(id: included.id, version: version)
 				}
 
-				plugin(paramMap)
+				// included bundles
+				for (BundleArtifact artifact : feature.bundles.sort(true, { it.symbolicName })) {
+					// define each plug-in
+					def paramMap = [
+						'id': artifact.symbolicName,
+						'download-size': 0,
+						'install-size': 0,
+						version: artifact.modifiedVersion,
+						unpack: false]
+
+					// omit empty/null for os/arch/ws (may not be present)
+					if(artifact.os) {
+						paramMap.put('os', artifact.os)
+					}
+					if(artifact.arch) {
+						paramMap.put('arch', artifact.arch)
+					}
+					if(artifact.ws) {
+						paramMap.put('ws', artifact.ws)
+					}
+
+					plugin(paramMap)
+				}
 			}
-		}
 	}
 
 	static void createJar(Feature feature, def jarFile) {
@@ -118,5 +117,4 @@ class FeatureUtil {
 			zipStream.close()
 		}
 	}
-
 }

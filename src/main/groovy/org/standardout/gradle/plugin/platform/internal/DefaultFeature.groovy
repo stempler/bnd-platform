@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.standardout.gradle.plugin.platform.internal
 
 import org.gradle.api.Project
-import org.standardout.gradle.plugin.platform.internal.util.VersionUtil;
+import org.standardout.gradle.plugin.platform.internal.util.VersionUtil
 
 
 class DefaultFeature implements Feature {
@@ -63,9 +62,7 @@ class DefaultFeature implements Feature {
 	}
 
 	@Override
-	public Iterable<RequiredFeature> getRequiredFeatures()
-	{
+	public Iterable<RequiredFeature> getRequiredFeatures() {
 		[]
 	}
-
 }
