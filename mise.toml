@@ -1,2 +1,10 @@
 [tools]
 java = "temurin-17.0.18+8"
+
+# git hooks
+hk = "latest"
+pkl = "latest"
+
+[hooks]
+enter = "mise x -- hk install --mise"
+postinstall = "mise x -- hk install --mise"
