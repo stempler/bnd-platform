@@ -33,17 +33,17 @@ def isRelease = !version.endsWith('-SNAPSHOT')
 
 dependencies {
 	implementation gradleApi()
-	implementation 'biz.aQute.bnd:biz.aQute.bndlib:6.4.1'
-	implementation 'org.osgi:osgi.core:8.0.0'
-	implementation 'commons-io:commons-io:2.21.0'
-	implementation 'de.undercouch:gradle-download-task:5.7.0'
+	implementation libs.bnd.bndlib
+	implementation libs.osgi.core
+	implementation libs.commons.io
+	implementation libs.gradle.download.task
 	implementation localGroovy()
 
 	// Testing
-	testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation testLibs.junit.jupiter
+	testRuntimeOnly testLibs.junit.platform.launcher
 
-	testImplementation("org.assertj:assertj-core:3.27.7")
+	testImplementation testLibs.assertj.core
 }
 
 test {
@@ -78,9 +78,9 @@ tasks.named('check') {
 }
 
 dependencies {
-	functionalTestImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
-	functionalTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	functionalTestImplementation 'org.assertj:assertj-core:3.27.7'
+	functionalTestImplementation testLibs.junit.jupiter
+	functionalTestRuntimeOnly testLibs.junit.platform.launcher
+	functionalTestImplementation testLibs.assertj.core
 	functionalTestImplementation gradleTestKit()
 }
 
