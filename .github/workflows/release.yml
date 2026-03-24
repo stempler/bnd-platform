@@ -64,7 +64,7 @@ jobs:
         uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
         if: always() # always run even if the previous step fails
         with:
-          report_paths: 'build/test-results/**/*.xml'
+          report_paths: "build/test-results/**/*.xml"
           require_tests: true # currently no tests present
 
           annotate_only: true
@@ -96,7 +96,7 @@ jobs:
           # For Gradle execution
 
           # CI marker
-          CI: 'true'
+          CI: "true"
 
           ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
@@ -111,13 +111,12 @@ jobs:
           dry_run: ${{ inputs.dryRun }}
           semantic_version: 25.0.3
 
-          extra_plugins:
-            "@semantic-release/changelog@\
-                ${{ env.SEMANTIC_RELEASE_CHANGELOG_VERSION }} \
-                @semantic-release/exec@\
-                ${{ env.SEMANTIC_RELEASE_EXEC_VERSION }} \
-                @semantic-release/git@\
-                ${{ env.SEMANTIC_RELEASE_GIT_VERSION }} \
-                conventional-changelog-conventionalcommits@\
-                ${{ env.CONVENTIONAL_CHANGELOG_CONVENTIONALCOMMITS_VERSION }} \
-                "
+          extra_plugins: "@semantic-release/changelog@\
+            ${{ env.SEMANTIC_RELEASE_CHANGELOG_VERSION }} \
+            @semantic-release/exec@\
+            ${{ env.SEMANTIC_RELEASE_EXEC_VERSION }} \
+            @semantic-release/git@\
+            ${{ env.SEMANTIC_RELEASE_GIT_VERSION }} \
+            conventional-changelog-conventionalcommits@\
+            ${{ env.CONVENTIONAL_CHANGELOG_CONVENTIONALCOMMITS_VERSION }} \
+            "

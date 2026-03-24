@@ -8,55 +8,52 @@
     // use chore for test-only Gradle dependencies (Gradle manager does not make a distinction based on configurations)
     ":pathSemanticCommitType(gradle/test-libs.versions.toml,chore)",
   ],
-  labels: [
-    "renovate",
-    "renovate/{{updateType}}",
-  ],
+  labels: ["renovate", "renovate/{{updateType}}"],
   packageRules: [
     // group wetransform convention plugins
     {
-      "groupName": "wetransform Gradle conventions",
-      "groupSlug": "wetf-gradle-conventions",
-      "matchDatasources": ["maven"],
-      "matchDepNames": ["/^to\.wetransform\.(settings|conventions).*$/"]
-    }
+      groupName: "wetransform Gradle conventions",
+      groupSlug: "wetf-gradle-conventions",
+      matchDatasources: ["maven"],
+      matchDepNames: ["/^to\.wetransform\.(settings|conventions).*$/"],
+    },
   ],
   customManagers: [
     {
       description: "Update semantic-release in GitHub Action workflows",
       customType: "regex",
       managerFilePatterns: [
-        "/(^workflow-templates|\\.github/(actions|workflows))\\/.+\\.ya?ml$/"
+        "/(^workflow-templates|\\.github/(actions|workflows))\\/.+\\.ya?ml$/",
       ],
       matchStrings: [
-        "semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?(\\s+|\\s+.*)"
+        "semantic_version\\s*:\\s*(\"|')?(?<currentValue>.+)(\"|')?(\\s+|\\s+.*)",
       ],
       datasourceTemplate: "npm",
-      depNameTemplate: "semantic-release"
+      depNameTemplate: "semantic-release",
     },
     {
       description: "Any other workflows related file with dependencies",
       customType: "regex",
       managerFilePatterns: [
-        "/(^workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$/"
+        "/(^workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$/",
       ],
       matchStrings: [
-        "\
+        '\
 .*renovate:\
 \\sdatasource=(?<datasource>.*?)\
 \\sdepName=(?<depName>.*?)\
 (\\sversioning=(?<versioning>.*?))?\
-\n.*(version|Version|VERSION)\\s*(:=|=|:)\\s*\"?(?<currentValue>.*?)\
-(@(?<currentDigest>sha256:[a-f0-9]+))?\"?\
-(\\s+|\\s+.*)"
+\n.*(version|Version|VERSION)\\s*(:=|=|:)\\s*"?(?<currentValue>.*?)\
+(@(?<currentDigest>sha256:[a-f0-9]+))?"?\
+(\\s+|\\s+.*)',
       ],
       versioningTemplate: "\
 {{#if versioning}}\
 {{{versioning}}}\
 {{else}}\
 semver-coerced\
-{{/if}}"
+{{/if}}",
     },
   ],
-  separateMinorPatch: false
+  separateMinorPatch: false,
 }

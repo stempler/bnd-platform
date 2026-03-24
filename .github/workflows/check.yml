@@ -21,7 +21,7 @@ jobs:
       - name: Build and test with Gradle
         env:
           # CI marker
-          CI: 'true'
+          CI: "true"
         run: ./gradlew clean check
 
         # https://github.com/marketplace/actions/junit-report-action
@@ -29,7 +29,7 @@ jobs:
         uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
         if: always() # always run even if the previous step fails
         with:
-          report_paths: 'build/test-results/**/*.xml'
+          report_paths: "build/test-results/**/*.xml"
           require_tests: true
 
           annotate_only: true

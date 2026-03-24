@@ -1,5 +1,4 @@
-eclipse-p2-minimal.tar.gz
--------------------------
+## eclipse-p2-minimal.tar.gz
 
 This is the original minimal Eclipse product added for creating update sites with bnd-platform.
 
@@ -9,9 +8,7 @@ The cause is unclear but it is fixed with newer Eclipse versions.
 The attempt to create a working update product was not successful so far (see below).
 Thus the current recommendation is to use a current full version of Eclipse (e.g. 2023-09).
 
-
-Minimal product build
----------------------
+## Minimal product build
 
 Build for minimal Eclipse product adapted to use a newer Eclipse version.
 
