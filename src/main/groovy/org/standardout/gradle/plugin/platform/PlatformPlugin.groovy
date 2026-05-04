@@ -248,7 +248,7 @@ public class PlatformPlugin implements Plugin<Project> {
 				// launch Publisher for Features and Bundles
 				def repoDirUri = URLDecoder.decode(project.platform.updateSiteDir.toURI().toString(), 'UTF-8')
 				def categoryFileUri = URLDecoder.decode(categoryFile.toURI().toString(), 'UTF-8')
-				project.exec {
+				project.providers.exec {
 					def args = [
 						"${javaBin}",
 						'-jar',
@@ -270,10 +270,10 @@ public class PlatformPlugin implements Plugin<Project> {
 						args.add('-append')
 					}
 					commandLine = args
-				}
+				}.result.get()
 
 				// launch Publisher for category / site.xml
-				project.exec {
+				project.providers.exec {
 					def args = [
 						"${javaBin}",
 						'-jar',
@@ -290,7 +290,7 @@ public class PlatformPlugin implements Plugin<Project> {
 						args.add('-append')
 					}
 					commandLine = args
-				}
+				}.result.get()
 
 				project.logger.info 'Built p2 repository.'
 

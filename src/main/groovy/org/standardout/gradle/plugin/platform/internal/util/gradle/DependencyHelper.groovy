@@ -84,7 +84,7 @@ class DependencyHelper {
 	static Set<ResolvedArtifact> getDetachedArtifacts(Project project, def dependencyNotation) {
 		Dependency dep = project.dependencies.create(dependencyNotation)
 		Configuration configuration = project.configurations.detachedConfiguration(dep)
-		configuration.resolvedConfiguration.lenientConfiguration.getArtifacts(SATISFY_ALL)
+		configuration.resolvedConfiguration.lenientConfiguration.getArtifacts()
 	}
 
 	/**
