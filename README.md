@@ -48,7 +48,7 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            url 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url 'https://central.sonatype.com/repository/maven-snapshots/'
         }
     }
     dependencies {
@@ -58,8 +58,6 @@ buildscript {
 
 apply plugin: 'org.standardout.bnd-platform'
 ```
-
-The latest snapshot version can be found in the [Sonatype repository](https://oss.sonatype.org/content/repositories/snapshots/org/standardout/bnd-platform/).
 
 If changes were made after the last release, the snapshot version is the last release version with the minor version number increased by one and the qualifier set to `-SNAPSHOT`.
 For example, for the 3.1.0 release the snapshot version would be 3.2.0-SNAPSHOT.
