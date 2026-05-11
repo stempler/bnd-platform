@@ -1,3 +1,34 @@
+## [4.0.0](https://github.com/stempler/bnd-platform/compare/v3.2.1...v4.0.0) (2026-05-11)
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** update gradle to v9
+* **deps:** compile for Java 17
+
+### Bug Fixes
+
+* **deps:** compile for Java 17 ([a551f98](https://github.com/stempler/bnd-platform/commit/a551f982b2c514654f99f8aa86e9a9bbab937092))
+* **deps:** update dependency biz.aqute.bnd:biz.aqute.bndlib to v7 ([52f5b43](https://github.com/stempler/bnd-platform/commit/52f5b439f2d4fdf80b8e1e5d1f5e8445b0fefd09))
+* **deps:** update dependency biz.aqute.bnd:biz.aqute.bndlib to v7.2.2 ([06fc601](https://github.com/stempler/bnd-platform/commit/06fc601805e295cea4ea3894f8f76a11c5aa11be))
+* **deps:** update dependency biz.aqute.bnd:biz.aqute.bndlib to v7.2.3 ([4aca7e9](https://github.com/stempler/bnd-platform/commit/4aca7e922834a41bac58c0748cbb4a4767f20885))
+* **deps:** update dependency commons-io:commons-io to v2.21.0 ([a9230c2](https://github.com/stempler/bnd-platform/commit/a9230c20495f879b866c1964713bbbfc5c435289))
+* **deps:** update dependency commons-io:commons-io to v2.22.0 ([72341f6](https://github.com/stempler/bnd-platform/commit/72341f68b2c9b8450812e2475a673ca5f28abfd9))
+* **deps:** update dependency de.undercouch:gradle-download-task to v5.7.0 ([0a10e58](https://github.com/stempler/bnd-platform/commit/0a10e583f53cb0990a3f8931b3412a07f88c43e1))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.6 ([0d9d939](https://github.com/stempler/bnd-platform/commit/0d9d9391b81332a26beecd6b8c643aa8ac875592))
+* **deps:** update dependency org.assertj:assertj-core to v3.27.7 ([2ac24af](https://github.com/stempler/bnd-platform/commit/2ac24afb5dfb63f86e077cfc7bc816eb9540afba))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.14.0 ([5a40360](https://github.com/stempler/bnd-platform/commit/5a403608e540f7e9c81fa541f3b499a91393e320))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.14.1 ([cc61979](https://github.com/stempler/bnd-platform/commit/cc6197902aed5774060918d0e81af62ae67882bd))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.14.2 ([be6b0f4](https://github.com/stempler/bnd-platform/commit/be6b0f4e69f81a6efe0ee6ccd41ec268fbd42fbf))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v5.14.3 ([615dee9](https://github.com/stempler/bnd-platform/commit/615dee9330a6504d1c9af45e8186b16456277a44))
+* **deps:** update dependency org.junit.jupiter:junit-jupiter to v6 ([70e393e](https://github.com/stempler/bnd-platform/commit/70e393e0ad855ad29776f4b990197f3e4e8cccb8))
+* fix errors in updateSite task due to Gradle and Groovy upgrade ([1705469](https://github.com/stempler/bnd-platform/commit/1705469f27b05b36bbf5251c4595953c86dd0825))
+* fix issues likely related to Gradle 9 / Groovy 4 update ([d64c477](https://github.com/stempler/bnd-platform/commit/d64c477ab3735df88773631e05eb5690da5c4f51))
+* restore bundle() { bnd { } } DSL under Groovy 4 ([eca1c55](https://github.com/stempler/bnd-platform/commit/eca1c5592453f939e5db7d27adc19b14075dd3d6))
+
+### Miscellaneous Chores
+
+* **deps:** update gradle to v9 ([459cc76](https://github.com/stempler/bnd-platform/commit/459cc76a6789cac00ebe691c8351dba8860a6c0f))
+
 ## [3.2.1](https://github.com/stempler/bnd-platform/compare/v3.2.0...v3.2.1) (2025-09-19)
 
 ### Bug Fixes
