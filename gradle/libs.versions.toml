@@ -1,5 +1,5 @@
 [versions]
-bndlib = "7.2.3"
+bndlib = "7.3.0"
 osgi-core = "8.0.0"
 commons-io = "2.22.0"
 gradle-download-task = "5.7.0"
