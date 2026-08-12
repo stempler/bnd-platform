@@ -1,1 +1,2 @@
-amends "https://raw.githubusercontent.com/wetransform/hk-config/refs/tags/v2.1.1/configs/Gradle.pkl"
+amends
+  "package://github.com/wetransform/hk-config/releases/download/v2.5.0/hk-config@2.5.0#/configs/Gradle.pkl"

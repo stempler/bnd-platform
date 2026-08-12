@@ -1,9 +1,13 @@
 [tools]
 java = "temurin-17.0.19+10"
 
-# git hooks
-hk = "latest"
-pkl = "latest"
+# for git hooks
+hk = "1.54.1"
+pkl = "0.32.1"
+
+[env]
+# explicitly use pkl CLI instead of pklr library because the latter does not support all language features needed
+HK_PKL_BACKEND = "pkl"
 
 [hooks]
 enter = "mise x -- hk install --mise"
