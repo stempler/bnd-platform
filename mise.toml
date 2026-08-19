@@ -2,7 +2,7 @@
 java = "temurin-17.0.20+8"
 
 # for git hooks
-hk = "1.55.0"
+hk = "1.56.0"
 pkl = "0.32.1"
 
 [env]
