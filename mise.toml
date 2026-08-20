@@ -1,5 +1,5 @@
 [tools]
-java = "temurin-17.0.20+8"
+java = "temurin-17.0.20+101"
 
 # for git hooks
 hk = "1.56.0"
