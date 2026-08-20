@@ -23,7 +23,7 @@ env:
   SEMANTIC_RELEASE_GIT_VERSION: 11.0.1
 
   # renovate: datasource=npm depName=conventional-changelog-conventionalcommits
-  CONVENTIONAL_CHANGELOG_CONVENTIONALCOMMITS_VERSION: 9.3.1
+  CONVENTIONAL_CHANGELOG_CONVENTIONALCOMMITS_VERSION: 10.4.0
 
 jobs:
   release:
