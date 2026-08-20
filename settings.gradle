@@ -8,7 +8,7 @@ pluginManagement {
 }
 
 plugins {
-	id('to.wetransform.settings.default') version "3.0.0"
+	id('to.wetransform.settings.default') version "3.1.0"
 }
 
 rootProject.name = 'bnd-platform'
