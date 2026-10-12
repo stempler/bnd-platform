@@ -84,7 +84,7 @@ jobs:
 
       - name: Release
         id: release
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        uses: cycjimmy/semantic-release-action@b4630c55afc332e0d8a732e0441849968e5cccaf # v8.0.0
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           RUNNER_DEBUG: 1
