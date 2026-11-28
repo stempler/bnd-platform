@@ -76,7 +76,7 @@ test {
 
 tasks.wrapper {
 	distributionType = Wrapper.DistributionType.ALL
-	gradleVersion = '9.9.2'
+	gradleVersion = '9.9.3'
 }
 
 sourceSets {
